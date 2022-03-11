@@ -2,6 +2,7 @@
 
 
 #include "CustomCharacter.h"
+#include "CharacterLocomotion.h"
 
 //UE4 Includes
 #include "Camera/CameraComponent.h"
@@ -43,7 +44,7 @@ ACustomCharacter::ACustomCharacter(const FObjectInitializer& ObjectInitializer)
 
 
 	//Default Movement Values
-	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
+	ACharacter::GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = DefaultCrouchSpeed;
 }
@@ -110,7 +111,7 @@ bool ACustomCharacter::GetWantsToSprint()
 	return bWantsToSprint;
 }
 
-float ACustomCharacter::GetSprintSpeedModifier() { return SprintSpeedMuliplyer; }
+float ACustomCharacter::GetSprintSpeedModifier() const { return SprintSpeedMuliplyer; }
 
 void ACustomCharacter::SetSprintSpeedModifer(float NewSprintModifer)
 {
@@ -121,7 +122,7 @@ void ACustomCharacter::SetSprintSpeedModifer(float NewSprintModifer)
 
 }
 
-float ACustomCharacter::GetDefaultWalkSpeed() { return DefaultWalkSpeed; }
+float ACustomCharacter::GetDefaultWalkSpeed() const { return DefaultWalkSpeed; }
 
 
 //Forward and Back
@@ -194,14 +195,14 @@ void ACustomCharacter::SetWantsToSprint()
 		{
 			bWantsToSprint = true;
 			WantsToSprint_OnSprintStart.Broadcast();
-			//TODO Add Log FileUE_LOG(LogTPCharacter, Log, TEXT("Character wants to sprint"))
+			UE_LOG(LogCharacterLocomotion, Log, TEXT("Character wants to sprint"))
 
 		}
 		else
 		{
 			bWantsToSprint = false;
 			WantsToNotSprint_OnSptrintStop.Broadcast();
-			//TODO Add Log File UE_LOG(LogTPCharacter, Log, TEXT("Character wants to stop sprint"))
+			UE_LOG(LogCharacterLocomotion, Log, TEXT("Character wants to stop sprint"))
 		}
 	}
 }

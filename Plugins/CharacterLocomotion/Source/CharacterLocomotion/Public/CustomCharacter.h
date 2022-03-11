@@ -37,7 +37,7 @@ public:
 	bool GetWantsToSprint();
 
 	// Called by Movement component to multiply default walk speed
-	float GetSprintSpeedModifier();
+	float GetSprintSpeedModifier() const;
 
 	UFUNCTION()
 	void SetSprintSpeedModifer(float NewSprintModifer);
@@ -45,7 +45,7 @@ public:
 	UFUNCTION()
 	void SetWantsToSprint();
 
-	float GetDefaultWalkSpeed();
+	float GetDefaultWalkSpeed() const;
 
 	UPROPERTY(BlueprintAssignable)
 	FWantsToSprint WantsToSprint_OnSprintStart;
