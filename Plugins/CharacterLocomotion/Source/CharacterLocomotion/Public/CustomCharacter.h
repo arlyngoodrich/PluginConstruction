@@ -99,13 +99,13 @@ protected:
 		float DefaultWalkSpeed = 175;
 
 	UPROPERTY(Replicated, EditDefaultsOnly, Category = "Player Movement")
-		float SprintSpeedMuliplyer = 3;
+		float SprintSpeedMultiplier = 3;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player Movement")
 		float DefaultCrouchSpeed = 150;
 
 	// ==== Damage ====
 
-	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser);
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 };

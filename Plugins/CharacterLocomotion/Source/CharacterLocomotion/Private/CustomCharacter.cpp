@@ -3,6 +3,7 @@
 
 #include "CustomCharacter.h"
 #include "CharacterLocomotion.h"
+#include "CustomCharacterMovementComponent.h"
 
 //UE4 Includes
 #include "Camera/CameraComponent.h"
@@ -15,7 +16,8 @@
 ACustomCharacter::ACustomCharacter(const FObjectInitializer& ObjectInitializer)
 
 
-	: Super(ObjectInitializer.SetDefaultSubobjectClass<ACustomCharacter>(ACharacter::CharacterMovementComponentName))
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UCustomCharacterMovementComponent>(
+		ACharacter::CharacterMovementComponentName))
 
 {
 
@@ -72,9 +74,8 @@ void ACustomCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& Ou
 
 	DOREPLIFETIME(ACustomCharacter, bWantsToSprint);
 	DOREPLIFETIME(ACustomCharacter, bIsSprinting);
-	DOREPLIFETIME(ACustomCharacter, SprintSpeedMuliplyer)
-
-
+	DOREPLIFETIME(ACustomCharacter, SprintSpeedMultiplier);
+	
 }
 
 
@@ -111,13 +112,13 @@ bool ACustomCharacter::GetWantsToSprint()
 	return bWantsToSprint;
 }
 
-float ACustomCharacter::GetSprintSpeedModifier() const { return SprintSpeedMuliplyer; }
+float ACustomCharacter::GetSprintSpeedModifier() const { return SprintSpeedMultiplier; }
 
-void ACustomCharacter::SetSprintSpeedModifer(float NewSprintModifer)
+void ACustomCharacter::SetSprintSpeedModifer(const float NewSprintModifer)
 {
 	if (HasAuthority())
 	{
-		SprintSpeedMuliplyer = NewSprintModifer;
+		SprintSpeedMultiplier = NewSprintModifer;
 	}
 
 }
