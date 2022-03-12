@@ -29,4 +29,7 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere,BlueprintReadOnly,Category="Item Data")
 	FItemData ItemData;
 
+	//Adds GUID and Item in world class to Item Data struct
+	void InitializeItemData();
+
 };

@@ -19,10 +19,10 @@ struct FItemData
 	FText DisplayName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
-	UTexture2D* ItemIconSmall;
+	UTexture2D* ItemIconSmall = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
-	UTexture2D* ItemIconLarge;
+	UTexture2D* ItemIconLarge = nullptr;
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Item Data")
 	TSubclassOf<AItemBase> InWorldClass;
