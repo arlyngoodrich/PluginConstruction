@@ -4,7 +4,7 @@
 	"VersionName": "1.0",
 	"FriendlyName": "InteractionSystem",
 	"Description": "Code plugin for Interaction System between player and actors",
-	"Category": "Other",
+	"Category": "Custom",
 	"CreatedBy": "Arlyn Goodrich",
 	"CreatedByURL": "",
 	"DocsURL": "",
