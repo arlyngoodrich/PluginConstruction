@@ -52,9 +52,9 @@ void UPlayerInteractionSensor::Initialize()
 
 	if(!OwningCharacterCheck)
 	{
-		//UE_LOG(LogInteractionSystem, Error, 
-				//TEXT("Interaction Sensor component does not have a character as owner.  Owner is %s"),
-				//*GetOwner()->GetName()) 
+		UE_LOG(LogInteractionSystem, Error, 
+				TEXT("Interaction Sensor component does not have a character as owner.  Owner is %s"),
+				*GetOwner()->GetName()) 
 	}
 	else
 	{
@@ -68,7 +68,7 @@ void UPlayerInteractionSensor::Initialize()
 		else
 		{
 			OwningController = OwningControllerCheck;
-			//UE_LOG(LogInteractionSystem, Log, TEXT("Interaction Sensor Component successfully initialized on %s"), *GetOwner()->GetName())
+			UE_LOG(LogInteractionSystem, Log, TEXT("Interaction Sensor Component successfully initialized on %s"), *GetOwner()->GetName())
 				
 			ToggleInteraction(true);
 		}

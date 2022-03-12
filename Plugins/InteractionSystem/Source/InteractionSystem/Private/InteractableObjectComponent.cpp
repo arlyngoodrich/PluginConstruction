@@ -5,6 +5,8 @@
 #include "InteractionSystem.h"
 
 //UE4 Includes
+#include "InteractionWidget.h"
+#include "Blueprint/UserWidget.h"
 #include "Components/MeshComponent.h"
 
 // Sets default values for this component's properties
@@ -19,6 +21,14 @@ UInteractableObjectComponent::UInteractableObjectComponent()
 	// ...
 }
 
+// Called when the game starts
+void UInteractableObjectComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// ...
+	
+}
 
 void UInteractableObjectComponent::Interact(AActor* InstigatingActor)
 {
@@ -50,6 +60,7 @@ void UInteractableObjectComponent::ToggleFocus(const bool bNewIsInFocus)
 	if (bNewIsInFocus)
 	{
 		UE_LOG(LogInteractionSystem, Log, TEXT("%s is now in focus"), *GetOwner()->GetName())
+
 		BP_OnStartFocus();
 		
 		if (bShouldOutline)
@@ -57,10 +68,15 @@ void UInteractableObjectComponent::ToggleFocus(const bool bNewIsInFocus)
 			ToggleOutline(true);
 		}
 
+		if(bShouldShowWidget)
+		{
+			AddWidget();
+		}
 	}
 	else
 	{
 		UE_LOG(LogInteractionSystem, Log, TEXT("%s is no longer in focus"), *GetOwner()->GetName())
+
 		BP_OnEndFocus();
 
 		if (bShouldOutline)
@@ -68,20 +84,13 @@ void UInteractableObjectComponent::ToggleFocus(const bool bNewIsInFocus)
 			ToggleOutline(false);
 		}
 
+		if(bShouldShowWidget)
+		{
+			RemoveWidget();
+		}
 	}
-
-	
-
 }
 
-// Called when the game starts
-void UInteractableObjectComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// ...
-	
-}
 
 void UInteractableObjectComponent::ToggleOutline(bool bStartOutline) const
 {
@@ -92,6 +101,39 @@ void UInteractableObjectComponent::ToggleOutline(bool bStartOutline) const
 	{
 		MeshComponents[i]->SetRenderCustomDepth(bStartOutline);
 		MeshComponents[i]->SetCustomDepthStencilValue(OutlineStencilValue);
+	}
+}
+
+void UInteractableObjectComponent::AddWidget()
+{
+
+	if(bShouldShowWidget == false) {return;}
+	
+	//Make sure interaction widget class is valid
+	if(InteractionWidgetClass == nullptr)
+		{
+			UE_LOG(LogInteractionSystem,Error,TEXT("Set Interaction Widget Class for %s"),*GetClass()->GetName())
+
+			return;
+		}
+
+	InteractionWidget = Cast<UInteractionWidget>(CreateWidget(GetWorld(), InteractionWidgetClass.Get()));
+
+	//Add to viewport if widget successfully created
+	if(InteractionWidget)
+	{
+		InteractionWidget->AddToViewport();
+		InteractionWidget->InteractionText = InteractionText;
+	}
+	
+}
+
+void UInteractableObjectComponent::RemoveWidget()
+{
+	if(InteractionWidget)
+	{
+		InteractionWidget->RemoveFromParent();
+		InteractionWidget = nullptr;
 	}
 }
 

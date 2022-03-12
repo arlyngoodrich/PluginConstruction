@@ -13,5 +13,10 @@ UCLASS()
 class INTERACTIONSYSTEM_API UInteractionWidget : public UUserWidget
 {
 	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(BlueprintReadOnly, Category="Interaction System")
+	FText InteractionText;
 	
 };

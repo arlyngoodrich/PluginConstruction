@@ -8,6 +8,9 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionTriggeredDelegate, AActor*, InstigatingActor);
 
+class UInteractionWidget;
+class APlayerController;
+
 UCLASS( ClassGroup=(InteractionSystem), Blueprintable, meta=(BlueprintSpawnableComponent) )
 class INTERACTIONSYSTEM_API UInteractableObjectComponent : public UActorComponent
 {
@@ -32,11 +35,20 @@ protected:
 	bool bShouldOutline;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction System")
+	int32 OutlineStencilValue;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction System")
 	FText InteractionText;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction System")
-	int32 OutlineStencilValue;
+	bool bShouldShowWidget;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction System", meta = (EditCondition = "bShouldShowWdiget"))
+	TSubclassOf<UInteractionWidget> InteractionWidgetClass;
 
+	UPROPERTY()
+	UInteractionWidget* InteractionWidget;
+	
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction System", DisplayName = "On Focus Start")
 	void BP_OnStartFocus();
 
@@ -50,5 +62,9 @@ protected:
 	bool bIsInFocus;
 
 	void ToggleOutline(bool bStartOutline) const;
+
+	void AddWidget();
+
+	void RemoveWidget();
 		
 };
