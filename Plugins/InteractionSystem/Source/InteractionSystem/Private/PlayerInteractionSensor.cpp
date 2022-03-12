@@ -2,6 +2,7 @@
 
 
 #include "PlayerInteractionSensor.h"
+#include "InteractionSystem.h"
 
 ///UE4 Includes 
 #include "GameFramework/Character.h"
@@ -114,11 +115,11 @@ void UPlayerInteractionSensor::ToggleInteraction(bool bShouldCheckForInteraction
 
 	if (bShouldCheckForInteraction)
 	{
-		//UE_LOG(LogInteractionSystem,Log,TEXT("Interaction Started for %s"),*GetOwner()->GetName())
+		UE_LOG(LogInteractionSystem,Log,TEXT("Interaction Started for %s"),*GetOwner()->GetName())
 	}
 	else
 	{
-		//UE_LOG(LogInteractionSystem,Log,TEXT("Interaction Stopped for %s"),*GetOwner()->GetName())
+		UE_LOG(LogInteractionSystem,Log,TEXT("Interaction Stopped for %s"),*GetOwner()->GetName())
 	}
 }
 

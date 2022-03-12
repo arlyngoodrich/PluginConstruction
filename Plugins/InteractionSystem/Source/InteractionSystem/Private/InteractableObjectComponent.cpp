@@ -2,6 +2,7 @@
 
 
 #include "InteractableObjectComponent.h"
+#include "InteractionSystem.h"
 
 //UE4 Includes
 #include "Components/MeshComponent.h"
@@ -24,31 +25,31 @@ void UInteractableObjectComponent::Interact(AActor* InstigatingActor)
 
 	if (!InstigatingActor)
 	{
-		//UE_LOG(LogInteractionSystem, Error, TEXT("Interaction triggered on %s by null instigator"), *GetOwner()->GetName())
+		UE_LOG(LogInteractionSystem, Error, TEXT("Interaction triggered on %s by null instigator"), *GetOwner()->GetName())
 		return;
 	}
 
 	if (GetOwnerRole() == ROLE_Authority)
 	{
-		//UE_LOG(LogInteractionSystem, Log, TEXT("Interaction called on %s"), *GetOwner()->GetName())
+		UE_LOG(LogInteractionSystem, Log, TEXT("Interaction called on %s"), *GetOwner()->GetName())
 
 		BP_OnInteractionTriggered(InstigatingActor);
 		OnInteractionTriggered.Broadcast(InstigatingActor);
 	}
 	else
 	{
-		//UE_LOG(LogInteractionSystem,Warning,TEXT("Attempting to call interact with non-authority for %s"),*GetOwner()->GetName())
+		UE_LOG(LogInteractionSystem,Warning,TEXT("Attempting to call interact with non-authority for %s"),*GetOwner()->GetName())
 	}
 
 }
 
-void UInteractableObjectComponent::ToggleFocus(bool bNewIsInFocus)
+void UInteractableObjectComponent::ToggleFocus(const bool bNewIsInFocus)
 {
 	bIsInFocus = bNewIsInFocus;
 
 	if (bNewIsInFocus)
 	{
-		//UE_LOG(LogInteractionSystem, Log, TEXT("%s is now in focus"), *GetOwner()->GetName())
+		UE_LOG(LogInteractionSystem, Log, TEXT("%s is now in focus"), *GetOwner()->GetName())
 		BP_OnStartFocus();
 		
 		if (bShouldOutline)
@@ -59,7 +60,7 @@ void UInteractableObjectComponent::ToggleFocus(bool bNewIsInFocus)
 	}
 	else
 	{
-		//UE_LOG(LogInteractionSystem, Log, TEXT("%s is no longer in focus"), *GetOwner()->GetName())
+		UE_LOG(LogInteractionSystem, Log, TEXT("%s is no longer in focus"), *GetOwner()->GetName())
 		BP_OnEndFocus();
 
 		if (bShouldOutline)
