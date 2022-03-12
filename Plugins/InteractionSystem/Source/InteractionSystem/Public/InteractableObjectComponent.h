@@ -32,6 +32,9 @@ protected:
 	bool bShouldOutline;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction System")
+	FText InteractionText;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction System")
 	int32 OutlineStencilValue;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction System", DisplayName = "On Focus Start")
