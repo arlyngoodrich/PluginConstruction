@@ -2,9 +2,9 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "1.0",
-	"FriendlyName": "CharacterLocomotion",
-	"Description": "Plugin containing code for multiplayer character locomotion.",
-	"Category": "Custom",
+	"FriendlyName": "InteractionSystem",
+	"Description": "Code plugin for Interaction System between player and actors",
+	"Category": "Other",
 	"CreatedBy": "Arlyn Goodrich",
 	"CreatedByURL": "",
 	"DocsURL": "",
@@ -16,7 +16,7 @@
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "CharacterLocomotion",
+			"Name": "InteractionSystem",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}
