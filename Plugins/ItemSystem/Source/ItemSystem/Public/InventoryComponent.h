@@ -23,7 +23,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
-	FVector2D InventorySize;
+	FInventory2D InventorySize;
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
 	float MaxWeight;
@@ -33,6 +33,7 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly,Category="Inventory Data")
 	TArray<FInventoryItemData> Inventory;
-	
+
+	void InitializeSlots();
 	
 };

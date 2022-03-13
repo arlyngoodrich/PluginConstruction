@@ -8,6 +8,33 @@
 class AItemBase;
 
 USTRUCT(BlueprintType)
+struct FInventory2D 
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Inventory Position")
+	int32 X;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Inventory Position")
+	int32 Y;
+
+	FInventory2D()
+	{
+		X = 1;
+		Y = 1;
+	}
+
+	FInventory2D(const int32 InX, const int32 InY)
+	{
+		X = InX;
+		Y = InY;
+	}
+
+	
+};
+
+
+USTRUCT(BlueprintType)
 struct FItemData 
 {
 	GENERATED_USTRUCT_BODY()
@@ -28,7 +55,7 @@ struct FItemData
 	TSubclassOf<AItemBase> InWorldClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
-	FVector2D ItemSize;
+	FInventory2D ItemSize;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
 	float PerItemWeight;
@@ -51,12 +78,14 @@ struct FInventorySlot
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(BlueprintReadOnly, Category = "Inventory Data")
-	FVector2D Position;
+	FInventory2D Position;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Inventory Data")
 	bool bIsOccupied;	
 	
 };
+
+
 
 USTRUCT(BlueprintType)
 struct FInventoryItemData 
@@ -64,7 +93,7 @@ struct FInventoryItemData
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(BlueprintReadOnly, Category = "Inventory Data")
-	FVector2D StartPosition;
+	FInventory2D StartPosition;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Inventory Data")
 	FItemData Item;	

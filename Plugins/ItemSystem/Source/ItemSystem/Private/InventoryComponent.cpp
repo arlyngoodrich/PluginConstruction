@@ -10,6 +10,10 @@ UInventoryComponent::UInventoryComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
 
+	InventorySize.X = 2;
+	InventorySize.Y = 2;
+
+	
 	// ...
 }
 
@@ -20,6 +24,15 @@ void UInventoryComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
+	
+}
+
+void UInventoryComponent::InitializeSlots()
+{
+	for (int x = 0; x < InventorySize.X; ++x)
+	{
+		
+	}
 	
 }
 

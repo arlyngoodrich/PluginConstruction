@@ -18,7 +18,7 @@ AItemBase::AItemBase()
 	ItemData.ItemQuantity = 1;
 	ItemData.PerItemWeight = 1.f;
 	ItemData.bShouldItemStack = false;
-	ItemData.ItemSize = FVector2D(1,1);
+	ItemData.ItemSize = FInventory2D(1,1);
 	
 	
 
