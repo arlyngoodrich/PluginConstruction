@@ -44,3 +44,29 @@ struct FItemData
 	float ItemHealth;
 	
 };
+
+USTRUCT(BlueprintType)
+struct FInventorySlot 
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Inventory Data")
+	FVector2D Position;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Inventory Data")
+	bool bIsOccupied;	
+	
+};
+
+USTRUCT(BlueprintType)
+struct FInventoryItemData 
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Inventory Data")
+	FVector2D StartPosition;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Inventory Data")
+	FItemData Item;	
+	
+};
