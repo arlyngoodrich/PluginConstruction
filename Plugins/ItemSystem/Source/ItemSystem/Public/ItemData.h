@@ -29,7 +29,19 @@ struct FInventory2D
 		X = InX;
 		Y = InY;
 	}
+	
 
+	bool IsEqualTo(const FInventory2D In2D) const
+	{
+		if(In2D.X == X && In2D.Y == Y)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 	
 };
 
@@ -46,10 +58,10 @@ struct FItemData
 	FText DisplayName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
-	UTexture2D* ItemIconSmall = nullptr;
+	UTexture2D* ItemIconSmall;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
-	UTexture2D* ItemIconLarge = nullptr;
+	UTexture2D* ItemIconLarge;
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Item Data")
 	TSubclassOf<AItemBase> InWorldClass;
@@ -69,33 +81,37 @@ struct FItemData
 	//Should be between 0 and 1 and be displayed as a percent
 	UPROPERTY( BlueprintReadOnly, Category = "Item Data")
 	float ItemHealth;
+
+	FItemData() 
+	{
+		ItemGuid.Invalidate();
+		ItemIconSmall = nullptr;
+		ItemIconLarge = nullptr;
+		InWorldClass = nullptr;
+		ItemHealth = 1; 
+		ItemQuantity = 1;
+		bShouldItemStack = false;
+		PerItemWeight=  1;
+	}
+
+	float GetStackWeight() const
+	{
+		return PerItemWeight * ItemQuantity;
+	}
+
+	bool IsEqualTo(const FItemData InItem) const
+	{
+		return ItemGuid == InItem.ItemGuid;
+	}
+
+	bool operator==(const FItemData& Item) const
+	{
+		return ItemGuid == Item.ItemGuid;
+	}
 	
 };
 
-USTRUCT(BlueprintType)
-struct FInventorySlot 
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(BlueprintReadOnly, Category = "Inventory Data")
-	FInventory2D Position;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Inventory Data")
-	bool bIsOccupied;	
-	
-};
 
 
 
-USTRUCT(BlueprintType)
-struct FInventoryItemData 
-{
-	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "Inventory Data")
-	FInventory2D StartPosition;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Inventory Data")
-	FItemData Item;	
-	
-};

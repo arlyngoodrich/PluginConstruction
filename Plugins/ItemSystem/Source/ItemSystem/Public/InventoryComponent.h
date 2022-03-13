@@ -5,9 +5,8 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "ItemData.h"
+#include "InventoryData.h"
 #include "InventoryComponent.generated.h"
-
-
 
 UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent) )
 class ITEMSYSTEM_API UInventoryComponent : public UActorComponent
@@ -23,16 +22,19 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
+	FText InventoryName;
+	
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Invetory Data")
 	FInventory2D InventorySize;
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
 	float MaxWeight;
 
-	UPROPERTY(BlueprintReadOnly,Category="Inventory Data")
+	UPROPERTY(BlueprintReadOnly, Category="Inventory Data")
 	TArray<FInventorySlot> InventorySlots;
 
-	UPROPERTY(BlueprintReadOnly,Category="Inventory Data")
-	TArray<FInventoryItemData> Inventory;
+	UPROPERTY(BlueprintReadOnly,Category="Inventory Data");
+	TArray<FInventoryItemData> InventoryItems;
 
 	void InitializeSlots();
 	
