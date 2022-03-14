@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "ItemData.h"
-#include "ItemBase.h"
 #include "InventoryData.generated.h"
 
 USTRUCT(BlueprintType)
@@ -36,6 +35,7 @@ struct FInventorySlot
 		return Position.IsEqualTo(InventorySlot.Position);
 	}
 	
+	
 };
 
 
@@ -57,6 +57,12 @@ struct FInventoryItemData
 		Item = FItemData();
 	}
 
+	FInventoryItemData(const FInventory2D InPosition, const FItemData InItem)
+	{
+		StartPosition = InPosition;
+		Item = InItem;
+	}
+
 
 	TArray<FInventory2D> GetCoveredSlots() const
 	{
@@ -75,19 +81,9 @@ struct FInventoryItemData
 		return  CoveredSlots;
 	}
 
-	bool operator==(const FInventory2D& Position) const
+	bool operator==(const FInventoryItemData& InventoryItemData) const
 	{
-		return StartPosition.IsEqualTo(Position);
-	}
-
-	bool operator==(const FItemData& ItemData) const
-	{
-		return Item.IsEqualTo(ItemData);
-	}
-
-	bool operator==(const TSubclassOf<AItemBase>& ItemClass) const
-	{
-		return Item.InWorldClass == ItemClass;
-	}
+		return Item.IsEqualTo(InventoryItemData.Item);
+	}  
 	
 };

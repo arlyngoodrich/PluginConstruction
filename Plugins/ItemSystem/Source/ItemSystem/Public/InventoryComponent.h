@@ -30,12 +30,16 @@ protected:
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
 	float MaxWeight;
 
-	UPROPERTY(BlueprintReadOnly, Category="Inventory Data")
+	UPROPERTY(Replicated, BlueprintReadOnly, Category="Inventory Data")
 	TArray<FInventorySlot> InventorySlots;
 
-	UPROPERTY(BlueprintReadOnly,Category="Inventory Data");
+	UPROPERTY(Replicated, BlueprintReadOnly,Category="Inventory Data");
 	TArray<FInventoryItemData> InventoryItems;
 
 	void InitializeSlots();
+
+	void SetInventory(TArray<FInventoryItemData> InInventoryItems);
+
+	bool CheckIfItemFits(FInventoryItemData InventoryItemData, FInventory2D TargetPosition);
 	
 };
