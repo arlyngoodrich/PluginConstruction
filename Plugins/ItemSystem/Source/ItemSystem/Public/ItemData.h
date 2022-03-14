@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "CoreMinimal.h"
 #include "ItemData.generated.h"
 
@@ -29,7 +31,19 @@ struct FInventory2D
 		X = InX;
 		Y = InY;
 	}
-	
+
+	FString GetPositionAsString()
+	{
+		FString Position;
+
+		Position.Append("(");
+		Position.AppendInt(X);
+		Position.Append(",");
+		Position.AppendInt(Y);
+		Position.Append(")");
+
+		return Position;
+	}
 
 	bool IsEqualTo(const FInventory2D In2D) const
 	{

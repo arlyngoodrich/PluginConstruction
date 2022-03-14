@@ -57,15 +57,102 @@ void UInventoryComponent::SetInventory(TArray<FInventoryItemData> InInventoryIte
 {
 	InitializeSlots();
 
+	TArray<bool> ItemAddedChecks;
+
+	//Cycle through all items to add
+	for (int i = 0; i < InInventoryItems.Num(); ++i)
+	{
+		const FInventoryItemData NewItem = InInventoryItems[i];
+		bool WasItemAdded = AddItemToPosition(NewItem.Item,NewItem.StartPosition);
+		
+		ItemAddedChecks.Add(WasItemAdded);
+	}
+
+	if(ItemAddedChecks.Contains(false))
+	{
+		UE_LOG(LogItemSystem,Error,TEXT("Failed to Set Inventory for %s"),*GetOwner()->GetName());
+	}
+}
+
+bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInventory2D Position)
+{
+
+	FInventorySlot Slot;
+	const bool isValidSlot = FindSlotAtPosition(Position,Slot);
 	
+	if(isValidSlot == false || Slot.bIsOccupied == true)
+	{
+		return false;
+	}
+	else
+	{
+		if(CheckIfItemFits(Item,Slot.Position))
+		{
+			const FInventoryItemData NewInventoryItem = FInventoryItemData(Slot.Position,Item);
+
+			if(SetSlotStatuses(NewInventoryItem.GetCoveredSlots(),true))
+			{
+				InventoryItems.Add(NewInventoryItem);
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+			
+		
+		}
+		else
+		{
+			return false;
+		}
+	}
+}
+
+bool UInventoryComponent::SetSlotStatus(FInventory2D TargetPosition, const bool NewIsOccupied)
+{
+
+	int32 SlotIndex;
+	if(FindSlotAtPosition(TargetPosition,SlotIndex))
+	{
+		InventorySlots[SlotIndex].bIsOccupied = NewIsOccupied;
+		UE_LOG(LogItemSystem,Log,TEXT("%s inventory updated slot %s to %s"),
+			*GetOwner()->GetName(),*TargetPosition.GetPositionAsString(), NewIsOccupied? "true" : "false")
+		return true;
+	}
+	else
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("Could not find %s in %s inventory to set status"),
+			*TargetPosition.GetPositionAsString(),*GetOwner()->GetName())
+		return false;
+	}
+}
+
+bool UInventoryComponent::SetSlotStatuses(TArray<FInventory2D> TargetSlotPositions, bool NewIsOccupied)
+{
+
+	TArray<bool> SlotChecks;
 	
+	for (int i = 0; i < TargetSlotPositions.Num(); ++i)
+	{
+		bool SlotCheck = SetSlotStatus(TargetSlotPositions[i], NewIsOccupied);
+		SlotChecks.Add(SlotCheck);
+	}
+
+	if(SlotChecks.Contains(false))
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
 }
 
 
-bool UInventoryComponent::CheckIfItemFits(FInventoryItemData InventoryItemData, const FInventory2D TargetPosition)
+bool UInventoryComponent::CheckIfItemFits(const FItemData ItemData, const FInventory2D TargetPosition)
 {
-	
-	InventoryItemData.StartPosition = TargetPosition;
+	const FInventoryItemData InventoryItemData = FInventoryItemData(TargetPosition,ItemData);
 	const TArray<FInventory2D> CoveredSlots = InventoryItemData.GetCoveredSlots();
 
 	for (int i = 0; i < CoveredSlots.Num(); ++i)
@@ -95,4 +182,39 @@ bool UInventoryComponent::CheckIfItemFits(FInventoryItemData InventoryItemData, 
 	return true;
 	
 }
+
+
+
+bool UInventoryComponent::FindSlotAtPosition(FInventory2D TargetPosition, FInventorySlot& OutSlot)
+{
+	const FInventorySlot DummySlot = FInventorySlot(TargetPosition,false);
+
+	int32 Index;
+	if(InventorySlots.Find(DummySlot,Index))
+	{
+		OutSlot = InventorySlots[Index];
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool UInventoryComponent::FindSlotAtPosition(FInventory2D TargetPosition, int32& OutIndex) const
+{
+	const FInventorySlot DummySlot = FInventorySlot(TargetPosition,false);
+	
+	int32 SlotIndex;
+	if(InventorySlots.Find(DummySlot,SlotIndex))
+	{
+		OutIndex = SlotIndex;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 

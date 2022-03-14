@@ -40,6 +40,17 @@ protected:
 
 	void SetInventory(TArray<FInventoryItemData> InInventoryItems);
 
-	bool CheckIfItemFits(FInventoryItemData InventoryItemData, FInventory2D TargetPosition);
+	bool CheckIfItemFits(FItemData ItemData, FInventory2D TargetPosition);
+		
+	bool AddItemToPosition(FItemData Item, FInventory2D Position);
+
+	bool SetSlotStatus(FInventory2D TargetPosition, bool NewIsOccupied);
+
+	bool SetSlotStatuses(TArray<FInventory2D> TargetPositions, bool NewIsOccupied);
+
+	bool FindSlotAtPosition(FInventory2D TargetPosition, FInventorySlot& OutSlot);
+
+	bool FindSlotAtPosition(FInventory2D TargetPosition, int32& OutIndex) const;
+	
 	
 };
