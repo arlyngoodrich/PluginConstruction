@@ -58,6 +58,13 @@ protected:
 	//Adds and item to a position.  Will return false if: Position not found, item is not valid, weight cannot be added
 	bool AddItemToPosition(FItemData Item, FInventory2D Position);
 
+	//Checks for Item's GUID and removes it.  Does not invalidate item -- just removes item and weight from inventory.
+	//Will return false if Item GUID not found in inventory. 
+	bool RemoveInventoryItem(FInventoryItemData TargetInventoryItem);
+	
+	//Given a position, will return the item in that position.  True if an item is found and false if no item is found.
+	bool FindInventoryItemAtPosition(FInventory2D Position, FInventoryItemData& OutInventoryItemData);
+
 	//Given a positions, will update the slot statuses to the NewIsOccupied.  Will return false if the position
 	//could not be found in the InventorySlot array.
 	bool SetSlotStatus(FInventory2D TargetPosition, bool NewIsOccupied);

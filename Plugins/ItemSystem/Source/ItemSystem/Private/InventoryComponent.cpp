@@ -123,6 +123,11 @@ bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInvento
 			{
 				InventoryItems.Add(NewInventoryItem);
 				AddWeight(Item);
+
+				UE_LOG(LogItemSystem,Log,TEXT("Added %s item to position %s in %s inventory"),
+					*Item.DisplayName.ToString(),*Position.GetPositionAsString(),
+					*GetOwner()->GetName())
+				
 				return true;
 			}
 			else
@@ -141,7 +146,46 @@ bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInvento
 	}
 }
 
-bool UInventoryComponent::SetSlotStatus(FInventory2D TargetPosition, const bool NewIsOccupied)
+bool UInventoryComponent::RemoveInventoryItem(FInventoryItemData TargetInventoryItem)
+{
+	int32 ItemIndex;
+	if(InventoryItems.Find(TargetInventoryItem,ItemIndex))
+	{
+		RemoveWeight(InventoryItems[ItemIndex].Item);
+		InventoryItems.RemoveAt(ItemIndex);
+
+		UE_LOG(LogItemSystem,Log,TEXT("Removed %s item from position %s in %s inventory"),
+			*TargetInventoryItem.Item.DisplayName.ToString(),*TargetInventoryItem.StartPosition.GetPositionAsString(),
+			*GetOwner()->GetName());
+		
+		return true;
+		
+	}
+	else
+	{
+		UE_LOG(LogItemSystem, Warning, TEXT("Attempted to remove %s item from %s inventory but could not match GUID"),
+			*TargetInventoryItem.Item.DisplayName.ToString(),*GetOwner()->GetName())
+		return false;
+	}
+}
+
+bool UInventoryComponent::FindInventoryItemAtPosition(const FInventory2D Position, FInventoryItemData& OutInventoryItemData)
+{
+	for (int i = 0; i < InventoryItems.Num(); ++i)
+	{
+		FInventoryItemData TargetInventoryItem = InventoryItems[i];
+
+		if(TargetInventoryItem.StartPosition == Position)
+		{
+			OutInventoryItemData = TargetInventoryItem;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const bool NewIsOccupied)
 {
 
 	int32 SlotIndex;

@@ -32,7 +32,7 @@ struct FInventory2D
 		Y = InY;
 	}
 
-	FString GetPositionAsString()
+	FString GetPositionAsString() const
 	{
 		FString Position;
 
@@ -56,7 +56,11 @@ struct FInventory2D
 			return false;
 		}
 	}
-	
+
+	bool operator==(const FInventory2D& Position) const
+	{
+		return (X == Position.X && Y == Position.Y);
+	}
 };
 
 
