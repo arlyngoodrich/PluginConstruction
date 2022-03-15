@@ -34,7 +34,7 @@ protected:
 	float MaxWeight;
 
 	//Current weight of the inventory
-	UPROPERTY(BlueprintReadOnly,Category="Inventory Data")
+	UPROPERTY(Replicated, BlueprintReadOnly,Category="Inventory Data")
 	float CurrentWeight;
 
 	//Array of slots that can hold items in the inventory

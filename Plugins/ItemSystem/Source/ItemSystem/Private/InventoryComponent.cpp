@@ -26,6 +26,7 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >&
 
 	DOREPLIFETIME(UInventoryComponent, InventorySlots);
 	DOREPLIFETIME(UInventoryComponent, InventoryItems);
+	DOREPLIFETIME(UInventoryComponent, CurrentWeight);
 }
 
 
@@ -204,14 +205,14 @@ bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const
 	}
 }
 
-bool UInventoryComponent::SetSlotStatuses(TArray<FInventory2D> TargetSlotPositions, bool NewIsOccupied)
+bool UInventoryComponent::SetSlotStatuses(TArray<FInventory2D> TargetPositions, const bool NewIsOccupied)
 {
 
 	TArray<bool> SlotChecks;
 	
-	for (int i = 0; i < TargetSlotPositions.Num(); ++i)
+	for (int i = 0; i < TargetPositions.Num(); ++i)
 	{
-		bool SlotCheck = SetSlotStatus(TargetSlotPositions[i], NewIsOccupied);
+		bool SlotCheck = SetSlotStatus(TargetPositions[i], NewIsOccupied);
 		SlotChecks.Add(SlotCheck);
 	}
 
