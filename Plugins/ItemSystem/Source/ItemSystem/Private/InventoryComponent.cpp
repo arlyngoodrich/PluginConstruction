@@ -2,6 +2,8 @@
 
 
 #include "InventoryComponent.h"
+
+#include "ItemBase.h"
 #include "ItemSystem.h"
 #include "Net/UnrealNetwork.h"
 
@@ -63,6 +65,7 @@ void UInventoryComponent::SetInventory(TArray<FInventoryItemData> InInventoryIte
 	for (int i = 0; i < InInventoryItems.Num(); ++i)
 	{
 		const FInventoryItemData NewItem = InInventoryItems[i];
+		
 		bool WasItemAdded = AddItemToPosition(NewItem.Item,NewItem.StartPosition);
 		
 		ItemAddedChecks.Add(WasItemAdded);
@@ -77,33 +80,62 @@ void UInventoryComponent::SetInventory(TArray<FInventoryItemData> InInventoryIte
 bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInventory2D Position)
 {
 
-	FInventorySlot Slot;
-	const bool isValidSlot = FindSlotAtPosition(Position,Slot);
+	//Make sure valid item, if not return false
+	if(CheckIfItemValid(Item) == false)
+	{
+		UE_LOG(LogItemSystem,Warning, TEXT("Attempting to add %s to %s inventory with invalid GUID"),
+			*Item.DisplayName.ToString(),*GetOwner()->GetName())
+		return false;
+	}
+
+	//Make sure enough weight for item, if note return false
+	if(CheckIfItemWeightOK(Item) == false)
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("%s inventory does not have enought wieght capacity for %s item"),
+			*GetOwner()->GetName(),*Item.DisplayName.ToString())
+		return false;
+	}
 	
-	if(isValidSlot == false || Slot.bIsOccupied == true)
+	FInventorySlot TargetSlot;
+	const bool bIsValidSlot = FindSlotAtPosition(Position,TargetSlot);
+
+	//Check if the slot is valid
+	if(bIsValidSlot == false)
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("Attempting to add item %s to invalid slot in %s inventory"),
+			*Item.DisplayName.ToString(),*GetOwner()->GetName())
+		return false;
+	}
+
+	//If target slot is occupied return false.  No need to log since occupied slots are expected
+	if(TargetSlot.bIsOccupied == true)
 	{
 		return false;
 	}
 	else
 	{
-		if(CheckIfItemFits(Item,Slot.Position))
+		//See if it will fit in the target slot by checking the slots that would be covered to see if they're occupied
+		if(CheckIfItemFits(Item,TargetSlot.Position))
 		{
-			const FInventoryItemData NewInventoryItem = FInventoryItemData(Slot.Position,Item);
+			const FInventoryItemData NewInventoryItem = FInventoryItemData(TargetSlot.Position,Item);
 
 			if(SetSlotStatuses(NewInventoryItem.GetCoveredSlots(),true))
 			{
 				InventoryItems.Add(NewInventoryItem);
+				AddWeight(Item);
 				return true;
 			}
 			else
 			{
+				//Would be false here if there was an issue setting the slot statuses.  
+				UE_LOG(LogItemSystem,Error,TEXT("%s could not be added to %s inventory for unknown reason"),
+					*Item.DisplayName.ToString(),*GetOwner()->GetName())
 				return false;
 			}
-			
-		
 		}
 		else
 		{
+			//Returns false if the item could not fit at the target slot 
 			return false;
 		}
 	}
@@ -216,5 +248,31 @@ bool UInventoryComponent::FindSlotAtPosition(FInventory2D TargetPosition, int32&
 		return false;
 	}
 }
+
+bool UInventoryComponent::CheckIfItemValid(const FItemData ItemData)
+{
+	
+	return ItemData.ItemGuid.IsValid() && ItemData.InWorldClass != nullptr;
+}
+
+
+bool UInventoryComponent::CheckIfItemWeightOK(const FItemData ItemData) const
+{
+	return (CurrentWeight + ItemData.GetStackWeight() <= MaxWeight);
+}
+
+void UInventoryComponent::AddWeight(const FItemData ItemData)
+{
+	const float WeightToAdd = ItemData.GetStackWeight();
+	CurrentWeight = FMath::Clamp(CurrentWeight + WeightToAdd,0.f,MaxWeight);
+}
+
+void UInventoryComponent::RemoveWeight(const FItemData ItemData)
+{
+	const float WeightToRemove = ItemData.GetStackWeight();
+	CurrentWeight = FMath::Clamp(CurrentWeight - WeightToRemove,0.f,MaxWeight);
+}
+
+
 
 
