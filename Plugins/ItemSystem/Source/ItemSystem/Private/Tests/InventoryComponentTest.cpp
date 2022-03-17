@@ -250,3 +250,57 @@ bool FWeightSummationTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FInventoryPartiallyRemoveItem,"Inventory.PartiallyRemoveItem",
+								 EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FInventoryPartiallyRemoveItem::RunTest(const FString& Parameters)
+{
+	//Create World
+	UWorld* World = FAutomationEditorCommonUtils::CreateNewMap();
+
+	//Create Actor
+	AActor* Actor = World->SpawnActor<AActor>();
+	TestTrue(TEXT("Test Actor is not valid"),IsValid(Actor));
+
+	//Create and Add Component to Actor
+	const FName CompName("InventoryComp");
+	UInventoryComponent* InventoryComponent = NewObject<UInventoryComponent>(Actor,CompName);
+	TestTrue(TEXT("Invetory Comp is not valid"),IsValid(InventoryComponent));
+
+	InventoryComponent->RegisterComponent();
+	TestTrue(TEXT("Inventory failed to initialize"),InventoryComponent->GetSlotCount()>0);
+	
+	//Create a valid item to add to inventory
+	constexpr int32 ItemQuantity = 3;
+	const FItemData NewItem = FItemData::NewItem
+		(
+			"TestItem",
+			AItemBase::StaticClass(),
+			FInventory2D(1,1),
+			ItemQuantity,
+			false,
+			1.f
+		);
+
+	//Make sure item was added
+	const bool bAutoAddSuccess = InventoryComponent->AutoAddItem(NewItem);
+	TestTrue(TEXT("Item was not added to inventory"),bAutoAddSuccess);
+
+	int32 QuantityRemaining;
+	const bool bWasClassFoundToRemove = InventoryComponent->ReduceQuantityOfItemByStaticClass(
+		AItemBase::StaticClass(), ItemQuantity - 1, QuantityRemaining);
+
+	TestTrue(TEXT("Class was not found to be removed"),bWasClassFoundToRemove);
+
+	//Make sure there is still one item in the inventory
+	const int32 ItemsInInventory = InventoryComponent->GetItemCount();
+	TestTrue(TEXT("There is not 1 item in inventory"),ItemsInInventory == 1);
+
+	//Make sure weight was reduced
+	const float ExpectedWeight = NewItem.PerItemWeight;
+	const float InventoryWeight = InventoryComponent->GetInventoryWeight();
+	TestEqual(TEXT("Inventory weight is different than expected"),InventoryWeight,ExpectedWeight);
+
+	//UE_LOG(LogItemSystem,Log,TEXT("%s result: Item was successfully partially removed"),*GetBeautifiedTestName())	
+	return true;
+}

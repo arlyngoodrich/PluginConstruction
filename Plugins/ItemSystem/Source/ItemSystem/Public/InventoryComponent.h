@@ -36,6 +36,23 @@ public:
 	//or Item cannot fit in any positions
 	bool AutoAddItem(FItemData Item);
 
+	//Cycles through items in inventory that matches the item's exact class and will remove as much of the quantity to
+	//remove as possible.
+	//Will return false if a matching item class could not be found in the inventory
+	bool ReduceQuantityOfItemByStaticClass(TSubclassOf<AItemBase> ItemClass, int32 QuantityToRemove,
+	                                       int32& OutAmountNotRemoved);
+	
+	//Checks for Items by GUID and Position and reduces it's item quantity.
+	//Will fully remove item if the removal amount is greater than or equal to the current amount
+	//Will return false if the Item GUID and position not found in inventory
+	bool ReduceQuantityOfInventoryItem(FInventoryItemData TargetInventoryItem, int32 QuantityToRemove,
+									   int32& OutAmountNotRemoved);
+	
+	//Checks for Items by GUID and Position and removes it.
+	//Does not invalidate item -- just removes item and weight from inventory.
+	//Will return false if Item GUID and position not found in inventory. 
+	bool FullyRemoveInventoryItem(FInventoryItemData TargetInventoryItem);
+
 	//Checks to see if Item is in Inventory.  Checks for matching Item GUIDs. Returns true if found
 	bool IsItemInInventory(FItemData Item);
 
@@ -87,10 +104,6 @@ protected:
 	//Checks if the item will fit into a given position by check slots that would be covered by the item.  Returns false
 	//if it will not fit and true if it will. 
 	bool CheckIfItemFits(FItemData ItemData, FInventory2D TargetPosition);
-
-	//Checks for Item's GUID and removes it.  Does not invalidate item -- just removes item and weight from inventory.
-	//Will return false if Item GUID not found in inventory. 
-	bool RemoveInventoryItem(FInventoryItemData TargetInventoryItem);
 	
 	//Given a position, will return the item in that position.  True if an item is found and false if no item is found.
 	bool FindInventoryItemAtPosition(FInventory2D Position, FInventoryItemData& OutInventoryItemData);
@@ -118,13 +131,18 @@ protected:
 	bool CheckIfItemWeightOK(FItemData ItemData) const;
 
 	//Helper function that checks if the item is valid and that it's weight can be added
-	bool AddItemChecks(FItemData ItemToCheck);
+	bool AddItemChecks(FItemData ItemToCheck) const;
 
 	//Adds the weight of Item's stack to the current weight.  Clamped between 0 and MaxWeight.
 	void AddWeight(FItemData ItemData);
 
+	//Adds a specific amount of weight to the current weight.  Use items getting stacked when added
+	void AddWeight(float AddWeight);
+
 	//Removes the weight of Item's stack from the current weight.  Clamped between 0 and MaxWeight.
 	void RemoveWeight(FItemData ItemData);
-	
+
+	void RemoveWeight(float RemoveWeight);
+
 	
 };

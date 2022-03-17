@@ -5,6 +5,7 @@
 
 #include "ItemBase.h"
 #include "ItemSystem.h"
+#include "BehaviorTree/BehaviorTreeTypes.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
@@ -170,6 +171,126 @@ bool UInventoryComponent::AutoAddItem(const FItemData Item)
 	
 }
 
+bool UInventoryComponent::ReduceQuantityOfItemByStaticClass(const TSubclassOf<AItemBase> ItemClass, int32 QuantityToRemove,
+                                                            int32& OutAmountNotRemoved)
+{
+	
+	//Cycle through all items in the inventory
+	for (int i = 0; i < InventoryItems.Num(); ++i)
+	{
+		const FInventoryItemData TargetInventoryItemData = InventoryItems[i];
+
+		//Check to see if the class matches
+		if(TargetInventoryItemData.Item.InWorldClass->StaticClass() == ItemClass->StaticClass())
+		{
+			
+			//If it does, attempt to remove items
+			if(ReduceQuantityOfInventoryItem(TargetInventoryItemData,QuantityToRemove,OutAmountNotRemoved))
+			{
+				if(OutAmountNotRemoved == 0)
+				{
+					return true;
+				}
+				else
+				{
+					QuantityToRemove = OutAmountNotRemoved;
+				}
+			}
+		}
+	}
+
+	// If at least some amount was removed, then return true
+	//Return false if nothing was removed
+	return (OutAmountNotRemoved > 0);
+}
+
+
+
+bool UInventoryComponent::ReduceQuantityOfInventoryItem(const FInventoryItemData TargetInventoryItem,
+                                                        const int32 QuantityToRemove,
+                                                        int32& OutAmountNotRemoved)
+{
+	int32 ItemIndex;
+
+	OutAmountNotRemoved = QuantityToRemove;
+	
+	if(InventoryItems.Find(TargetInventoryItem,ItemIndex))
+	{
+		const int32 ItemQuantity = InventoryItems[ItemIndex].Item.ItemQuantity;
+
+		//Check to see if actually partially removing
+		if(ItemQuantity > QuantityToRemove)
+		{
+			const int32 QuantityRemaining = ItemQuantity  - QuantityToRemove;
+			InventoryItems[ItemIndex].Item.ItemQuantity = QuantityRemaining;
+
+			const float PerItemWeight = InventoryItems[ItemIndex].Item.PerItemWeight;
+			RemoveWeight(PerItemWeight*QuantityToRemove);
+			OutAmountNotRemoved = 0.f;
+
+			UE_LOG(LogItemSystem,Log,TEXT("%s item had %d quantity removed in %s inventory"),
+				*TargetInventoryItem.Item.DisplayName.ToString(),QuantityToRemove,*GetOwner()->GetName())
+			
+			return true;
+			
+		}
+		else
+		//If quantity to remove is >= item quantity
+		//Remove the full stack of the item
+		{
+			if(FullyRemoveInventoryItem(TargetInventoryItem))
+			{
+				OutAmountNotRemoved = QuantityToRemove - ItemQuantity;
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("Could not find %s item in %s inventory to remove"),
+	*TargetInventoryItem.Item.DisplayName.ToString(),*GetOwner()->GetName())
+		return false;
+	}
+}
+
+bool UInventoryComponent::FullyRemoveInventoryItem(const FInventoryItemData TargetInventoryItem)
+{
+	int32 ItemIndex;
+	if(InventoryItems.Find(TargetInventoryItem,ItemIndex))
+	{
+
+		//Uncover Slots
+		if(SetSlotStatuses(TargetInventoryItem.GetCoveredSlots(),false))
+		{
+			InventoryItems.RemoveAt(ItemIndex);
+			RemoveWeight(TargetInventoryItem.Item);
+
+			UE_LOG(LogItemSystem,Log,TEXT("%s item was fully removed from %s inventory"),
+				*TargetInventoryItem.Item.DisplayName.ToString(),*GetOwner()->GetName())
+
+			return true;
+		}
+		else
+		{
+			UE_LOG(LogItemSystem,Log,
+				TEXT("%s item could not removed from %s inventory because of issue uncovering the slots"),
+				*TargetInventoryItem.Item.DisplayName.ToString(),*GetOwner()->GetName())
+			return false;
+		}
+		
+	}
+	else
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("Could not find %s item in %s inventory to remove"),
+			*TargetInventoryItem.Item.DisplayName.ToString(),*GetOwner()->GetName())
+		return false;
+	}
+}
+
 bool UInventoryComponent::IsItemInInventory(const FItemData Item)
 {
 	for (int i = 0; i < InventoryItems.Num(); ++i)
@@ -200,28 +321,7 @@ bool UInventoryComponent::IsItemInInventory(const FItemData Item, FInventory2D& 
 }
 
 
-bool UInventoryComponent::RemoveInventoryItem(FInventoryItemData TargetInventoryItem)
-{
-	int32 ItemIndex;
-	if(InventoryItems.Find(TargetInventoryItem,ItemIndex))
-	{
-		RemoveWeight(InventoryItems[ItemIndex].Item);
-		InventoryItems.RemoveAt(ItemIndex);
 
-		UE_LOG(LogItemSystem,Log,TEXT("Removed %s item from position %s in %s inventory"),
-			*TargetInventoryItem.Item.DisplayName.ToString(),*TargetInventoryItem.StartPosition.GetPositionAsString(),
-			*GetOwner()->GetName());
-		
-		return true;
-		
-	}
-	else
-	{
-		UE_LOG(LogItemSystem, Warning, TEXT("Attempted to remove %s item from %s inventory but could not match GUID"),
-			*TargetInventoryItem.Item.DisplayName.ToString(),*GetOwner()->GetName())
-		return false;
-	}
-}
 
 bool UInventoryComponent::FindInventoryItemAtPosition(const FInventory2D Position, FInventoryItemData& OutInventoryItemData)
 {
@@ -315,7 +415,6 @@ bool UInventoryComponent::CheckIfItemFits(const FItemData ItemData, const FInven
 }
 
 
-
 bool UInventoryComponent::FindSlotAtPosition(FInventory2D TargetPosition, FInventorySlot& OutSlot)
 {
 	const FInventorySlot DummySlot = FInventorySlot(TargetPosition,false);
@@ -360,7 +459,7 @@ bool UInventoryComponent::CheckIfItemWeightOK(const FItemData ItemData) const
 	return (CurrentWeight + ItemData.GetStackWeight() <= MaxWeight);
 }
 
-bool UInventoryComponent::AddItemChecks(FItemData ItemToCheck)
+bool UInventoryComponent::AddItemChecks(const FItemData ItemToCheck) const
 {
 	//Make sure valid item, if not return false
 	if(CheckIfItemValid(ItemToCheck) == false)
@@ -385,12 +484,34 @@ void UInventoryComponent::AddWeight(const FItemData ItemData)
 {
 	const float WeightToAdd = ItemData.GetStackWeight();
 	CurrentWeight = FMath::Clamp(CurrentWeight + WeightToAdd,0.f,MaxWeight);
+
+	UE_LOG(LogItemSystem,Log,TEXT("Added %s weight, new weight %s in %s inventory"),
+*FString::SanitizeFloat(WeightToAdd),*FString::SanitizeFloat(CurrentWeight),*GetOwner()->GetName());
+}
+
+void UInventoryComponent::AddWeight(const float AddWeight)
+{
+	CurrentWeight = FMath::Clamp(CurrentWeight + AddWeight,0.f,MaxWeight);
+	
+	UE_LOG(LogItemSystem,Log,TEXT("Added %s weight, new weight %s in %s inventory"),
+*FString::SanitizeFloat(AddWeight),*FString::SanitizeFloat(CurrentWeight),*GetOwner()->GetName());
 }
 
 void UInventoryComponent::RemoveWeight(const FItemData ItemData)
 {
 	const float WeightToRemove = ItemData.GetStackWeight();
 	CurrentWeight = FMath::Clamp(CurrentWeight - WeightToRemove,0.f,MaxWeight);
+
+	UE_LOG(LogItemSystem,Log,TEXT("Removed %s weight, new weight %s in %s inventory"),
+	*FString::SanitizeFloat(WeightToRemove),*FString::SanitizeFloat(CurrentWeight),*GetOwner()->GetName());
+}
+
+void UInventoryComponent::RemoveWeight(const float RemoveWeight)
+{
+	CurrentWeight = FMath::Clamp(CurrentWeight - RemoveWeight,0.f,MaxWeight);
+
+	UE_LOG(LogItemSystem,Log,TEXT("Removed %s weight, new weight %s in %s inventory"),
+		*FString::SanitizeFloat(RemoveWeight),*FString::SanitizeFloat(CurrentWeight),*GetOwner()->GetName());
 }
 
 

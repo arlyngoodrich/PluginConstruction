@@ -101,6 +101,7 @@ struct FItemData
 
 	FItemData() 
 	{
+		DisplayName = "Default";
 		ItemGuid.Invalidate();
 		ItemIconSmall = nullptr;
 		ItemIconLarge = nullptr;
