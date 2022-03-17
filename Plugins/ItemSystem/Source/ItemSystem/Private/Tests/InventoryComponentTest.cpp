@@ -3,7 +3,6 @@
 #include "Tests/AutomationEditorCommon.h"
 #include "InventoryComponent.h"
 #include "ItemBase.h"
-#include "ItemSystem.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FInventoryAddItemTest,"Inventory.AddItem",
                                  EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
@@ -59,7 +58,6 @@ bool FInventoryAddItemTest::RunTest(const FString& Parameters)
 		InventoryComponent->GetInventoryWeight(),
 		NewItem.GetStackWeight());
 	
-	UE_LOG(LogItemSystem,Log,TEXT("%s result: Item was successfully added"),*GetBeautifiedTestName())	
 	return true;
 }
 
@@ -99,7 +97,6 @@ bool FInventoryAutoAddItemTest::RunTest(const FString& Parameters)
 	const bool bWasItemAdded = InventoryComponent->IsItemInInventory(NewItem);
 	TestTrue(TEXT("Item was not added to inventory"),bAutoAddSuccess&&bWasItemAdded);
 	
-	UE_LOG(LogItemSystem,Log,TEXT("%s result: Item was successfully added"),*GetBeautifiedTestName())	
 	return true;
 }
 
@@ -139,8 +136,6 @@ bool FInventoryMaxWeightTest::RunTest(const FString& Parameters)
 	const bool bWasItemAdded = InventoryComponent->IsItemInInventory(NewItem);
 	TestFalse(TEXT("Item wieght exceeds max but was added to inventory"),bAutoAddSuccess&&bWasItemAdded);
 	
-	UE_LOG(LogItemSystem, Log, TEXT("%s result: Item weight exceed max and was successfully NOT added"),
-	       *GetBeautifiedTestName())
 	return true;
 }
 
@@ -193,8 +188,6 @@ bool FInventorySlotTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("The number of items in the inventory is not equal to the max number of slots"),
 		InventoryComponent->GetItemCount(),InventoryComponent->GetSlotCount());
 	
-	UE_LOG(LogItemSystem, Log, TEXT("%s result: The number of items added matches the max amount of slots"),
-		   *GetBeautifiedTestName())
 	return true;
 }
 
@@ -245,8 +238,115 @@ bool FWeightSummationTest::RunTest(const FString& Parameters)
 
 	TestEqual(TEXT("Actual and expected weights are different"),ActualInventoryWeight,ExpectedInventoryWeight);
 	
-	UE_LOG(LogItemSystem, Log, TEXT("%s result: Multiple items were added and the inventory weight is correct"),
-		   *GetBeautifiedTestName())
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FInventoryPartiallyRemoveItem,"Inventory.PartiallyRemoveItem",
+								 EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FInventoryPartiallyRemoveItem::RunTest(const FString& Parameters)
+{
+	//Create World
+	UWorld* World = FAutomationEditorCommonUtils::CreateNewMap();
+
+	//Create Actor
+	AActor* Actor = World->SpawnActor<AActor>();
+	TestTrue(TEXT("Test Actor is not valid"), IsValid(Actor));
+
+	//Create and Add Component to Actor
+	const FName CompName("InventoryComp");
+	UInventoryComponent* InventoryComponent = NewObject<UInventoryComponent>(Actor, CompName);
+	TestTrue(TEXT("Invetory Comp is not valid"), IsValid(InventoryComponent));
+
+	InventoryComponent->RegisterComponent();
+	TestTrue(TEXT("Inventory failed to initialize"), InventoryComponent->GetSlotCount() > 0);
+
+	//Create a valid item to add to inventory
+	constexpr int32 ItemQuantity = 3;
+	const FItemData NewItem = FItemData::NewItem
+	(
+		"TestItem",
+		AItemBase::StaticClass(),
+		FInventory2D(1, 1),
+		ItemQuantity,
+		false,
+		1.f
+	);
+
+	//Make sure item was added
+	const bool bAutoAddSuccess = InventoryComponent->AutoAddItem(NewItem);
+	TestTrue(TEXT("Item was not added to inventory"), bAutoAddSuccess);
+
+	int32 QuantityRemaining;
+	const bool bWasClassFoundToRemove = InventoryComponent->ReduceQuantityOfItemByStaticClass(
+		AItemBase::StaticClass(), ItemQuantity - 1, QuantityRemaining);
+
+	TestTrue(TEXT("Class was not found to be removed"), bWasClassFoundToRemove);
+
+	//Make sure there is still one item in the inventory
+	const int32 ItemsInInventory = InventoryComponent->GetItemCount();
+	TestTrue(TEXT("There is not 1 item in inventory"), ItemsInInventory == 1);
+
+	//Make sure weight was reduced
+	const float ExpectedWeight = NewItem.PerItemWeight;
+	const float InventoryWeight = InventoryComponent->GetInventoryWeight();
+	TestEqual(TEXT("Inventory weight is different than expected"), InventoryWeight, ExpectedWeight);
+	
+	return true;
+}
+
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FInventoryFullyRemoveItem,"Inventory.FullyRemoveItem",
+								 EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FInventoryFullyRemoveItem::RunTest(const FString& Parameters)
+{
+	//Create World
+	UWorld* World = FAutomationEditorCommonUtils::CreateNewMap();
+
+	//Create Actor
+	AActor* Actor = World->SpawnActor<AActor>();
+	TestTrue(TEXT("Test Actor is not valid"), IsValid(Actor));
+
+	//Create and Add Component to Actor
+	const FName CompName("InventoryComp");
+	UInventoryComponent* InventoryComponent = NewObject<UInventoryComponent>(Actor, CompName);
+	TestTrue(TEXT("Invetory Comp is not valid"), IsValid(InventoryComponent));
+
+	InventoryComponent->RegisterComponent();
+	TestTrue(TEXT("Inventory failed to initialize"), InventoryComponent->GetSlotCount() > 0);
+
+	//Create a valid item to add to inventory
+	constexpr int32 ItemQuantity = 3;
+	const FItemData NewItem = FItemData::NewItem
+	(
+		"TestItem",
+		AItemBase::StaticClass(),
+		FInventory2D(1, 1),
+		ItemQuantity,
+		false,
+		1.f
+	);
+
+	//Make sure item was added
+	const FInventory2D Position = FInventory2D(1,1);
+	const bool bAutoAddSuccess = InventoryComponent->AddItemToPosition(NewItem,Position);
+	TestTrue(TEXT("Item was not added to inventory"), bAutoAddSuccess);
+
+	//Make sure Item can be removed
+	int32 QuantityRemaining;
+	const bool bWasInventoryItemFound = InventoryComponent->ReduceQuantityOfInventoryItem(
+		FInventoryItemData(Position,NewItem), ItemQuantity, QuantityRemaining);
+	TestTrue(TEXT("Inventory Item was not found to be removed"), bWasInventoryItemFound);
+
+	//Make sure there is still are no items in inventory
+	const int32 ItemsInInventory = InventoryComponent->GetItemCount();
+	TestTrue(TEXT("There are still items in inventory"), ItemsInInventory == 0);
+
+	//Make sure weight was reduced
+	constexpr float ExpectedWeight = 0.f;
+	const float InventoryWeight = InventoryComponent->GetInventoryWeight();
+	TestEqual(TEXT("Inventory weight is different than expected"), InventoryWeight, ExpectedWeight);
+	
+	return true;
+}
