@@ -19,6 +19,9 @@ public:
 
 	//Returns the number of slots in the inventory
 	int32 SlotNum() const;
+
+	//Adds and item to a position.  Will return false if: Position not found, item is not valid, weight cannot be added
+	bool AddItemToPosition(FItemData Item, FInventory2D Position);
 	
 protected:
 	// Called when the game starts
@@ -64,9 +67,6 @@ protected:
 	//Checks if the item will fit into a given position by check slots that would be covered by the item.  Returns false
 	//if it will not fit and true if it will. 
 	bool CheckIfItemFits(FItemData ItemData, FInventory2D TargetPosition);
-
-	//Adds and item to a position.  Will return false if: Position not found, item is not valid, weight cannot be added
-	bool AddItemToPosition(FItemData Item, FInventory2D Position);
 
 	//Checks for Item's GUID and removes it.  Does not invalidate item -- just removes item and weight from inventory.
 	//Will return false if Item GUID not found in inventory. 

@@ -2,12 +2,13 @@
 #include "Misc/AutomationTest.h"
 #include "Tests/AutomationEditorCommon.h"
 #include "InventoryComponent.h"
+#include "ItemBase.h"
 #include "ItemSystem.h"
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAddItemTest, "Inventory.AddItem",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSimpleAddItemTest,"Inventory.SimpleAddItem",
                                  EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
-bool FAddItemTest::RunTest(const FString& Parameters)
+bool FSimpleAddItemTest::RunTest(const FString& Parameters)
 {
 
 	//Create World
@@ -25,12 +26,22 @@ bool FAddItemTest::RunTest(const FString& Parameters)
 	InventoryComponent->RegisterComponent();
 	TestTrue(TEXT("Inventory failed to initialize"),InventoryComponent->SlotNum()>0);
 
+	//Create item to add to inventory
+	const FItemData NewItem = FItemData::NewItem
+		(
+			"TestItem",
+			AItemBase::StaticClass(),
+			FInventory2D(1,1),
+			1,
+			false,
+			1.f
+		);
+
+	const bool bItemAdded = InventoryComponent->AddItemToPosition(NewItem,FInventory2D(1,1));
+	TestTrue(TEXT("Item was not added to inventory"),bItemAdded);
 	
-	
-	
-	
+	UE_LOG(LogItemSystem,Log,TEXT("%s result: Item was successfully added"),*GetBeautifiedTestName())
 	return true;
-	
 }
 
 

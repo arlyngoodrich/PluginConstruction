@@ -205,7 +205,8 @@ bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const
 	{
 		InventorySlots[SlotIndex].bIsOccupied = NewIsOccupied;
 		UE_LOG(LogItemSystem,Log,TEXT("%s inventory updated slot %s to %s"),
-			*GetOwner()->GetName(),*TargetPosition.GetPositionAsString(), NewIsOccupied? "true" : "false")
+			*GetOwner()->GetName(),*TargetPosition.GetPositionAsString(),
+			NewIsOccupied? TEXT("occupied") : TEXT("unoccupied"))
 		return true;
 	}
 	else

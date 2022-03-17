@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include <string>
-
 #include "CoreMinimal.h"
 #include "ItemData.generated.h"
 
@@ -74,7 +72,7 @@ struct FItemData
 	FGuid ItemGuid;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
-	FText DisplayName;
+	FName DisplayName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
 	UTexture2D* ItemIconSmall;
@@ -114,7 +112,7 @@ struct FItemData
 		PerItemWeight=  1;
 	}
 
-	static FItemData NewItem(const FText NewDisplayName, const TSubclassOf<AItemBase> NewItemClass)
+	static FItemData NewItem(const FName NewDisplayName, const TSubclassOf<AItemBase> NewItemClass)
 	{
 		FItemData ItemData = FItemData();
 		ItemData.DisplayName = NewDisplayName;
@@ -124,11 +122,12 @@ struct FItemData
 		return ItemData;
 	}
 
-	static FItemData NewItem(const FText NewDisplayName, const TSubclassOf<AItemBase> NewItemClass,
+	static FItemData NewItem(const FName NewDisplayName, const TSubclassOf<AItemBase> NewItemClass,
 	                         const FInventory2D NewItemSize, const int32 NewItemQuantity, const bool bNewItemStacks,
 	                         const float NewItemPerWeight)
 	{
 		FItemData ItemData = FItemData();
+		
 		ItemData.DisplayName = NewDisplayName;
 		ItemData.ItemGuid = FGuid::NewGuid();
 		ItemData.InWorldClass = NewItemClass;
