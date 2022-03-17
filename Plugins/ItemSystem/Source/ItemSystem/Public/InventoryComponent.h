@@ -17,10 +17,39 @@ public:
 	// Sets default values for this component's properties
 	UInventoryComponent();
 
+	//Returns the number of slots in the inventory
+	int32 GetSlotCount() const;
+
+	//Returns the number of items in the inventory
+	int32 GetItemCount() const;
+	
+	//Returns the current weight of the inventory
+	float GetInventoryWeight() const;
+
+	//Returns the max weight of the inventory
+	float GetInventoryMaxWeight() const;
+	
+	//Adds and item to a position.  Will return false if: Position not found, item is not valid, weight cannot be added
+	bool AddItemToPosition(FItemData Item, FInventory2D Position);
+
+	//Cylces through all slots until item is added.  Will return false if: Item is not valid, weight cannot be added,
+	//or Item cannot fit in any positions
+	bool AutoAddItem(FItemData Item);
+
+	//Checks to see if Item is in Inventory.  Checks for matching Item GUIDs. Returns true if found
+	bool IsItemInInventory(FItemData Item);
+
+	//Checks to see if Item is in Inventory by checking for matching Item GUIDs. Returns true if found and the position
+	//of the item in the inventory.
+	bool IsItemInInventory(FItemData Item, FInventory2D& OutItemPosition);
+	
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	//Called when Inventory is created dynamically
+	virtual void OnRegister() override;
+	
 	//UI display name of the inventory.  Cosmetic only. 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
 	FText InventoryName;
@@ -45,18 +74,19 @@ protected:
 	UPROPERTY(Replicated, BlueprintReadOnly,Category="Inventory Data");
 	TArray<FInventoryItemData> InventoryItems;
 
+	//Set to true when slots have been created. 
+	UPROPERTY(BlueprintReadOnly, Category="Inventory Data")
+	bool bHaveSlotsBeenInitialized; 
+	
 	//Utilitizes Inventory Size to reset array of InventorySlots.  All slots will be set to unoccupied.  
 	void InitializeSlots();
-
+	
 	//Method to initialize inventory from an existing InventoryItemData array.   
 	void SetInventory(TArray<FInventoryItemData> InInventoryItems);
 
 	//Checks if the item will fit into a given position by check slots that would be covered by the item.  Returns false
 	//if it will not fit and true if it will. 
 	bool CheckIfItemFits(FItemData ItemData, FInventory2D TargetPosition);
-
-	//Adds and item to a position.  Will return false if: Position not found, item is not valid, weight cannot be added
-	bool AddItemToPosition(FItemData Item, FInventory2D Position);
 
 	//Checks for Item's GUID and removes it.  Does not invalidate item -- just removes item and weight from inventory.
 	//Will return false if Item GUID not found in inventory. 
@@ -86,6 +116,9 @@ protected:
 
 	//Returns true if the Item can be added to the current weight without exceeding MaxWeight.
 	bool CheckIfItemWeightOK(FItemData ItemData) const;
+
+	//Helper function that checks if the item is valid and that it's weight can be added
+	bool AddItemChecks(FItemData ItemToCheck);
 
 	//Adds the weight of Item's stack to the current weight.  Clamped between 0 and MaxWeight.
 	void AddWeight(FItemData ItemData);

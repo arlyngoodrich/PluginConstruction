@@ -13,12 +13,18 @@ UInventoryComponent::UInventoryComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
+	bWantsInitializeComponent = true;
 
 	InventoryName = FText::FromString("Inventory");
 	InventorySize = FInventory2D(2,2);
 	MaxWeight = 10.f;
 	
 }
+
+int32 UInventoryComponent::GetSlotCount() const { return InventorySlots.Num(); }
+int32 UInventoryComponent::GetItemCount() const{return InventoryItems.Num();}
+float UInventoryComponent::GetInventoryWeight() const { return CurrentWeight; }
+float UInventoryComponent::GetInventoryMaxWeight() const { return MaxWeight; }
 
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifetimeProps) const
 {
@@ -40,6 +46,13 @@ void UInventoryComponent::BeginPlay()
 	
 }
 
+void UInventoryComponent::OnRegister()
+{
+	Super::OnRegister();
+	InitializeSlots();
+}
+
+
 void UInventoryComponent::InitializeSlots()
 {
 	InventorySlots.Empty();
@@ -53,6 +66,7 @@ void UInventoryComponent::InitializeSlots()
 		}
 	}
 
+	bHaveSlotsBeenInitialized = true;
 	UE_LOG(LogItemSystem,Log,TEXT("%s inventory slots initalized"),*GetOwner()->GetName());
 }
 
@@ -81,21 +95,7 @@ void UInventoryComponent::SetInventory(TArray<FInventoryItemData> InInventoryIte
 bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInventory2D Position)
 {
 
-	//Make sure valid item, if not return false
-	if(CheckIfItemValid(Item) == false)
-	{
-		UE_LOG(LogItemSystem,Warning, TEXT("Attempting to add %s to %s inventory with invalid GUID"),
-			*Item.DisplayName.ToString(),*GetOwner()->GetName())
-		return false;
-	}
-
-	//Make sure enough weight for item, if note return false
-	if(CheckIfItemWeightOK(Item) == false)
-	{
-		UE_LOG(LogItemSystem,Log,TEXT("%s inventory does not have enought wieght capacity for %s item"),
-			*GetOwner()->GetName(),*Item.DisplayName.ToString())
-		return false;
-	}
+	if(false == AddItemChecks(Item)) {return false;}
 	
 	FInventorySlot TargetSlot;
 	const bool bIsValidSlot = FindSlotAtPosition(Position,TargetSlot);
@@ -147,6 +147,59 @@ bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInvento
 	}
 }
 
+bool UInventoryComponent::AutoAddItem(const FItemData Item)
+{
+	if(AddItemChecks(Item) == false){return false;}
+
+	for (int i = 0; i < InventorySlots.Num(); ++i)
+	{
+		const FInventorySlot TargetSlot = InventorySlots[i];
+
+		if(TargetSlot.bIsOccupied == false)
+		{
+			if(AddItemToPosition(Item,TargetSlot.Position))
+			{
+				return true;
+			}
+		}
+	}
+
+	UE_LOG(LogItemSystem,Log,TEXT("%s item can not fit into %s inventory"),
+		*Item.DisplayName.ToString(),*GetOwner()->GetName())
+	return false;
+	
+}
+
+bool UInventoryComponent::IsItemInInventory(const FItemData Item)
+{
+	for (int i = 0; i < InventoryItems.Num(); ++i)
+	{
+		FInventoryItemData InventoryItemData = InventoryItems[i];
+		if(InventoryItemData.Item == Item)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool UInventoryComponent::IsItemInInventory(const FItemData Item, FInventory2D& OutItemPosition)
+{
+	for (int i = 0; i < InventoryItems.Num(); ++i)
+	{
+		FInventoryItemData InventoryItemData = InventoryItems[i];
+		if(InventoryItemData.Item == Item)
+		{
+			OutItemPosition = InventoryItemData.StartPosition;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
 bool UInventoryComponent::RemoveInventoryItem(FInventoryItemData TargetInventoryItem)
 {
 	int32 ItemIndex;
@@ -194,7 +247,8 @@ bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const
 	{
 		InventorySlots[SlotIndex].bIsOccupied = NewIsOccupied;
 		UE_LOG(LogItemSystem,Log,TEXT("%s inventory updated slot %s to %s"),
-			*GetOwner()->GetName(),*TargetPosition.GetPositionAsString(), NewIsOccupied? "true" : "false")
+			*GetOwner()->GetName(),*TargetPosition.GetPositionAsString(),
+			NewIsOccupied? TEXT("occupied") : TEXT("unoccupied"))
 		return true;
 	}
 	else
@@ -304,6 +358,27 @@ bool UInventoryComponent::CheckIfItemValid(const FItemData ItemData)
 bool UInventoryComponent::CheckIfItemWeightOK(const FItemData ItemData) const
 {
 	return (CurrentWeight + ItemData.GetStackWeight() <= MaxWeight);
+}
+
+bool UInventoryComponent::AddItemChecks(FItemData ItemToCheck)
+{
+	//Make sure valid item, if not return false
+	if(CheckIfItemValid(ItemToCheck) == false)
+	{
+		UE_LOG(LogItemSystem,Warning, TEXT("Attempting to add %s to %s inventory with invalid GUID"),
+			*ItemToCheck.DisplayName.ToString(),*GetOwner()->GetName())
+		return false;
+	}
+
+	//Make sure enough weight for item, if note return false
+	if(CheckIfItemWeightOK(ItemToCheck) == false)
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("%s inventory does not have enought wieght capacity for %s item"),
+			*GetOwner()->GetName(),*ItemToCheck.DisplayName.ToString())
+		return false;
+	}
+
+	return true;
 }
 
 void UInventoryComponent::AddWeight(const FItemData ItemData)
