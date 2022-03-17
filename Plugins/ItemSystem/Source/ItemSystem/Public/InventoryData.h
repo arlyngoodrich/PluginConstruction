@@ -83,7 +83,7 @@ struct FInventoryItemData
 
 	bool operator==(const FInventoryItemData& InventoryItemData) const
 	{
-		return Item.IsEqualTo(InventoryItemData.Item);
+		return Item.IsEqualTo(InventoryItemData.Item) && StartPosition == InventoryItemData.StartPosition;
 	}  
 	
 };

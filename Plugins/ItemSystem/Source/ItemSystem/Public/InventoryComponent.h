@@ -18,10 +18,30 @@ public:
 	UInventoryComponent();
 
 	//Returns the number of slots in the inventory
-	int32 SlotNum() const;
+	int32 GetSlotCount() const;
 
+	//Returns the number of items in the inventory
+	int32 GetItemCount() const;
+	
+	//Returns the current weight of the inventory
+	float GetInventoryWeight() const;
+
+	//Returns the max weight of the inventory
+	float GetInventoryMaxWeight() const;
+	
 	//Adds and item to a position.  Will return false if: Position not found, item is not valid, weight cannot be added
 	bool AddItemToPosition(FItemData Item, FInventory2D Position);
+
+	//Cylces through all slots until item is added.  Will return false if: Item is not valid, weight cannot be added,
+	//or Item cannot fit in any positions
+	bool AutoAddItem(FItemData Item);
+
+	//Checks to see if Item is in Inventory.  Checks for matching Item GUIDs. Returns true if found
+	bool IsItemInInventory(FItemData Item);
+
+	//Checks to see if Item is in Inventory by checking for matching Item GUIDs. Returns true if found and the position
+	//of the item in the inventory.
+	bool IsItemInInventory(FItemData Item, FInventory2D& OutItemPosition);
 	
 protected:
 	// Called when the game starts
@@ -96,6 +116,9 @@ protected:
 
 	//Returns true if the Item can be added to the current weight without exceeding MaxWeight.
 	bool CheckIfItemWeightOK(FItemData ItemData) const;
+
+	//Helper function that checks if the item is valid and that it's weight can be added
+	bool AddItemChecks(FItemData ItemToCheck);
 
 	//Adds the weight of Item's stack to the current weight.  Clamped between 0 and MaxWeight.
 	void AddWeight(FItemData ItemData);
