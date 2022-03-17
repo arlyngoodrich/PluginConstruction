@@ -17,10 +17,17 @@ public:
 	// Sets default values for this component's properties
 	UInventoryComponent();
 
+	//Returns the number of slots in the inventory
+	int32 SlotNum() const;
+
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	//Called when Inventory is created dynamically
+	virtual void OnRegister() override;
+	
 	//UI display name of the inventory.  Cosmetic only. 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
 	FText InventoryName;
@@ -45,9 +52,13 @@ protected:
 	UPROPERTY(Replicated, BlueprintReadOnly,Category="Inventory Data");
 	TArray<FInventoryItemData> InventoryItems;
 
+	//Set to true when slots have been created. 
+	UPROPERTY(BlueprintReadOnly, Category="Inventory Data")
+	bool bHaveSlotsBeenInitialized; 
+	
 	//Utilitizes Inventory Size to reset array of InventorySlots.  All slots will be set to unoccupied.  
 	void InitializeSlots();
-
+	
 	//Method to initialize inventory from an existing InventoryItemData array.   
 	void SetInventory(TArray<FInventoryItemData> InInventoryItems);
 

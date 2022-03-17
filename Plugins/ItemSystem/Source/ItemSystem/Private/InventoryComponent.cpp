@@ -13,12 +13,15 @@ UInventoryComponent::UInventoryComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
+	bWantsInitializeComponent = true;
 
 	InventoryName = FText::FromString("Inventory");
 	InventorySize = FInventory2D(2,2);
 	MaxWeight = 10.f;
 	
 }
+
+int32 UInventoryComponent::SlotNum() const {return InventorySlots.Num();}
 
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifetimeProps) const
 {
@@ -40,6 +43,13 @@ void UInventoryComponent::BeginPlay()
 	
 }
 
+void UInventoryComponent::OnRegister()
+{
+	Super::OnRegister();
+	InitializeSlots();
+}
+
+
 void UInventoryComponent::InitializeSlots()
 {
 	InventorySlots.Empty();
@@ -53,6 +63,7 @@ void UInventoryComponent::InitializeSlots()
 		}
 	}
 
+	bHaveSlotsBeenInitialized = true;
 	UE_LOG(LogItemSystem,Log,TEXT("%s inventory slots initalized"),*GetOwner()->GetName());
 }
 
