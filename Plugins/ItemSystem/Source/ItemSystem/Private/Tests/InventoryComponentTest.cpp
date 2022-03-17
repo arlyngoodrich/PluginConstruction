@@ -18,15 +18,15 @@ bool FAddItemTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Test Actor is not valid"),IsValid(Actor));
 
 	//Create and Add Component to Actor
-	FName CompName("InventoryComp");
+	const FName CompName("InventoryComp");
 	UInventoryComponent* InventoryComponent = NewObject<UInventoryComponent>(Actor,CompName);
 	TestTrue(TEXT("Invetory Comp is not valid"),IsValid(InventoryComponent));
+
 	InventoryComponent->RegisterComponent();
+	TestTrue(TEXT("Inventory failed to initialize"),InventoryComponent->SlotNum()>0);
 
 	
-
 	
-	UE_LOG(LogItemSystem,Log,TEXT("Invetory Component has %d slots"),InventoryComponent->SlotNum());
 	
 	
 	return true;

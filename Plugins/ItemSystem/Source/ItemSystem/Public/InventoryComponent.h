@@ -19,8 +19,7 @@ public:
 
 	//Returns the number of slots in the inventory
 	int32 SlotNum() const;
-
-
+	
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

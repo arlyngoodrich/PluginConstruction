@@ -56,6 +56,7 @@ struct FInventory2D
 			return false;
 		}
 	}
+	
 
 	bool operator==(const FInventory2D& Position) const
 	{
@@ -106,12 +107,39 @@ struct FItemData
 		ItemIconSmall = nullptr;
 		ItemIconLarge = nullptr;
 		InWorldClass = nullptr;
+		ItemSize = FInventory2D(1,1);
 		ItemHealth = 1; 
 		ItemQuantity = 1;
 		bShouldItemStack = false;
 		PerItemWeight=  1;
 	}
 
+	static FItemData NewItem(const FText NewDisplayName, const TSubclassOf<AItemBase> NewItemClass)
+	{
+		FItemData ItemData = FItemData();
+		ItemData.DisplayName = NewDisplayName;
+		ItemData.ItemGuid = FGuid::NewGuid();
+		ItemData.InWorldClass = NewItemClass;
+
+		return ItemData;
+	}
+
+	static FItemData NewItem(const FText NewDisplayName, const TSubclassOf<AItemBase> NewItemClass,
+	                         const FInventory2D NewItemSize, const int32 NewItemQuantity, const bool bNewItemStacks,
+	                         const float NewItemPerWeight)
+	{
+		FItemData ItemData = FItemData();
+		ItemData.DisplayName = NewDisplayName;
+		ItemData.ItemGuid = FGuid::NewGuid();
+		ItemData.InWorldClass = NewItemClass;
+		ItemData.ItemSize = NewItemSize;
+		ItemData.ItemQuantity = NewItemQuantity;
+		ItemData.bShouldItemStack = bNewItemStacks;
+		ItemData.PerItemWeight = NewItemPerWeight;
+
+		return ItemData;
+	}
+	
 	float GetStackWeight() const
 	{
 		return PerItemWeight * ItemQuantity;
