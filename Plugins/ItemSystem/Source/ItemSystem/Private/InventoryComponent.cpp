@@ -152,6 +152,7 @@ bool UInventoryComponent::AutoAddItem(const FItemData Item)
 {
 	if(AddItemChecks(Item) == false){return false;}
 
+	//Cycle through slots and attempt to add items
 	for (int i = 0; i < InventorySlots.Num(); ++i)
 	{
 		const FInventorySlot TargetSlot = InventorySlots[i];
@@ -168,6 +169,45 @@ bool UInventoryComponent::AutoAddItem(const FItemData Item)
 	UE_LOG(LogItemSystem,Log,TEXT("%s item can not fit into %s inventory"),
 		*Item.DisplayName.ToString(),*GetOwner()->GetName())
 	return false;
+	
+}
+
+bool UInventoryComponent::AutoAddItem(const FItemData InItem, FItemData& OutRemainingItem)
+{
+	if(AddItemChecks(InItem) == false) {return false;}
+	OutRemainingItem = InItem;
+
+	//Try to stack into existing stack
+	if(InItem.bShouldItemStack == true)
+	{
+		for (int i = 0; i < InventoryItems.Num(); ++i)
+		{
+			const FInventoryItemData TargetInventoryItem = InventoryItems[i];
+
+			//Check to see if they are the same class 
+			if(InItem.InWorldClass->StaticClass() == TargetInventoryItem.Item.InWorldClass->StaticClass())
+			{
+				if(AttemptStack(TargetInventoryItem,InItem,OutRemainingItem))
+				{
+					//Item Fully stacked
+					return true;
+				}
+			}
+		}
+	}
+
+	//Stack Remaining Quantity
+	if(AutoAddItem(OutRemainingItem))
+	{
+		//New Stack created and added
+		OutRemainingItem = FItemData();
+		return true;
+	}
+	else
+	{
+		//Not enough room to add new stack 
+		return false;
+	}
 	
 }
 
@@ -320,7 +360,74 @@ bool UInventoryComponent::IsItemInInventory(const FItemData Item, FInventory2D& 
 	return false;
 }
 
+bool UInventoryComponent::AttemptStack(FInventoryItemData TargetItemData, FItemData InItemData,
+                                       FItemData& OutRemainingItem)
+{
+	OutRemainingItem = InItemData;
 
+	if(AddItemChecks(InItemData)==false)
+	{
+		return false;
+	}
+
+	if(TargetItemData.Item.bShouldItemStack == false)
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("Cannot stack %s item in %s inventory"),
+		       *InItemData.DisplayName.ToString(),*GetOwner()->GetName())
+		return false;
+	}
+
+	int32 TargetItemIndex;
+	if(InventoryItems.Find(TargetItemData,TargetItemIndex) == false)
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("Attempting to stack item %s that is not in %s inventory"),
+		       *InItemData.DisplayName.ToString(),*GetOwner()->GetName())
+		return false;
+	}
+
+	if(TargetItemData.Item.MaxStackQuantity == TargetItemData.Item.ItemQuantity)
+	{
+		//return false since target stack is already.  This is expected to happen so no need to log. 
+		return false;
+	}
+	
+	const int32 TargetStackQty = TargetItemData.Item.ItemQuantity;
+	const int32 TargetMaxQty = TargetItemData.Item.MaxStackQuantity;
+	const int32 TargetCapacity = TargetMaxQty - TargetStackQty;
+	const int32 IncomingStackQty = InItemData.ItemQuantity;
+
+	if(TargetCapacity >= IncomingStackQty)
+	{
+		//Full Stack Item
+		InventoryItems[TargetItemIndex].Item.ItemQuantity += IncomingStackQty;
+		AddWeight(InItemData);
+
+		//Invalidate Remaining Item
+		OutRemainingItem = FItemData();
+
+		UE_LOG(LogItemSystem,Log,TEXT("%s was fully stacked into slot %s of %s inventory"),
+		       *InItemData.DisplayName.ToString(),*InventoryItems[TargetItemIndex].StartPosition.GetPositionAsString(),
+		       *GetOwner()->GetName())
+		
+		return true;
+	}
+	else
+	{
+		//Partially stack item
+		//Set Target stack to max amount
+		InventoryItems[TargetItemIndex].Item.ItemQuantity = TargetMaxQty;
+		AddWeight(InItemData.PerItemWeight * TargetCapacity);
+
+		OutRemainingItem.ItemQuantity -= TargetCapacity;
+
+		UE_LOG(LogItemSystem,Log,TEXT("%s was partially stacked into slot %s of %s inventory"),
+		       *InItemData.DisplayName.ToString(),*InventoryItems[TargetItemIndex].StartPosition.GetPositionAsString(),
+		       *GetOwner()->GetName())
+		
+		return false;
+	}
+
+}
 
 
 bool UInventoryComponent::FindInventoryItemAtPosition(const FInventory2D Position, FInventoryItemData& OutInventoryItemData)

@@ -36,6 +36,8 @@ public:
 	//or Item cannot fit in any positions
 	bool AutoAddItem(FItemData Item);
 
+	bool AutoAddItem(FItemData InItem, FItemData& OutRemainingItem);
+
 	//Cycles through items in inventory that matches the item's exact class and will remove as much of the quantity to
 	//remove as possible.
 	//Will return false if a matching item class could not be found in the inventory
@@ -104,6 +106,9 @@ protected:
 	//Checks if the item will fit into a given position by check slots that would be covered by the item.  Returns false
 	//if it will not fit and true if it will. 
 	bool CheckIfItemFits(FItemData ItemData, FInventory2D TargetPosition);
+
+	//Attempts to stack given Item Data into existing stack.  Will return true if fully stacked, will return false if not.
+	bool AttemptStack(FInventoryItemData TargetItemData, FItemData InItemData, FItemData& OutRemainingItem);
 	
 	//Given a position, will return the item in that position.  True if an item is found and false if no item is found.
 	bool FindInventoryItemAtPosition(FInventory2D Position, FInventoryItemData& OutInventoryItemData);
@@ -143,6 +148,5 @@ protected:
 	void RemoveWeight(FItemData ItemData);
 
 	void RemoveWeight(float RemoveWeight);
-
 	
 };
