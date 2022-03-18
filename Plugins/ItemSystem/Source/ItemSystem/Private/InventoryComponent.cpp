@@ -165,21 +165,11 @@ bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInvento
 
 bool UInventoryComponent::TransferItem(UInventoryComponent* TargetInventory, const FInventoryItemData TargetItem)
 {
-	//Make sure target inventory is valid
-	if(TargetInventory == nullptr)
-	{
-		UE_LOG(LogItemSystem,Warning,TEXT("Attempting to transfer %s item from %s inventory to null inventory"),
-			*TargetItem.Item.DisplayName.ToString(),*GetOwner()->GetName())
-		return false;
-	}
 
-	//Make sure target item exist in this inventory
-	if(InventoryItems.Contains(TargetItem) == false)
+	if(TransferItemChecks(TargetItem,TargetInventory) == false)
 	{
-		UE_LOG(LogItemSystem,Warning,TEXT("Attempting to transfer %s item but is not in %s inventory"),
-			*TargetItem.Item.DisplayName.ToString(),*GetOwner()->GetName())
 		return false;
-	}
+	} 
 
 	//Attempt to auto add item to target inventory
 	FItemData LeftOverItemData;
@@ -239,6 +229,37 @@ bool UInventoryComponent::TransferItem(UInventoryComponent* TargetInventory, con
 			       *TargetInventory->GetOwner()->GetName())
 			return false;
 		}
+	}
+}
+
+bool UInventoryComponent::TransferItemToPosition(UInventoryComponent* TargetInventory, const FInventory2D TargetPosition,
+                                                 const FInventoryItemData TargetItem)
+{
+	if(TransferItemChecks(TargetItem,TargetInventory) == false)
+	{
+		return false;
+	}
+
+	if(TargetInventory->AddItemToPosition(TargetItem.Item,TargetPosition))
+	{
+		//Item Added
+		if(FullyRemoveInventoryItem(TargetItem) == false)
+		{
+			UE_LOG(LogItemSystem,Error,TEXT("%s item was transferred to %s but was not removed from source"),
+				*TargetItem.Item.DisplayName.ToString(),*TargetInventory->GetOwner()->GetName())
+			return false;
+		}
+
+		UE_LOG(LogItemSystem,Log,TEXT("%s item was transferred to %s from %s"),
+			*TargetItem.Item.DisplayName.ToString(),*TargetInventory->GetOwner()->GetName(),*GetOwner()->GetName())
+		return true;
+		
+	}
+	else
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("%s failed to transfer %s item to %s"),
+			*GetOwner()->GetName(),*TargetItem.Item.DisplayName.ToString(),*TargetInventory->GetOwner()->GetName())
+		return false;
 	}
 }
 
@@ -711,6 +732,25 @@ bool UInventoryComponent::AddItemChecks(const FItemData ItemToCheck) const
 	{
 		UE_LOG(LogItemSystem,Log,TEXT("%s inventory does not have enought wieght capacity for %s item"),
 			*GetOwner()->GetName(),*ItemToCheck.DisplayName.ToString())
+		return false;
+	}
+
+	return true;
+}
+
+bool UInventoryComponent::TransferItemChecks(const FInventoryItemData ItemToCheck, UInventoryComponent* InventoryToCheck) const
+{
+
+	if(InventoryToCheck == nullptr)
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("%s is attempting to transfer %s item to null inventory"),
+			*GetOwner()->GetName(),*ItemToCheck.Item.DisplayName.ToString())
+		return false;
+	}
+
+	if(ItemToCheck.Item.bIsValid == false)
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("%s attempting to transfer invalid item"),*GetOwner()->GetName())
 		return false;
 	}
 

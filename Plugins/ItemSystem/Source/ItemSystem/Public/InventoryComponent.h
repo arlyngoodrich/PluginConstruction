@@ -32,12 +32,18 @@ public:
 	//Returns the quantity of items per class
 	int32 GetTotalCountOfItemClass(TSubclassOf<AItemBase> ItemClass);
 	
-	//Adds and item to a position.  Will return false if: Position not found, item is not valid, weight cannot be added
+	//Adds and item to a position.  Will return false if target position not found, item is not valid, weight cannot be added
 	bool AddItemToPosition(FItemData Item, FInventory2D Position);
 
-	//Attempts to transfers target item from Instigating Inventory (Inventory calling the method).  Will return true if
-	//item was fully or partially transferred.  
+	//Attempts to transfer target item from Instigating Inventory (Inventory calling the method).  Will return true if
+	//item was fully or partially transferred. Will return false if the item was not transferred or if there was an error.
 	bool TransferItem(UInventoryComponent* TargetInventory,FInventoryItemData TargetItem);
+
+	//Attempts to transfer target item from Instigating Inventory (Inventory calling the method) to a specific position
+	//in the target inventory.  Will return true if the the item was fully OR partially transferred.  Will return false
+	//if the item was not transferred or if there was an error.  
+	bool TransferItemToPosition(UInventoryComponent* TargetInventory, FInventory2D TargetPosition,
+	                            FInventoryItemData TargetItem);
 
 	//Will attempt to add item into existing stacks.  If it cannot add to an existing stack, will attempt to add as a
 	//new stack. Will return remaining amount of item.
@@ -159,6 +165,9 @@ protected:
 
 	//Helper function that checks if the item is valid and that it's weight can be added
 	bool AddItemChecks(FItemData ItemToCheck) const;
+
+	//Helper functions that performs checks before transfering items
+	bool TransferItemChecks(FInventoryItemData ItemToCheck,UInventoryComponent* InventoryToCheck) const;
 
 	//Adds the weight of Item's stack to the current weight.  Clamped between 0 and MaxWeight.
 	void AddWeight(FItemData ItemData);
