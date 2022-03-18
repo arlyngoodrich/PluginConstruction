@@ -27,6 +27,21 @@ int32 UInventoryComponent::GetItemCount() const{return InventoryItems.Num();}
 float UInventoryComponent::GetInventoryWeight() const { return CurrentWeight; }
 float UInventoryComponent::GetInventoryMaxWeight() const { return MaxWeight; }
 
+int32 UInventoryComponent::GetTotalCountOfItemClass(const TSubclassOf<AItemBase> ItemClass)
+{
+	int32 ItemQty = 0;
+	for (int i = 0; i < InventoryItems.Num(); ++i)
+	{
+		const FItemData  TargetItem = InventoryItems[i].Item;
+		if(TargetItem.InWorldClass->StaticClass() == ItemClass->StaticClass())
+		{
+			ItemQty += TargetItem.ItemQuantity;
+		}
+	}
+
+	return ItemQty;
+}
+
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -148,27 +163,161 @@ bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInvento
 	}
 }
 
-bool UInventoryComponent::AutoAddItem(const FItemData Item)
+bool UInventoryComponent::TransferItem(UInventoryComponent* TargetInventory, const FInventoryItemData TargetItem)
 {
-	if(AddItemChecks(Item) == false){return false;}
 
-	for (int i = 0; i < InventorySlots.Num(); ++i)
+	if(TransferItemChecks(TargetItem,TargetInventory) == false)
 	{
-		const FInventorySlot TargetSlot = InventorySlots[i];
+		return false;
+	} 
 
-		if(TargetSlot.bIsOccupied == false)
+	//Attempt to auto add item to target inventory
+	FItemData LeftOverItemData;
+	if(TargetInventory->AutoAddItem(TargetItem.Item,LeftOverItemData))
+	{
+		//Was fully added
+		//Remove stack from current inventory
+		if(FullyRemoveInventoryItem(TargetItem)==false)
 		{
-			if(AddItemToPosition(Item,TargetSlot.Position))
+			UE_LOG(LogItemSystem, Error,
+			       TEXT("%s was transfered from %s to %s but was not removed from source inventory")
+			       ,*TargetItem.Item.DisplayName.ToString(),
+			       *GetOwner()->GetName(),
+			       *TargetInventory->GetOwner()->GetName()
+			       )
+			return false;
+		}
+
+		UE_LOG(LogItemSystem,Log,TEXT("%s item was fully transfered from %s to %s "),
+			*TargetItem.Item.DisplayName.ToString(),*GetOwner()->GetName(),*TargetInventory->GetOwner()->GetName())
+		return true;
+	}
+	else
+	{
+		const int32 AmountTransferred = TargetItem.Item.ItemQuantity - LeftOverItemData.ItemQuantity;
+		
+		//Was partially or not at all added
+		if(AmountTransferred > 0)
+		{
+
+			//Update stack in current inventory
+			if(ReduceQuantityOfInventoryItem(TargetItem,AmountTransferred)==false)
 			{
-				return true;
+				UE_LOG(LogItemSystem, Error,
+				       TEXT("%s item partially transfered to %s from %s but could not be partially removed at the source")
+					       ,*TargetItem.Item.DisplayName.ToString(),
+					       *GetOwner()->GetName(),
+					       *TargetInventory->GetOwner()->GetName()
+				       )
+				
+				return false;
+			}
+
+			UE_LOG(LogItemSystem,Log,TEXT("%d of %s was transferred from %s to %s"),
+				AmountTransferred, *LeftOverItemData.DisplayName.ToString(), *GetOwner()->GetName(),
+				*TargetInventory->GetOwner()->GetName())
+
+			return true;
+		}
+		else
+		{
+
+			//Item was not transferred at all
+			UE_LOG(LogItemSystem, Log, TEXT("%s item could not be transferred form %s inventory to %s")
+			       , *TargetItem.Item.DisplayName.ToString(),
+			       *GetOwner()->GetName(),
+			       *TargetInventory->GetOwner()->GetName())
+			return false;
+		}
+	}
+}
+
+bool UInventoryComponent::TransferItemToPosition(UInventoryComponent* TargetInventory, const FInventory2D TargetPosition,
+                                                 const FInventoryItemData TargetItem)
+{
+	if(TransferItemChecks(TargetItem,TargetInventory) == false)
+	{
+		return false;
+	}
+
+	if(TargetInventory->AddItemToPosition(TargetItem.Item,TargetPosition))
+	{
+		//Item Added
+		if(FullyRemoveInventoryItem(TargetItem) == false)
+		{
+			UE_LOG(LogItemSystem,Error,TEXT("%s item was transferred to %s but was not removed from source"),
+				*TargetItem.Item.DisplayName.ToString(),*TargetInventory->GetOwner()->GetName())
+			return false;
+		}
+
+		UE_LOG(LogItemSystem,Log,TEXT("%s item was transferred to %s from %s"),
+			*TargetItem.Item.DisplayName.ToString(),*TargetInventory->GetOwner()->GetName(),*GetOwner()->GetName())
+		return true;
+		
+	}
+	else
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("%s failed to transfer %s item to %s"),
+			*GetOwner()->GetName(),*TargetItem.Item.DisplayName.ToString(),*TargetInventory->GetOwner()->GetName())
+		return false;
+	}
+}
+
+
+bool UInventoryComponent::AutoAddItem(const FItemData InItem, FItemData& OutRemainingItem)
+{
+	if(AddItemChecks(InItem) == false) {return false;}
+	OutRemainingItem = InItem;
+
+	//Try to stack into existing stack
+	if(InItem.bShouldItemStack == true)
+	{
+		for (int i = 0; i < InventoryItems.Num(); ++i)
+		{
+			const FInventoryItemData TargetInventoryItem = InventoryItems[i];
+
+			//Check to see if they are the same class 
+			if(InItem.InWorldClass->StaticClass() == TargetInventoryItem.Item.InWorldClass->StaticClass())
+			{
+				if(AttemptStack(TargetInventoryItem,InItem,OutRemainingItem))
+				{
+					//Item Fully stacked
+					return true;
+				}
 			}
 		}
 	}
 
-	UE_LOG(LogItemSystem,Log,TEXT("%s item can not fit into %s inventory"),
-		*Item.DisplayName.ToString(),*GetOwner()->GetName())
-	return false;
+	//Stack Remaining Quantity
+	if(AutoAddItemNewStack(OutRemainingItem))
+	{
+		//New Stack created and added
+		OutRemainingItem.Invalidate();
+		return true;
+	}
+	else
+	{
+		//Not enough room to add new stack 
+		return false;
+	}
 	
+}
+
+bool UInventoryComponent::AutoAddItem(const FItemData InItem)
+{
+	FItemData OutItemData;
+	AutoAddItem(InItem,OutItemData);
+
+	if(InItem.ItemQuantity != OutItemData.ItemQuantity)
+	{
+		//Item was partially or fully stacked
+		return true;
+	}
+	else
+	{
+		//Item was not stacked at all
+		return false;
+	}
 }
 
 bool UInventoryComponent::ReduceQuantityOfItemByStaticClass(const TSubclassOf<AItemBase> ItemClass, int32 QuantityToRemove,
@@ -257,6 +406,23 @@ bool UInventoryComponent::ReduceQuantityOfInventoryItem(const FInventoryItemData
 	}
 }
 
+bool UInventoryComponent::ReduceQuantityOfInventoryItem(const FInventoryItemData TargetInventoryItem,
+                                                        const int32 QuantityToRemove)
+{
+	int32 QuantityRemaining;
+	const bool bWasRemovalITemFound = ReduceQuantityOfInventoryItem(TargetInventoryItem,QuantityToRemove,
+	                                                                QuantityRemaining);
+
+	if(bWasRemovalITemFound && QuantityRemaining == 0)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 bool UInventoryComponent::FullyRemoveInventoryItem(const FInventoryItemData TargetInventoryItem)
 {
 	int32 ItemIndex;
@@ -320,7 +486,99 @@ bool UInventoryComponent::IsItemInInventory(const FItemData Item, FInventory2D& 
 	return false;
 }
 
+bool UInventoryComponent::AutoAddItemNewStack(const FItemData Item)
+{
+	if(AddItemChecks(Item) == false){return false;}
 
+	//Cycle through slots and attempt to add items
+	for (int i = 0; i < InventorySlots.Num(); ++i)
+	{
+		const FInventorySlot TargetSlot = InventorySlots[i];
+
+		if(TargetSlot.bIsOccupied == false)
+		{
+			if(AddItemToPosition(Item,TargetSlot.Position))
+			{
+				return true;
+			}
+		}
+	}
+
+	UE_LOG(LogItemSystem,Log,TEXT("%s item can not fit into %s inventory"),
+		*Item.DisplayName.ToString(),*GetOwner()->GetName())
+	return false;
+	
+}
+
+
+bool UInventoryComponent::AttemptStack(FInventoryItemData TargetItemData, FItemData InItemData,
+                                       FItemData& OutRemainingItem)
+{
+	OutRemainingItem = InItemData;
+
+	if(AddItemChecks(InItemData)==false)
+	{
+		return false;
+	}
+
+	if(TargetItemData.Item.bShouldItemStack == false)
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("Cannot stack %s item in %s inventory"),
+		       *InItemData.DisplayName.ToString(),*GetOwner()->GetName())
+		return false;
+	}
+
+	int32 TargetItemIndex;
+	if(InventoryItems.Find(TargetItemData,TargetItemIndex) == false)
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("Attempting to stack item %s that is not in %s inventory"),
+		       *InItemData.DisplayName.ToString(),*GetOwner()->GetName())
+		return false;
+	}
+
+	if(TargetItemData.Item.MaxStackQuantity == TargetItemData.Item.ItemQuantity)
+	{
+		//return false since target stack is already.  This is expected to happen so no need to log. 
+		return false;
+	}
+	
+	const int32 TargetStackQty = TargetItemData.Item.ItemQuantity;
+	const int32 TargetMaxQty = TargetItemData.Item.MaxStackQuantity;
+	const int32 TargetCapacity = TargetMaxQty - TargetStackQty;
+	const int32 IncomingStackQty = InItemData.ItemQuantity;
+
+	if(TargetCapacity >= IncomingStackQty)
+	{
+		//Full Stack Item
+		InventoryItems[TargetItemIndex].Item.ItemQuantity += IncomingStackQty;
+		AddWeight(InItemData);
+
+		//Invalidate Remaining Item
+		OutRemainingItem.Invalidate();
+
+		UE_LOG(LogItemSystem,Log,TEXT("%s was fully stacked into slot %s of %s inventory"),
+		       *InItemData.DisplayName.ToString(),*InventoryItems[TargetItemIndex].StartPosition.GetPositionAsString(),
+		       *GetOwner()->GetName())
+		
+		return true;
+	}
+	else
+	{
+		//Partially stack item
+		//Set Target stack to max amount
+		InventoryItems[TargetItemIndex].Item.ItemQuantity = TargetMaxQty;
+		AddWeight(InItemData.PerItemWeight * TargetCapacity);
+
+		OutRemainingItem.ItemQuantity -= TargetCapacity;
+
+		UE_LOG(LogItemSystem,Log,TEXT("%s was partially stacked into slot %s of %s inventory"),
+		       *InItemData.DisplayName.ToString(),*InventoryItems[TargetItemIndex].StartPosition.GetPositionAsString(),
+		       *GetOwner()->GetName())
+		
+		return false;
+	}
+
+}
 
 
 bool UInventoryComponent::FindInventoryItemAtPosition(const FInventory2D Position, FInventoryItemData& OutInventoryItemData)
@@ -474,6 +732,25 @@ bool UInventoryComponent::AddItemChecks(const FItemData ItemToCheck) const
 	{
 		UE_LOG(LogItemSystem,Log,TEXT("%s inventory does not have enought wieght capacity for %s item"),
 			*GetOwner()->GetName(),*ItemToCheck.DisplayName.ToString())
+		return false;
+	}
+
+	return true;
+}
+
+bool UInventoryComponent::TransferItemChecks(const FInventoryItemData ItemToCheck, UInventoryComponent* InventoryToCheck) const
+{
+
+	if(InventoryToCheck == nullptr)
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("%s is attempting to transfer %s item to null inventory"),
+			*GetOwner()->GetName(),*ItemToCheck.Item.DisplayName.ToString())
+		return false;
+	}
+
+	if(ItemToCheck.Item.bIsValid == false)
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("%s attempting to transfer invalid item"),*GetOwner()->GetName())
 		return false;
 	}
 

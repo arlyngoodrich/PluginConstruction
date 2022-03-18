@@ -95,9 +95,15 @@ struct FItemData
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category = "Item Data")
 	int32 ItemQuantity;
 
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category = "Item Data")
+	int32 MaxStackQuantity;
+
 	//Should be between 0 and 1 and be displayed as a percent
 	UPROPERTY( BlueprintReadOnly, Category = "Item Data")
 	float ItemHealth;
+
+	UPROPERTY( BlueprintReadOnly, Category = "Item Data")
+	bool bIsValid;
 
 	FItemData() 
 	{
@@ -109,8 +115,10 @@ struct FItemData
 		ItemSize = FInventory2D(1,1);
 		ItemHealth = 1; 
 		ItemQuantity = 1;
+		MaxStackQuantity = 1;
 		bShouldItemStack = false;
 		PerItemWeight=  1;
+		bIsValid = true;
 	}
 
 	static FItemData NewItem(const FName NewDisplayName, const TSubclassOf<AItemBase> NewItemClass)
@@ -124,8 +132,21 @@ struct FItemData
 	}
 
 	static FItemData NewItem(const FName NewDisplayName, const TSubclassOf<AItemBase> NewItemClass,
-	                         const FInventory2D NewItemSize, const int32 NewItemQuantity, const bool bNewItemStacks,
-	                         const float NewItemPerWeight)
+						 const FInventory2D NewItemSize, const float NewItemPerWeight)
+	{
+		FItemData ItemData = FItemData();
+		
+		ItemData.DisplayName = NewDisplayName;
+		ItemData.ItemGuid = FGuid::NewGuid();
+		ItemData.InWorldClass = NewItemClass;
+		ItemData.ItemSize = NewItemSize;
+		ItemData.PerItemWeight = NewItemPerWeight;
+		return ItemData;
+	}
+
+	static FItemData NewItem(const FName NewDisplayName, const TSubclassOf<AItemBase> NewItemClass,
+	                         const FInventory2D NewItemSize, const int32 NewItemQuantity, const int32 NewMaxStack,
+	                         const bool bNewItemStacks, const float NewItemPerWeight)
 	{
 		FItemData ItemData = FItemData();
 		
@@ -134,10 +155,18 @@ struct FItemData
 		ItemData.InWorldClass = NewItemClass;
 		ItemData.ItemSize = NewItemSize;
 		ItemData.ItemQuantity = NewItemQuantity;
+		ItemData.MaxStackQuantity = NewMaxStack;
 		ItemData.bShouldItemStack = bNewItemStacks;
 		ItemData.PerItemWeight = NewItemPerWeight;
-
 		return ItemData;
+	}
+
+	void Invalidate()
+	{
+		ItemGuid.Invalidate();
+		InWorldClass = nullptr;
+		ItemQuantity = 0;
+		bIsValid = false;
 	}
 	
 	float GetStackWeight() const
@@ -147,12 +176,12 @@ struct FItemData
 
 	bool IsEqualTo(const FItemData InItem) const
 	{
-		return ItemGuid == InItem.ItemGuid;
+		return ItemGuid == InItem.ItemGuid && InItem.bIsValid;
 	}
 
 	bool operator==(const FItemData& Item) const
 	{
-		return ItemGuid == Item.ItemGuid;
+		return ItemGuid == Item.ItemGuid && Item.bIsValid;
 	}
 	
 };

@@ -28,13 +28,32 @@ public:
 
 	//Returns the max weight of the inventory
 	float GetInventoryMaxWeight() const;
+
+	//Returns the quantity of items per class
+	int32 GetTotalCountOfItemClass(TSubclassOf<AItemBase> ItemClass);
 	
-	//Adds and item to a position.  Will return false if: Position not found, item is not valid, weight cannot be added
+	//Adds and item to a position.  Will return false if target position not found, item is not valid, weight cannot be added
 	bool AddItemToPosition(FItemData Item, FInventory2D Position);
 
-	//Cylces through all slots until item is added.  Will return false if: Item is not valid, weight cannot be added,
-	//or Item cannot fit in any positions
-	bool AutoAddItem(FItemData Item);
+	//Attempts to transfer target item from Instigating Inventory (Inventory calling the method).  Will return true if
+	//item was fully or partially transferred. Will return false if the item was not transferred or if there was an error.
+	bool TransferItem(UInventoryComponent* TargetInventory,FInventoryItemData TargetItem);
+
+	//Attempts to transfer target item from Instigating Inventory (Inventory calling the method) to a specific position
+	//in the target inventory.  Will return true if the the item was fully OR partially transferred.  Will return false
+	//if the item was not transferred or if there was an error.  
+	bool TransferItemToPosition(UInventoryComponent* TargetInventory, FInventory2D TargetPosition,
+	                            FInventoryItemData TargetItem);
+
+	//Will attempt to add item into existing stacks.  If it cannot add to an existing stack, will attempt to add as a
+	//new stack. Will return remaining amount of item.
+	//Returns true if stack was full added and returns false if was partially added. 
+	bool AutoAddItem(FItemData InItem, FItemData& OutRemainingItem);
+
+	//Will attempt to add item into existing stacks.  If it cannot add to an existing stack, will attempt to add as a
+	//new stack.  Will NOT return remaining item.
+	//Returns true if was fully or partially stacked.  Returns false if could not be stacked at all. 
+	bool AutoAddItem(FItemData InItem);
 
 	//Cycles through items in inventory that matches the item's exact class and will remove as much of the quantity to
 	//remove as possible.
@@ -43,10 +62,17 @@ public:
 	                                       int32& OutAmountNotRemoved);
 	
 	//Checks for Items by GUID and Position and reduces it's item quantity.
-	//Will fully remove item if the removal amount is greater than or equal to the current amount
+	//Will fully remove item if the removal amount is greater than or equal to the current amount.  Will return the amount
+	//that was not removed
 	//Will return false if the Item GUID and position not found in inventory
 	bool ReduceQuantityOfInventoryItem(FInventoryItemData TargetInventoryItem, int32 QuantityToRemove,
 									   int32& OutAmountNotRemoved);
+
+	//Checks for Items by GUID and Position and reduces it's item quantity.
+	//Will fully remove item if the removal amount is greater than or equal to the current amount.  Will NOT return the
+	//Amount that was removed
+	//Will return false if the Item GUID and position not found in inventory OR false if the item was not fully removed
+	bool ReduceQuantityOfInventoryItem(FInventoryItemData TargetInventoryItem, int32 QuantityToRemove);
 	
 	//Checks for Items by GUID and Position and removes it.
 	//Does not invalidate item -- just removes item and weight from inventory.
@@ -104,6 +130,13 @@ protected:
 	//Checks if the item will fit into a given position by check slots that would be covered by the item.  Returns false
 	//if it will not fit and true if it will. 
 	bool CheckIfItemFits(FItemData ItemData, FInventory2D TargetPosition);
+
+	//Cylces through all slots until item is added.  Will return false if: Item is not valid, weight cannot be added,
+	//or Item cannot fit in any positions
+	bool AutoAddItemNewStack(FItemData Item);
+	
+	//Attempts to stack given Item Data into existing stack.  Will return true if fully stacked, will return false if not.
+	bool AttemptStack(FInventoryItemData TargetItemData, FItemData InItemData, FItemData& OutRemainingItem);
 	
 	//Given a position, will return the item in that position.  True if an item is found and false if no item is found.
 	bool FindInventoryItemAtPosition(FInventory2D Position, FInventoryItemData& OutInventoryItemData);
@@ -133,6 +166,9 @@ protected:
 	//Helper function that checks if the item is valid and that it's weight can be added
 	bool AddItemChecks(FItemData ItemToCheck) const;
 
+	//Helper functions that performs checks before transfering items
+	bool TransferItemChecks(FInventoryItemData ItemToCheck,UInventoryComponent* InventoryToCheck) const;
+
 	//Adds the weight of Item's stack to the current weight.  Clamped between 0 and MaxWeight.
 	void AddWeight(FItemData ItemData);
 
@@ -143,6 +179,5 @@ protected:
 	void RemoveWeight(FItemData ItemData);
 
 	void RemoveWeight(float RemoveWeight);
-
 	
 };

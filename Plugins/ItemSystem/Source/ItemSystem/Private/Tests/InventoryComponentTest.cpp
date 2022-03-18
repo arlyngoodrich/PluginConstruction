@@ -26,37 +26,58 @@ bool FInventoryAddItemTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Inventory failed to initialize"),InventoryComponent->GetSlotCount()>0);
 
 	//Test to make sure invalid item cannot be added
-	const bool bInvalidItemAdded = InventoryComponent->AddItemToPosition(FItemData(),FInventory2D(1,1));
-	TestTrue(TEXT("Invalid items was added to inventory"),bInvalidItemAdded==false);
+	FItemData InvalidItem = FItemData();
+	InvalidItem.Invalidate();
+	const bool bInvalidItemAdded = InventoryComponent->AddItemToPosition(InvalidItem,FInventory2D(1,1));
+	TestTrue(TEXT("Invalid Item Test"),bInvalidItemAdded==false);
 	
 	//Create a valid item to add to inventory
-	const FInventory2D ItemSize = FInventory2D(1,1);
-	const FItemData NewItem = FItemData::NewItem
+	const FInventory2D GoodSize = FInventory2D(1,1);
+	const FItemData GoodItem = FItemData::NewItem
 		(
 			"TestItem",
 			AItemBase::StaticClass(),
-			ItemSize,
+			GoodSize,
+			1,
 			1,
 			false,
 			1.f
 		);
 
-	//Add valid item to inventory
+	const FInventory2D BadSize = FInventory2D(6,1);
+	const FItemData BadItem = FItemData::NewItem
+	(
+		"TestItem",
+		AItemBase::StaticClass(),
+		BadSize,
+		1,
+		1,
+		false,
+		1.f
+	);
+
+
 	const FInventory2D ItemPosition = FInventory2D(1,1);
-	const bool bValidItemAdded = InventoryComponent->AddItemToPosition(NewItem,ItemPosition);
+	
+	const bool bBadItemAdded = InventoryComponent->AddItemToPosition(BadItem,ItemPosition);
+	TestFalse(TEXT("Bad Item Size Test"),bBadItemAdded);
+	
+
+	//Add valid item to inventory
+	const bool bValidItemAdded = InventoryComponent->AddItemToPosition(GoodItem,ItemPosition);
 
 	//Double check to make sure it is in the inventory
 	FInventory2D ActualItemPosition;
-	const bool bDoubleCheckInventory = InventoryComponent->IsItemInInventory(NewItem,ActualItemPosition);
+	const bool bDoubleCheckInventory = InventoryComponent->IsItemInInventory(GoodItem,ActualItemPosition);
 
 	//Make sure item has been added and is in correct position
-	TestTrue(TEXT("Item was not added to inventory"),bValidItemAdded&&bDoubleCheckInventory);
-	TestTrue(TEXT("Item is not in expected position"), ActualItemPosition == ItemPosition);
+	TestTrue(TEXT("Item Added Check"),bValidItemAdded&&bDoubleCheckInventory);
+	TestTrue(TEXT("Expected Position Check"), ActualItemPosition == ItemPosition);
 	
 	//Make sure weight was added to inventory
 	TestEqual(TEXT("Weight was not added to inventory"),
 		InventoryComponent->GetInventoryWeight(),
-		NewItem.GetStackWeight());
+		GoodItem.GetStackWeight());
 	
 	return true;
 }
@@ -87,6 +108,7 @@ bool FInventoryAutoAddItemTest::RunTest(const FString& Parameters)
 			"TestItem",
 			AItemBase::StaticClass(),
 			FInventory2D(1,1),
+			1,
 			1,
 			false,
 			1.f
@@ -127,6 +149,7 @@ bool FInventoryMaxWeightTest::RunTest(const FString& Parameters)
 			AItemBase::StaticClass(),
 			FInventory2D(1,1),
 			2,
+			2,
 			false,
 			InventoryComponent->GetInventoryMaxWeight()
 		);
@@ -165,6 +188,7 @@ bool FInventorySlotTest::RunTest(const FString& Parameters)
 			"TestItem",
 			AItemBase::StaticClass(),
 			FInventory2D(1,1),
+			1,
 			1,
 			false,
 			1.f
@@ -218,6 +242,7 @@ bool FWeightSummationTest::RunTest(const FString& Parameters)
 			AItemBase::StaticClass(),
 			FInventory2D(1,1),
 			1,
+			1,
 			false,
 			2.f
 		);
@@ -268,6 +293,7 @@ bool FInventoryPartiallyRemoveItem::RunTest(const FString& Parameters)
 		"TestItem",
 		AItemBase::StaticClass(),
 		FInventory2D(1, 1),
+		ItemQuantity,
 		ItemQuantity,
 		false,
 		1.f
@@ -324,6 +350,7 @@ bool FInventoryFullyRemoveItem::RunTest(const FString& Parameters)
 		AItemBase::StaticClass(),
 		FInventory2D(1, 1),
 		ItemQuantity,
+		ItemQuantity,
 		false,
 		1.f
 	);
@@ -349,4 +376,216 @@ bool FInventoryFullyRemoveItem::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Inventory weight is different than expected"), InventoryWeight, ExpectedWeight);
 	
 	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FStackItemTest,"Inventory.StackItem",
+								 EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FStackItemTest::RunTest(const FString& Parameters)
+{
+	//Create World
+	UWorld* World = FAutomationEditorCommonUtils::CreateNewMap();
+
+	//Create Actor
+	AActor* Actor = World->SpawnActor<AActor>();
+	TestTrue(TEXT("Test Actor is not valid"), IsValid(Actor));
+
+	//Create and Add Component to Actor
+	const FName CompName("InventoryComp");
+	UInventoryComponent* InventoryComponent = NewObject<UInventoryComponent>(Actor, CompName);
+	TestTrue(TEXT("Invetory Comp is not valid"), IsValid(InventoryComponent));
+
+	InventoryComponent->RegisterComponent();
+	TestTrue(TEXT("Inventory failed to initialize"), InventoryComponent->GetSlotCount() > 0);
+
+	//Create a valid item to add to inventory
+	constexpr int32 ItemQuantity = 2;
+	constexpr int32 MaxStackQuantity = 5;
+	const FItemData NewItem = FItemData::NewItem
+	(
+		"TestItem",
+		AItemBase::StaticClass(),
+		FInventory2D(1, 1),
+		ItemQuantity,
+		MaxStackQuantity,
+		true,
+		1.f
+	);
+
+	constexpr int32 ItemsToAdd = 3;
+	for (int i = 0; i < ItemsToAdd; ++i)
+	{
+		InventoryComponent->AutoAddItem(NewItem);
+	}
+
+	//Inventory should have 2 items tacks
+	TestEqual(TEXT("Inventory does not have the right amount of stacks"),InventoryComponent->GetItemCount(),2);
+	
+	//Inventory should have 10 total quantity of class
+	TestEqual(
+		TEXT("Item quantity is unexpected"), InventoryComponent->GetTotalCountOfItemClass(AItemBase::StaticClass()),
+		ItemQuantity * ItemsToAdd);
+
+	//Inventory Weight should be correct
+	TestEqual(TEXT("Inventory weight is unexpected"),
+		InventoryComponent->GetInventoryWeight()
+		,NewItem.PerItemWeight*ItemsToAdd*ItemQuantity
+		);
+	
+	
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTransferItem,"Inventory.TransferItem",
+								 EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FTransferItem::RunTest(const FString& Parameters)
+{
+	//Create World
+	UWorld* World = FAutomationEditorCommonUtils::CreateNewMap();
+
+	//Create Actor
+	AActor* Actor = World->SpawnActor<AActor>();
+	TestTrue(TEXT("Test Actor is not valid"), IsValid(Actor));
+
+	//Create and Add Component to Actor
+	const FName CompName1("InventoryComp1");
+	UInventoryComponent* Inventory1 = NewObject<UInventoryComponent>(Actor, CompName1);
+	TestTrue(TEXT("Invetory1 Comp is not valid"), IsValid(Inventory1));
+
+	Inventory1->RegisterComponent();
+	TestTrue(TEXT("Inventory1 failed to initialize"), Inventory1->GetSlotCount() > 0);
+
+	//Create and Add Component to Actor
+	const FName CompName2("InventoryComp2");
+	UInventoryComponent* Inventory2 = NewObject<UInventoryComponent>(Actor, CompName2);
+	TestTrue(TEXT("Invetory2 Comp is not valid"), IsValid(Inventory2));
+
+	Inventory2->RegisterComponent();
+	TestTrue(TEXT("Inventory2 failed to initialize"), Inventory2->GetSlotCount() > 0);
+
+	
+	//Create a valid item to add to inventory
+	constexpr int32 ItemQuantity = 2;
+	constexpr int32 MaxStackQuantity = 5;
+	const FItemData GoodItem = FItemData::NewItem
+	(
+		"TestItem",
+		AItemBase::StaticClass(),
+		FInventory2D(1, 1),
+		ItemQuantity,
+		MaxStackQuantity,
+		true,
+		1.f
+	);
+	
+	//Add item to inventory
+	Inventory1->AutoAddItem(GoodItem);
+
+	//Get position of newly added item
+	FInventory2D Inv1Position;
+	
+	if(Inventory1->IsItemInInventory(GoodItem,Inv1Position))
+	{
+
+		//Test Operation
+		const FInventoryItemData TargetItemData = FInventoryItemData(Inv1Position,GoodItem);
+		const bool bWasTransferOppSuccess = Inventory1->TransferItem(Inventory2,TargetItemData);
+		TestTrue(TEXT("Inventory Operation Result"),bWasTransferOppSuccess);
+
+		//Test Item Count
+		const bool bInv1Empty = Inventory1->GetItemCount() == 0;
+		const bool bInv2HaveItem = Inventory2->GetItemCount() == 1;
+		TestTrue(TEXT("Inv1 Empty and Inv2 Has Item"),bInv1Empty && bInv2HaveItem);
+		
+		//Test Weights
+		TestEqual(TEXT("Inv1 weight test"),Inventory1->GetInventoryWeight(),0.f);
+		TestEqual(TEXT("Inv2 weight test"),Inventory2->GetInventoryWeight(),GoodItem.GetStackWeight());
+		
+	}
+	else
+	{
+		return false;
+	}
+	
+
+	return true;
+	
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTransferToPosition,"Inventory.TransferToPosition",
+								 EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FTransferToPosition::RunTest(const FString& Parameters)
+{
+	//Create World
+	UWorld* World = FAutomationEditorCommonUtils::CreateNewMap();
+
+	//Create Actor
+	AActor* Actor = World->SpawnActor<AActor>();
+	TestTrue(TEXT("Test Actor is not valid"), IsValid(Actor));
+
+	//Create and Add Component to Actor
+	const FName CompName1("InventoryComp1");
+	UInventoryComponent* Inventory1 = NewObject<UInventoryComponent>(Actor, CompName1);
+	TestTrue(TEXT("Invetory1 Comp is not valid"), IsValid(Inventory1));
+
+	Inventory1->RegisterComponent();
+	TestTrue(TEXT("Inventory1 failed to initialize"), Inventory1->GetSlotCount() > 0);
+
+	//Create and Add Component to Actor
+	const FName CompName2("InventoryComp2");
+	UInventoryComponent* Inventory2 = NewObject<UInventoryComponent>(Actor, CompName2);
+	TestTrue(TEXT("Invetory2 Comp is not valid"), IsValid(Inventory2));
+
+	Inventory2->RegisterComponent();
+	TestTrue(TEXT("Inventory2 failed to initialize"), Inventory2->GetSlotCount() > 0);
+
+	
+	//Create a valid item to add to inventory
+	constexpr int32 ItemQuantity = 2;
+	constexpr int32 MaxStackQuantity = 5;
+	const FItemData GoodItem = FItemData::NewItem
+	(
+		"TestItem",
+		AItemBase::StaticClass(),
+		FInventory2D(1, 1),
+		ItemQuantity,
+		MaxStackQuantity,
+		true,
+		1.f
+	);
+	
+	//Add item to inventory
+	Inventory1->AutoAddItem(GoodItem);
+
+	//Get position of newly added item
+	FInventory2D Inv1Position;
+	
+	if(Inventory1->IsItemInInventory(GoodItem,Inv1Position))
+	{
+
+		//Test Operation
+		const FInventoryItemData TargetItemData = FInventoryItemData(Inv1Position,GoodItem);
+		const bool bWasTransferOppSuccess = Inventory1->TransferItemToPosition(Inventory2,FInventory2D(0,0),TargetItemData);
+		TestTrue(TEXT("Inventory Operation Result"),bWasTransferOppSuccess);
+
+		//Test Item Count
+		const bool bInv1Empty = Inventory1->GetItemCount() == 0;
+		const bool bInv2HaveItem = Inventory2->GetItemCount() == 1;
+		TestTrue(TEXT("Inv1 Empty and Inv2 Has Item"),bInv1Empty && bInv2HaveItem);
+		
+		//Test Weights
+		TestEqual(TEXT("Inv1 weight test"),Inventory1->GetInventoryWeight(),0.f);
+		TestEqual(TEXT("Inv2 weight test"),Inventory2->GetInventoryWeight(),GoodItem.GetStackWeight());
+		
+	}
+	else
+	{
+		return false;
+	}
+	
+
+	return true;
+	
 }
