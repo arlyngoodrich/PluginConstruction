@@ -37,6 +37,7 @@ bool FInventoryAddItemTest::RunTest(const FString& Parameters)
 			AItemBase::StaticClass(),
 			ItemSize,
 			1,
+			1,
 			false,
 			1.f
 		);
@@ -88,6 +89,7 @@ bool FInventoryAutoAddItemTest::RunTest(const FString& Parameters)
 			AItemBase::StaticClass(),
 			FInventory2D(1,1),
 			1,
+			1,
 			false,
 			1.f
 		);
@@ -127,6 +129,7 @@ bool FInventoryMaxWeightTest::RunTest(const FString& Parameters)
 			AItemBase::StaticClass(),
 			FInventory2D(1,1),
 			2,
+			2,
 			false,
 			InventoryComponent->GetInventoryMaxWeight()
 		);
@@ -165,6 +168,7 @@ bool FInventorySlotTest::RunTest(const FString& Parameters)
 			"TestItem",
 			AItemBase::StaticClass(),
 			FInventory2D(1,1),
+			1,
 			1,
 			false,
 			1.f
@@ -218,6 +222,7 @@ bool FWeightSummationTest::RunTest(const FString& Parameters)
 			AItemBase::StaticClass(),
 			FInventory2D(1,1),
 			1,
+			1,
 			false,
 			2.f
 		);
@@ -268,6 +273,7 @@ bool FInventoryPartiallyRemoveItem::RunTest(const FString& Parameters)
 		"TestItem",
 		AItemBase::StaticClass(),
 		FInventory2D(1, 1),
+		ItemQuantity,
 		ItemQuantity,
 		false,
 		1.f
@@ -324,6 +330,7 @@ bool FInventoryFullyRemoveItem::RunTest(const FString& Parameters)
 		AItemBase::StaticClass(),
 		FInventory2D(1, 1),
 		ItemQuantity,
+		ItemQuantity,
 		false,
 		1.f
 	);
@@ -347,6 +354,64 @@ bool FInventoryFullyRemoveItem::RunTest(const FString& Parameters)
 	constexpr float ExpectedWeight = 0.f;
 	const float InventoryWeight = InventoryComponent->GetInventoryWeight();
 	TestEqual(TEXT("Inventory weight is different than expected"), InventoryWeight, ExpectedWeight);
+	
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FStackItemTest,"Inventory.StackItem",
+								 EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FStackItemTest::RunTest(const FString& Parameters)
+{
+	//Create World
+	UWorld* World = FAutomationEditorCommonUtils::CreateNewMap();
+
+	//Create Actor
+	AActor* Actor = World->SpawnActor<AActor>();
+	TestTrue(TEXT("Test Actor is not valid"), IsValid(Actor));
+
+	//Create and Add Component to Actor
+	const FName CompName("InventoryComp");
+	UInventoryComponent* InventoryComponent = NewObject<UInventoryComponent>(Actor, CompName);
+	TestTrue(TEXT("Invetory Comp is not valid"), IsValid(InventoryComponent));
+
+	InventoryComponent->RegisterComponent();
+	TestTrue(TEXT("Inventory failed to initialize"), InventoryComponent->GetSlotCount() > 0);
+
+	//Create a valid item to add to inventory
+	constexpr int32 ItemQuantity = 2;
+	constexpr int32 MaxStackQuantity = 5;
+	const FItemData NewItem = FItemData::NewItem
+	(
+		"TestItem",
+		AItemBase::StaticClass(),
+		FInventory2D(1, 1),
+		ItemQuantity,
+		MaxStackQuantity,
+		true,
+		1.f
+	);
+
+	constexpr int32 ItemsToAdd = 3;
+	for (int i = 0; i < ItemsToAdd; ++i)
+	{
+		InventoryComponent->AutoAddItem(NewItem);
+	}
+
+	//Inventory should have 2 items tacks
+	TestEqual(TEXT("Inventory does not have the right amount of stacks"),InventoryComponent->GetItemCount(),2);
+	
+	//Inventory should have 10 total quantity of class
+	TestEqual(
+		TEXT("Item quantity is unexpected"), InventoryComponent->GetTotalCountOfItemClass(AItemBase::StaticClass()),
+		ItemQuantity * ItemsToAdd);
+
+	//Inventory Weight should be correct
+	TestEqual(TEXT("Inventory weight is unexpected"),
+		InventoryComponent->GetInventoryWeight()
+		,NewItem.PerItemWeight*ItemsToAdd*ItemQuantity
+		);
+	
 	
 	return true;
 }

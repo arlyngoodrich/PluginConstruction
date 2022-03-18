@@ -158,6 +158,13 @@ struct FItemData
 
 		return ItemData;
 	}
+
+	void Invalidate()
+	{
+		ItemGuid.Invalidate();
+		InWorldClass = nullptr;
+		ItemQuantity = 0;
+	}
 	
 	float GetStackWeight() const
 	{

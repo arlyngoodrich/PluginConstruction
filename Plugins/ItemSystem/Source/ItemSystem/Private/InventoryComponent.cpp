@@ -27,6 +27,21 @@ int32 UInventoryComponent::GetItemCount() const{return InventoryItems.Num();}
 float UInventoryComponent::GetInventoryWeight() const { return CurrentWeight; }
 float UInventoryComponent::GetInventoryMaxWeight() const { return MaxWeight; }
 
+int32 UInventoryComponent::GetTotalCountOfItemClass(const TSubclassOf<AItemBase> ItemClass)
+{
+	int32 ItemQty = 0;
+	for (int i = 0; i < InventoryItems.Num(); ++i)
+	{
+		const FItemData  TargetItem = InventoryItems[i].Item;
+		if(TargetItem.InWorldClass->StaticClass() == ItemClass->StaticClass())
+		{
+			ItemQty += TargetItem.ItemQuantity;
+		}
+	}
+
+	return ItemQty;
+}
+
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -148,29 +163,6 @@ bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInvento
 	}
 }
 
-bool UInventoryComponent::AutoAddItem(const FItemData Item)
-{
-	if(AddItemChecks(Item) == false){return false;}
-
-	//Cycle through slots and attempt to add items
-	for (int i = 0; i < InventorySlots.Num(); ++i)
-	{
-		const FInventorySlot TargetSlot = InventorySlots[i];
-
-		if(TargetSlot.bIsOccupied == false)
-		{
-			if(AddItemToPosition(Item,TargetSlot.Position))
-			{
-				return true;
-			}
-		}
-	}
-
-	UE_LOG(LogItemSystem,Log,TEXT("%s item can not fit into %s inventory"),
-		*Item.DisplayName.ToString(),*GetOwner()->GetName())
-	return false;
-	
-}
 
 bool UInventoryComponent::AutoAddItem(const FItemData InItem, FItemData& OutRemainingItem)
 {
@@ -197,10 +189,10 @@ bool UInventoryComponent::AutoAddItem(const FItemData InItem, FItemData& OutRema
 	}
 
 	//Stack Remaining Quantity
-	if(AutoAddItem(OutRemainingItem))
+	if(AutoAddItemNewStack(OutRemainingItem))
 	{
 		//New Stack created and added
-		OutRemainingItem = FItemData();
+		OutRemainingItem.Invalidate();
 		return true;
 	}
 	else
@@ -209,6 +201,23 @@ bool UInventoryComponent::AutoAddItem(const FItemData InItem, FItemData& OutRema
 		return false;
 	}
 	
+}
+
+bool UInventoryComponent::AutoAddItem(const FItemData InItem)
+{
+	FItemData OutItemData;
+	AutoAddItem(InItem,OutItemData);
+
+	if(InItem.ItemQuantity != OutItemData.ItemQuantity)
+	{
+		//Item was partially or fully stacked
+		return true;
+	}
+	else
+	{
+		//Item was not stacked at all
+		return false;
+	}
 }
 
 bool UInventoryComponent::ReduceQuantityOfItemByStaticClass(const TSubclassOf<AItemBase> ItemClass, int32 QuantityToRemove,
@@ -360,6 +369,31 @@ bool UInventoryComponent::IsItemInInventory(const FItemData Item, FInventory2D& 
 	return false;
 }
 
+bool UInventoryComponent::AutoAddItemNewStack(const FItemData Item)
+{
+	if(AddItemChecks(Item) == false){return false;}
+
+	//Cycle through slots and attempt to add items
+	for (int i = 0; i < InventorySlots.Num(); ++i)
+	{
+		const FInventorySlot TargetSlot = InventorySlots[i];
+
+		if(TargetSlot.bIsOccupied == false)
+		{
+			if(AddItemToPosition(Item,TargetSlot.Position))
+			{
+				return true;
+			}
+		}
+	}
+
+	UE_LOG(LogItemSystem,Log,TEXT("%s item can not fit into %s inventory"),
+		*Item.DisplayName.ToString(),*GetOwner()->GetName())
+	return false;
+	
+}
+
+
 bool UInventoryComponent::AttemptStack(FInventoryItemData TargetItemData, FItemData InItemData,
                                        FItemData& OutRemainingItem)
 {
@@ -403,7 +437,7 @@ bool UInventoryComponent::AttemptStack(FInventoryItemData TargetItemData, FItemD
 		AddWeight(InItemData);
 
 		//Invalidate Remaining Item
-		OutRemainingItem = FItemData();
+		OutRemainingItem.Invalidate();
 
 		UE_LOG(LogItemSystem,Log,TEXT("%s was fully stacked into slot %s of %s inventory"),
 		       *InItemData.DisplayName.ToString(),*InventoryItems[TargetItemIndex].StartPosition.GetPositionAsString(),
