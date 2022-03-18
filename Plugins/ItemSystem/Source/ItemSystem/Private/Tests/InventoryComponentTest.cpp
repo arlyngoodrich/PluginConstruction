@@ -415,3 +415,68 @@ bool FStackItemTest::RunTest(const FString& Parameters)
 	
 	return true;
 }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTransferItem,"Inventory.TransferItem",
+								 EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FTransferItem::RunTest(const FString& Parameters)
+{
+	//Create World
+	UWorld* World = FAutomationEditorCommonUtils::CreateNewMap();
+
+	//Create Actor
+	AActor* Actor = World->SpawnActor<AActor>();
+	TestTrue(TEXT("Test Actor is not valid"), IsValid(Actor));
+
+	//Create and Add Component to Actor
+	const FName CompName1("InventoryComp1");
+	UInventoryComponent* Inventory1 = NewObject<UInventoryComponent>(Actor, CompName1);
+	TestTrue(TEXT("Invetory1 Comp is not valid"), IsValid(Inventory1));
+
+	Inventory1->RegisterComponent();
+	TestTrue(TEXT("Inventory1 failed to initialize"), Inventory1->GetSlotCount() > 0);
+
+	//Create and Add Component to Actor
+	const FName CompName2("InventoryComp2");
+	UInventoryComponent* Inventory2 = NewObject<UInventoryComponent>(Actor, CompName2);
+	TestTrue(TEXT("Invetory2 Comp is not valid"), IsValid(Inventory2));
+
+	Inventory2->RegisterComponent();
+	TestTrue(TEXT("Inventory2 failed to initialize"), Inventory2->GetSlotCount() > 0);
+
+	
+	//Create a valid item to add to inventory
+	constexpr int32 ItemQuantity = 2;
+	constexpr int32 MaxStackQuantity = 5;
+	const FItemData NewItem = FItemData::NewItem
+	(
+		"TestItem",
+		AItemBase::StaticClass(),
+		FInventory2D(1, 1),
+		ItemQuantity,
+		MaxStackQuantity,
+		false,
+		1.f
+	);
+
+	//Add item to inventory
+	Inventory1->AutoAddItem(NewItem);
+
+	//Get position of newly added item
+	FInventory2D Inv1Position;
+	
+	if(Inventory1->IsItemInInventory(NewItem,Inv1Position))
+	{
+		
+		const FInventoryItemData TargetItemData = FInventoryItemData(Inv1Position,NewItem);
+		const bool bWasTransferOppSuccess = Inventory1->TransferItem(Inventory2,TargetItemData);
+		TestTrue(TEXT("Inventory Opperation did not work"),bWasTransferOppSuccess);
+	}
+	else
+	{
+		return false;
+	}
+
+	return true;
+	
+}

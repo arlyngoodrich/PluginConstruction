@@ -174,7 +174,7 @@ bool UInventoryComponent::TransferItem(UInventoryComponent* TargetInventory, con
 	}
 
 	//Make sure target item exist in this inventory
-	if(InventoryItems.Find(TargetItem) == false)
+	if(InventoryItems.Contains(TargetItem) == false)
 	{
 		UE_LOG(LogItemSystem,Warning,TEXT("Attempting to transfer %s item but is not in %s inventory"),
 			*TargetItem.Item.DisplayName.ToString(),*GetOwner()->GetName())
@@ -232,7 +232,7 @@ bool UInventoryComponent::TransferItem(UInventoryComponent* TargetInventory, con
 		else
 		{
 
-			//Was not transferred at all
+			//Item was not transferred at all
 			UE_LOG(LogItemSystem, Log, TEXT("%s item could not be transferred form %s inventory to %s")
 			       , *TargetItem.Item.DisplayName.ToString(),
 			       *GetOwner()->GetName(),
