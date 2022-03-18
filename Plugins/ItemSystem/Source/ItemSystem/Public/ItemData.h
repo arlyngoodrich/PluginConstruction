@@ -102,6 +102,9 @@ struct FItemData
 	UPROPERTY( BlueprintReadOnly, Category = "Item Data")
 	float ItemHealth;
 
+	UPROPERTY( BlueprintReadOnly, Category = "Item Data")
+	bool bIsValid;
+
 	FItemData() 
 	{
 		DisplayName = "Default";
@@ -115,6 +118,7 @@ struct FItemData
 		MaxStackQuantity = 1;
 		bShouldItemStack = false;
 		PerItemWeight=  1;
+		bIsValid = true;
 	}
 
 	static FItemData NewItem(const FName NewDisplayName, const TSubclassOf<AItemBase> NewItemClass)
@@ -137,7 +141,6 @@ struct FItemData
 		ItemData.InWorldClass = NewItemClass;
 		ItemData.ItemSize = NewItemSize;
 		ItemData.PerItemWeight = NewItemPerWeight;
-
 		return ItemData;
 	}
 
@@ -155,7 +158,6 @@ struct FItemData
 		ItemData.MaxStackQuantity = NewMaxStack;
 		ItemData.bShouldItemStack = bNewItemStacks;
 		ItemData.PerItemWeight = NewItemPerWeight;
-
 		return ItemData;
 	}
 
@@ -164,6 +166,7 @@ struct FItemData
 		ItemGuid.Invalidate();
 		InWorldClass = nullptr;
 		ItemQuantity = 0;
+		bIsValid = false;
 	}
 	
 	float GetStackWeight() const
@@ -173,12 +176,12 @@ struct FItemData
 
 	bool IsEqualTo(const FItemData InItem) const
 	{
-		return ItemGuid == InItem.ItemGuid;
+		return ItemGuid == InItem.ItemGuid && InItem.bIsValid;
 	}
 
 	bool operator==(const FItemData& Item) const
 	{
-		return ItemGuid == Item.ItemGuid;
+		return ItemGuid == Item.ItemGuid && Item.bIsValid;
 	}
 	
 };

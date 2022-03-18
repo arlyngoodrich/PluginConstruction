@@ -163,6 +163,85 @@ bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInvento
 	}
 }
 
+bool UInventoryComponent::TransferItem(UInventoryComponent* TargetInventory, const FInventoryItemData TargetItem)
+{
+	//Make sure target inventory is valid
+	if(TargetInventory == nullptr)
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("Attempting to transfer %s item from %s inventory to null inventory"),
+			*TargetItem.Item.DisplayName.ToString(),*GetOwner()->GetName())
+		return false;
+	}
+
+	//Make sure target item exist in this inventory
+	if(InventoryItems.Find(TargetItem) == false)
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("Attempting to transfer %s item but is not in %s inventory"),
+			*TargetItem.Item.DisplayName.ToString(),*GetOwner()->GetName())
+		return false;
+	}
+
+	//Attempt to auto add item to target inventory
+	FItemData LeftOverItemData;
+	if(TargetInventory->AutoAddItem(TargetItem.Item,LeftOverItemData))
+	{
+		//Was fully added
+		//Remove stack from current inventory
+		if(FullyRemoveInventoryItem(TargetItem)==false)
+		{
+			UE_LOG(LogItemSystem, Error,
+			       TEXT("%s was transfered from %s to %s but was not removed from source inventory")
+			       ,*TargetItem.Item.DisplayName.ToString(),
+			       *GetOwner()->GetName(),
+			       *TargetInventory->GetOwner()->GetName()
+			       )
+			return false;
+		}
+
+		UE_LOG(LogItemSystem,Log,TEXT("%s item was fully transfered from %s to %s "),
+			*TargetItem.Item.DisplayName.ToString(),*GetOwner()->GetName(),*TargetInventory->GetOwner()->GetName())
+		return true;
+	}
+	else
+	{
+		const int32 AmountTransferred = TargetItem.Item.ItemQuantity - LeftOverItemData.ItemQuantity;
+		
+		//Was partially or not at all added
+		if(AmountTransferred > 0)
+		{
+
+			//Update stack in current inventory
+			if(ReduceQuantityOfInventoryItem(TargetItem,AmountTransferred)==false)
+			{
+				UE_LOG(LogItemSystem, Error,
+				       TEXT("%s item partially transfered to %s from %s but could not be partially removed at the source")
+					       ,*TargetItem.Item.DisplayName.ToString(),
+					       *GetOwner()->GetName(),
+					       *TargetInventory->GetOwner()->GetName()
+				       )
+				
+				return false;
+			}
+
+			UE_LOG(LogItemSystem,Log,TEXT("%d of %s was transferred from %s to %s"),
+				AmountTransferred, *LeftOverItemData.DisplayName.ToString(), *GetOwner()->GetName(),
+				*TargetInventory->GetOwner()->GetName())
+
+			return true;
+		}
+		else
+		{
+
+			//Was not transferred at all
+			UE_LOG(LogItemSystem, Log, TEXT("%s item could not be transferred form %s inventory to %s")
+			       , *TargetItem.Item.DisplayName.ToString(),
+			       *GetOwner()->GetName(),
+			       *TargetInventory->GetOwner()->GetName())
+			return false;
+		}
+	}
+}
+
 
 bool UInventoryComponent::AutoAddItem(const FItemData InItem, FItemData& OutRemainingItem)
 {
@@ -302,6 +381,23 @@ bool UInventoryComponent::ReduceQuantityOfInventoryItem(const FInventoryItemData
 	{
 		UE_LOG(LogItemSystem,Log,TEXT("Could not find %s item in %s inventory to remove"),
 	*TargetInventoryItem.Item.DisplayName.ToString(),*GetOwner()->GetName())
+		return false;
+	}
+}
+
+bool UInventoryComponent::ReduceQuantityOfInventoryItem(const FInventoryItemData TargetInventoryItem,
+                                                        const int32 QuantityToRemove)
+{
+	int32 QuantityRemaining;
+	const bool bWasRemovalITemFound = ReduceQuantityOfInventoryItem(TargetInventoryItem,QuantityToRemove,
+	                                                                QuantityRemaining);
+
+	if(bWasRemovalITemFound && QuantityRemaining == 0)
+	{
+		return true;
+	}
+	else
+	{
 		return false;
 	}
 }

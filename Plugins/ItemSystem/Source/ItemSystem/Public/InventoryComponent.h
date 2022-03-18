@@ -35,6 +35,10 @@ public:
 	//Adds and item to a position.  Will return false if: Position not found, item is not valid, weight cannot be added
 	bool AddItemToPosition(FItemData Item, FInventory2D Position);
 
+	//Attempts to transfers target item from Instigating Inventory (Inventory calling the method).  Will return true if
+	//item was fully or partially transferred.  
+	bool TransferItem(UInventoryComponent* TargetInventory,FInventoryItemData TargetItem);
+
 	//Will attempt to add item into existing stacks.  If it cannot add to an existing stack, will attempt to add as a
 	//new stack. Will return remaining amount of item.
 	//Returns true if stack was full added and returns false if was partially added. 
@@ -52,10 +56,17 @@ public:
 	                                       int32& OutAmountNotRemoved);
 	
 	//Checks for Items by GUID and Position and reduces it's item quantity.
-	//Will fully remove item if the removal amount is greater than or equal to the current amount
+	//Will fully remove item if the removal amount is greater than or equal to the current amount.  Will return the amount
+	//that was not removed
 	//Will return false if the Item GUID and position not found in inventory
 	bool ReduceQuantityOfInventoryItem(FInventoryItemData TargetInventoryItem, int32 QuantityToRemove,
 									   int32& OutAmountNotRemoved);
+
+	//Checks for Items by GUID and Position and reduces it's item quantity.
+	//Will fully remove item if the removal amount is greater than or equal to the current amount.  Will NOT return the
+	//Amount that was removed
+	//Will return false if the Item GUID and position not found in inventory OR false if the item was not fully removed
+	bool ReduceQuantityOfInventoryItem(FInventoryItemData TargetInventoryItem, int32 QuantityToRemove);
 	
 	//Checks for Items by GUID and Position and removes it.
 	//Does not invalidate item -- just removes item and weight from inventory.
