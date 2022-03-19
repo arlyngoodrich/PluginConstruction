@@ -457,6 +457,62 @@ bool UInventoryComponent::FullyRemoveInventoryItem(const FInventoryItemData Targ
 	}
 }
 
+bool UInventoryComponent::MoveItem(FInventoryItemData TargetItem, const FInventory2D TargetPosition, const bool bRotateITem)
+{
+	//Ensure target item is in inventory 
+	int32 ItemIndex;
+	if(InventoryItems.Find(TargetItem,ItemIndex) == false)
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("%s attempted to move %s item but was not found in inventory"),
+			*GetOwner()->GetName(),*TargetItem.Item.DisplayName.ToString())
+		return false;
+	}
+
+	//Set all covered slots as free so it doesn't interfere with checking if item fits
+	if(SetSlotStatuses(TargetItem.GetCoveredSlots(),false) == false)
+	{
+		UE_LOG(LogItemSystem,Error,TEXT("%s could not find slot to set status when moving %s item"),
+			*GetOwner()->GetName(),*TargetItem.Item.DisplayName.ToString())
+
+		return false;
+	}
+
+	if(bRotateITem)
+	{
+		TargetItem.RotateItem();
+	}
+
+	
+	if(CheckIfItemFits(TargetItem.Item,TargetPosition))
+	{
+		//Item fits
+		InventoryItems[ItemIndex].StartPosition = TargetPosition;
+
+		if(bRotateITem)
+		{
+			InventoryItems[ItemIndex].RotateItem();
+		}
+
+		
+		if(SetSlotStatuses(InventoryItems[ItemIndex].GetCoveredSlots(),true) == false)
+		{
+			UE_LOG(LogItemSystem,Error,TEXT("%s could not find slot to set status when moving %s item"),
+				*GetOwner()->GetName(),*TargetItem.Item.DisplayName.ToString())
+			return false;
+		}
+
+		UE_LOG(LogItemSystem,Log,TEXT("%s moved %s item to pos %s.  Item was %s"),
+			*GetOwner()->GetName(),*TargetItem.Item.DisplayName.ToString(),bRotateITem? TEXT("Rotated") : TEXT("Not Rotated") )
+		return true;
+	}
+	else
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("%s attempted to move %s item but item doesn not fit in Pos %s"),
+		*GetOwner()->GetName(),*TargetItem.Item.DisplayName.ToString(),*TargetPosition.GetPositionAsString())
+		return false;
+	}
+}
+
 bool UInventoryComponent::IsItemInInventory(const FItemData Item)
 {
 	for (int i = 0; i < InventoryItems.Num(); ++i)

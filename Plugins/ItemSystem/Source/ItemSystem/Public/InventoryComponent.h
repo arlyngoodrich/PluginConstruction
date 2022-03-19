@@ -32,7 +32,8 @@ public:
 	//Returns the quantity of items per class
 	int32 GetTotalCountOfItemClass(TSubclassOf<AItemBase> ItemClass);
 	
-	//Adds and item to a position.  Will return false if target position not found, item is not valid, weight cannot be added
+	//Adds and item to a position.  Will return false if target position not found, item is not valid, weight cannot be
+	//added
 	bool AddItemToPosition(FItemData Item, FInventory2D Position);
 
 	//Attempts to transfer target item from Instigating Inventory (Inventory calling the method).  Will return true if
@@ -79,6 +80,11 @@ public:
 	//Will return false if Item GUID and position not found in inventory. 
 	bool FullyRemoveInventoryItem(FInventoryItemData TargetInventoryItem);
 
+
+	//Moves item to a new position in inventory.  Returns true if the item is moved, returns false if not.  
+	bool MoveItem(FInventoryItemData TargetItem, FInventory2D TargetPosition, bool bRotateITem);
+
+	
 	//Checks to see if Item is in Inventory.  Checks for matching Item GUIDs. Returns true if found
 	bool IsItemInInventory(FItemData Item);
 

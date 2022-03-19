@@ -81,6 +81,16 @@ struct FInventoryItemData
 		return  CoveredSlots;
 	}
 
+	void RotateItem()
+	{
+		const int32 NewXSize = Item.ItemSize.Y;
+		const int32 NewYSize = Item.ItemSize.X;
+		const FInventory2D NewSize = FInventory2D(NewXSize,NewYSize);
+
+		Item.ItemSize = NewSize;
+		
+	}
+
 	bool operator==(const FInventoryItemData& InventoryItemData) const
 	{
 		return Item.IsEqualTo(InventoryItemData.Item) && StartPosition == InventoryItemData.StartPosition;
