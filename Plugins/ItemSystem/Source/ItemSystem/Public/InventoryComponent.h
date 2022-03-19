@@ -32,7 +32,8 @@ public:
 	//Returns the quantity of items per class
 	int32 GetTotalCountOfItemClass(TSubclassOf<AItemBase> ItemClass);
 	
-	//Adds and item to a position.  Will return false if target position not found, item is not valid, weight cannot be added
+	//Adds and item to a position.  Will return false if target position not found, item is not valid, weight cannot be
+	//added
 	bool AddItemToPosition(FItemData Item, FInventory2D Position);
 
 	//Attempts to transfer target item from Instigating Inventory (Inventory calling the method).  Will return true if
@@ -79,12 +80,21 @@ public:
 	//Will return false if Item GUID and position not found in inventory. 
 	bool FullyRemoveInventoryItem(FInventoryItemData TargetInventoryItem);
 
+
+	//Moves item to a new position in inventory.  Returns true if the item is moved, returns false if not.  
+	bool MoveItem(FInventoryItemData TargetItem, FInventory2D TargetPosition, bool bRotateITem);
+
+	
 	//Checks to see if Item is in Inventory.  Checks for matching Item GUIDs. Returns true if found
 	bool IsItemInInventory(FItemData Item);
 
 	//Checks to see if Item is in Inventory by checking for matching Item GUIDs. Returns true if found and the position
 	//of the item in the inventory.
 	bool IsItemInInventory(FItemData Item, FInventory2D& OutItemPosition);
+
+	//Checks to see if Item is in Inventory by checking for matching Item GUIDs. Returns true if found and the InventoryItemData
+	//of the item in the inventory.
+	bool IsItemInInventory(FItemData Item, FInventoryItemData& OutInventoryItemData);
 	
 protected:
 	// Called when the game starts
@@ -166,7 +176,7 @@ protected:
 	//Helper function that checks if the item is valid and that it's weight can be added
 	bool AddItemChecks(FItemData ItemToCheck) const;
 
-	//Helper functions that performs checks before transfering items
+	//Helper functions that performs checks before transferring items
 	bool TransferItemChecks(FInventoryItemData ItemToCheck,UInventoryComponent* InventoryToCheck) const;
 
 	//Adds the weight of Item's stack to the current weight.  Clamped between 0 and MaxWeight.

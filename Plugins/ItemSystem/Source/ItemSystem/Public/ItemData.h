@@ -103,6 +103,9 @@ struct FItemData
 	float ItemHealth;
 
 	UPROPERTY( BlueprintReadOnly, Category = "Item Data")
+	bool bIsRotated;
+	
+	UPROPERTY( BlueprintReadOnly, Category = "Item Data")
 	bool bIsValid;
 
 	FItemData() 
@@ -118,6 +121,7 @@ struct FItemData
 		MaxStackQuantity = 1;
 		bShouldItemStack = false;
 		PerItemWeight=  1;
+		bIsRotated = false;
 		bIsValid = true;
 	}
 
@@ -159,6 +163,18 @@ struct FItemData
 		ItemData.bShouldItemStack = bNewItemStacks;
 		ItemData.PerItemWeight = NewItemPerWeight;
 		return ItemData;
+	}
+
+	void Rotate()
+	{
+		const int32 NewXSize = ItemSize.Y;
+		const int32 NewYSize = ItemSize.X;
+		const FInventory2D NewSize = FInventory2D(NewXSize,NewYSize);
+
+		const bool bOldRotated = bIsRotated;
+
+		bIsRotated = !bOldRotated;
+		ItemSize = NewSize;
 	}
 
 	void Invalidate()
