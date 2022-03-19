@@ -122,7 +122,7 @@ bool FInventoryAutoAddItemTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FInventoryMaxWeightTest,"Inventory.MaxWeightTest",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FInventoryMaxWeightTest,"Inventory.MaxWeight",
 								 EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FInventoryMaxWeightTest::RunTest(const FString& Parameters)
@@ -215,7 +215,7 @@ bool FInventorySlotTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FWeightSummationTest,"Inventory.WeightSummationTest",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FWeightSummationTest,"Inventory.WeightSummation",
 								 EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FWeightSummationTest::RunTest(const FString& Parameters)
@@ -590,7 +590,7 @@ bool FTransferToPosition::RunTest(const FString& Parameters)
 	
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMoveItemTest,"Inventory.MoveItemTest",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMoveItemTest,"Inventory.MoveItem",
 								 EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FMoveItemTest::RunTest(const FString& Parameters)
@@ -669,4 +669,63 @@ bool FMoveItemTest::RunTest(const FString& Parameters)
 	
 	return true;
 	
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FRotateItemTest,"Inventory.RotateItem",
+								 EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+
+bool FRotateItemTest::RunTest(const FString& Parameters)
+{
+
+	//Create World
+	UWorld* World = FAutomationEditorCommonUtils::CreateNewMap();
+
+	//Create Actor
+	AActor* Actor = World->SpawnActor<AActor>();
+	TestTrue(TEXT("Test Actor is not valid"),IsValid(Actor));
+
+	//Create and Add Component to Actor
+	const FName CompName("InventoryComp");
+	UInventoryComponent* Inventory = NewObject<UInventoryComponent>(Actor,CompName);
+	TestTrue(TEXT("Invetory Comp is not valid"),IsValid(Inventory));
+
+	Inventory->RegisterComponent();
+	TestTrue(TEXT("Inventory failed to initialize"),Inventory->GetSlotCount()>0);
+
+	const FItemData Item1 = FItemData::NewItem
+		(
+			"TestItem1",
+			AItemBase::StaticClass(),
+			FInventory2D(2,1),
+			1,
+			1,
+			false,
+			1.f
+		);
+
+	const FItemData Item2 = FItemData::NewItem
+		(
+			"TestItem1",
+			AItemBase::StaticClass(),
+			FInventory2D(1,2),
+			1,
+			1,
+			false,
+			1.f
+		);
+
+	const bool bAddItem1Result = Inventory->AutoAddItem(Item1);
+	TestTrue(TEXT("Add Item 1 Test"),bAddItem1Result);
+
+	const bool bAddItem2Results = Inventory->AutoAddItem(Item2);
+	TestTrue(TEXT("Add Item 2 Test"),bAddItem2Results);
+
+	FInventoryItemData InventoryItemData;
+	Inventory->IsItemInInventory(Item2,InventoryItemData);
+
+	const bool bIsItem2Rotated = InventoryItemData.Item.bIsRotated;
+	TestTrue(TEXT("Is Item 2 Rotated"),bIsItem2Rotated);
+	
+	return true;
 }

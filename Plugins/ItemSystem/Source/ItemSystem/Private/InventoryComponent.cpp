@@ -547,7 +547,22 @@ bool UInventoryComponent::IsItemInInventory(const FItemData Item, FInventory2D& 
 	return false;
 }
 
-bool UInventoryComponent::AutoAddItemNewStack(const FItemData Item)
+bool UInventoryComponent::IsItemInInventory(const FItemData Item, FInventoryItemData& OutInventoryItemData)
+{
+	for (int i = 0; i < InventoryItems.Num(); ++i)
+	{
+		FInventoryItemData InventoryItemData = InventoryItems[i];
+		if(InventoryItemData.Item == Item)
+		{
+			OutInventoryItemData = InventoryItemData;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool UInventoryComponent::AutoAddItemNewStack(FItemData Item)
 {
 	if(AddItemChecks(Item) == false){return false;}
 
@@ -561,6 +576,18 @@ bool UInventoryComponent::AutoAddItemNewStack(const FItemData Item)
 			if(AddItemToPosition(Item,TargetSlot.Position))
 			{
 				return true;
+			}
+			else
+			{
+				//Attempt to add rotated
+				Item.Rotate();
+				UE_LOG(LogItemSystem,Log,TEXT("Attempting to rotating %s item to add to %s inventory"),
+					*Item.DisplayName.ToString(),*GetOwner()->GetName());
+				
+				if(AddItemToPosition(Item,TargetSlot.Position))
+				{
+					return true;
+				}
 			}
 		}
 	}

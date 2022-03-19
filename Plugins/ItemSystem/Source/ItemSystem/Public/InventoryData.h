@@ -83,12 +83,7 @@ struct FInventoryItemData
 
 	void RotateItem()
 	{
-		const int32 NewXSize = Item.ItemSize.Y;
-		const int32 NewYSize = Item.ItemSize.X;
-		const FInventory2D NewSize = FInventory2D(NewXSize,NewYSize);
-
-		Item.ItemSize = NewSize;
-		
+		Item.Rotate();
 	}
 
 	bool operator==(const FInventoryItemData& InventoryItemData) const

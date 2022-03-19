@@ -91,6 +91,10 @@ public:
 	//Checks to see if Item is in Inventory by checking for matching Item GUIDs. Returns true if found and the position
 	//of the item in the inventory.
 	bool IsItemInInventory(FItemData Item, FInventory2D& OutItemPosition);
+
+	//Checks to see if Item is in Inventory by checking for matching Item GUIDs. Returns true if found and the InventoryItemData
+	//of the item in the inventory.
+	bool IsItemInInventory(FItemData Item, FInventoryItemData& OutInventoryItemData);
 	
 protected:
 	// Called when the game starts
@@ -172,7 +176,7 @@ protected:
 	//Helper function that checks if the item is valid and that it's weight can be added
 	bool AddItemChecks(FItemData ItemToCheck) const;
 
-	//Helper functions that performs checks before transfering items
+	//Helper functions that performs checks before transferring items
 	bool TransferItemChecks(FInventoryItemData ItemToCheck,UInventoryComponent* InventoryToCheck) const;
 
 	//Adds the weight of Item's stack to the current weight.  Clamped between 0 and MaxWeight.
