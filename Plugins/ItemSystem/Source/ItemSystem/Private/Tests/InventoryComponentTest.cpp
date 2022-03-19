@@ -589,3 +589,84 @@ bool FTransferToPosition::RunTest(const FString& Parameters)
 	return true;
 	
 }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMoveItemTest,"Inventory.MoveItemTest",
+								 EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMoveItemTest::RunTest(const FString& Parameters)
+{
+	//Create World
+	UWorld* World = FAutomationEditorCommonUtils::CreateNewMap();
+
+	//Create Actor
+	AActor* Actor = World->SpawnActor<AActor>();
+	TestTrue(TEXT("Test Actor is not valid"),IsValid(Actor));
+
+	//Create and Add Component to Actor
+	const FName CompName("InventoryComp");
+	UInventoryComponent* Inventory = NewObject<UInventoryComponent>(Actor,CompName);
+	TestTrue(TEXT("Invetory Comp is not valid"),IsValid(Inventory));
+
+	Inventory->RegisterComponent();
+	TestTrue(TEXT("Inventory failed to initialize"),Inventory->GetSlotCount()>0);
+	
+	//Create a valid item to add to inventory
+	const FInventory2D Item1Size = FInventory2D(1,2);
+	const FItemData Item1 = FItemData::NewItem
+		(
+			"TestItem1",
+			AItemBase::StaticClass(),
+			Item1Size,
+			1,
+			1,
+			false,
+			1.f
+		);
+
+	const FInventory2D ItemPosition = FInventory2D(0,0);
+	const bool bItemAdded = Inventory->AddItemToPosition(Item1,ItemPosition);
+	TestTrue(TEXT("Item Added Test"),bItemAdded);
+
+	//Bad move test
+	const FInventoryItemData InventoryItemData = FInventoryItemData(ItemPosition,Item1);
+	const FInventory2D BadMovePosition = FInventory2D(0,1);
+	bool bBadMoveResult = Inventory->MoveItem(InventoryItemData,BadMovePosition,false);
+	TestFalse(TEXT("Bad Move Test"),bBadMoveResult);
+
+	//Good move test
+	const FInventory2D GoodMovePosition = FInventory2D(1,0);
+	bool bGoodMoveResult = Inventory->MoveItem(InventoryItemData,GoodMovePosition,false);
+	TestTrue(TEXT("Good Move Test"),bGoodMoveResult);
+
+	//Make sure weight is correct
+	float ExpectedWeight = Item1.GetStackWeight();
+	float ActualWeight = Inventory->GetInventoryWeight();
+	TestEqual(TEXT("Weight Check Test"),ActualWeight,ExpectedWeight);
+
+	//Add Second Item to make sure we can't move items 
+	const FInventory2D Item2Size = FInventory2D(1,1);
+	const FItemData Item2 = FItemData::NewItem
+		(
+			"TestItem2",
+			AItemBase::StaticClass(),
+			Item2Size,
+			1,
+			1,
+			false,
+			1.f
+		);
+
+	FInventory2D Item2Position = FInventory2D(0,0);
+	bool bSecondItemAdded = Inventory->AddItemToPosition(Item2,Item2Position);
+	TestTrue(TEXT("2nd Item Added Test"),bSecondItemAdded);
+
+	FInventoryItemData InventoryItem2Data = FInventoryItemData(Item2Position,Item2);
+	bool bBadSecondItemMoveResult = Inventory->MoveItem(InventoryItem2Data,FInventory2D(1,0),false);
+	TestFalse(TEXT("Bad 2nd Item move Test"),bBadSecondItemMoveResult);
+
+	bool bGoodSecondItemMoveResult = Inventory->MoveItem(InventoryItem2Data,FInventory2D(0,1),false);
+	TestTrue(TEXT("Good 2nd Item Move Test"),bGoodSecondItemMoveResult);
+	
+	return true;
+	
+}
