@@ -56,6 +56,16 @@ public:
 	//Returns true if was fully or partially stacked.  Returns false if could not be stacked at all. 
 	bool AutoAddItem(FItemData InItem);
 
+	//Splits the target item stack into a new unique item stack.  Will cycle new item through slots until it's added.
+	//Returns false if the new stack quantity is greater than what is in the existing stack, if the new stack cannot go
+	//to the target position, or if the target item does not exist.  Will return true if the stack is successfully split.
+	bool SplitItem(FInventoryItemData TargetItemData, int32 NewStackQuantity);
+
+	//Splits the target item stack into a new unique item stack at the target position. Will return false if
+	//the new stack quantity is greater than what is in the existing stack, if the new stack cannot go to the target
+	//position, or if the target item does not exist.  Will return true if the stack is successfully split.
+	bool SplitItemStackToPosition(FInventoryItemData TargetItemData, FInventory2D TargetPosition, int32 NewStackQuantity);
+
 	//Cycles through items in inventory that matches the item's exact class and will remove as much of the quantity to
 	//remove as possible.
 	//Will return false if a matching item class could not be found in the inventory
@@ -179,6 +189,9 @@ protected:
 	//Helper functions that performs checks before transferring items
 	bool TransferItemChecks(FInventoryItemData ItemToCheck,UInventoryComponent* InventoryToCheck) const;
 
+	//Helper function that performs checks before splitting an item stack
+	bool SplitItemChecks(FInventoryItemData Item, int32 QuantityTest) const;
+
 	//Adds the weight of Item's stack to the current weight.  Clamped between 0 and MaxWeight.
 	void AddWeight(FItemData ItemData);
 
@@ -188,6 +201,7 @@ protected:
 	//Removes the weight of Item's stack from the current weight.  Clamped between 0 and MaxWeight.
 	void RemoveWeight(FItemData ItemData);
 
+	//Removes the weight from the current weight.  Clamped between 0 and MaxWeight.
 	void RemoveWeight(float RemoveWeight);
 	
 };

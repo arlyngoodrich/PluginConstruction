@@ -320,6 +320,78 @@ bool UInventoryComponent::AutoAddItem(const FItemData InItem)
 	}
 }
 
+bool UInventoryComponent::SplitItem(const FInventoryItemData TargetItemData, const int32 NewStackQuantity)
+{
+	if(SplitItemChecks(TargetItemData,NewStackQuantity) == false)
+	{
+		return false;
+	}
+
+	const FItemData TestItemData = TargetItemData.Item;
+	FInventory2D TargetPosition = FInventory2D();
+	bool bSlotFound = false;
+
+	//Find a slot that that a new slot would fit into
+	for (int i = 0; i < InventorySlots.Num(); ++i)
+	{
+		if(CheckIfItemFits(TestItemData,InventorySlots[i].Position))
+		{
+			TargetPosition = InventorySlots[i].Position;
+			bSlotFound = true;
+			break;
+		}
+	}
+
+	if(bSlotFound)
+	{
+		return SplitItemStackToPosition(TargetItemData,TargetPosition,NewStackQuantity);
+	}
+	else
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("Could not find a slot open to move %s item to in %s inventory"),
+			*TargetItemData.Item.DisplayName.ToString(),*GetOwner()->GetName())
+		return false;
+	}
+}
+
+bool UInventoryComponent::SplitItemStackToPosition(const FInventoryItemData TargetItemData, const FInventory2D TargetPosition,
+                                                   const int32 NewStackQuantity)
+{
+	if(SplitItemChecks(TargetItemData,NewStackQuantity) == false)
+	{
+		return false;
+	}
+
+	//Make new item 
+	FItemData NewItemData = TargetItemData.Item;
+	NewItemData.ItemGuid.NewGuid();
+	NewItemData.ItemQuantity = NewStackQuantity;
+	
+	//Attempt to add stack to target position
+	if(CheckIfItemFits(NewItemData,TargetPosition)==false)
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("%s in %s cannot split because new stack cannot fit into target position: "),
+			*NewItemData.DisplayName.ToString(),*GetOwner()->GetName(),*TargetPosition.GetPositionAsString())
+		return false;
+	}
+	
+	//Add New Item to inventory but do not change weight
+	const FInventoryItemData NewInventoryItemData = FInventoryItemData(TargetPosition,NewItemData);
+	InventoryItems.Add(NewInventoryItemData);
+	SetSlotStatuses(NewInventoryItemData.GetCoveredSlots(),true);
+
+	//Change Quantity of target stack
+	int32 ItemIndex;
+	InventoryItems.Find(TargetItemData,ItemIndex);
+	InventoryItems[ItemIndex].Item.ItemQuantity -= NewStackQuantity;
+
+	UE_LOG(LogItemSystem,Log,TEXT("Item %s in %s has split %d into a new item at position %s"),
+		*TargetItemData.Item.DisplayName.ToString(), *GetOwner()->GetName(), NewStackQuantity,
+		*TargetPosition.GetPositionAsString())
+
+	return true;
+}
+
 bool UInventoryComponent::ReduceQuantityOfItemByStaticClass(const TSubclassOf<AItemBase> ItemClass, int32 QuantityToRemove,
                                                             int32& OutAmountNotRemoved)
 {
@@ -839,6 +911,32 @@ bool UInventoryComponent::TransferItemChecks(const FInventoryItemData ItemToChec
 	if(ItemToCheck.Item.bIsValid == false)
 	{
 		UE_LOG(LogItemSystem,Warning,TEXT("%s attempting to transfer invalid item"),*GetOwner()->GetName())
+		return false;
+	}
+
+	return true;
+}
+
+bool UInventoryComponent::SplitItemChecks(const FInventoryItemData InventoryItemTest, int32 QuantityTest) const
+{
+	//Make sure item is in inventory
+	int32 ItemIndex;
+	if(InventoryItems.Find(InventoryItemTest,ItemIndex) == false)
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("Cannot find %s item in %s to split"),
+			*InventoryItemTest.Item.DisplayName.ToString(),*GetOwner()->GetName())
+		
+		return false;
+	}
+
+	//Make sure new stack quantity is less than the existing item quantity
+	const int32 TargetItemQuantity = InventoryItemTest.Item.ItemQuantity;
+	if(TargetItemQuantity <= QuantityTest)
+	{
+
+		UE_LOG(LogItemSystem,Log,TEXT("%s item in %s cannot be split by %d when it's quantity is %d"),
+			*InventoryItemTest.Item.DisplayName.ToString(),*GetOwner()->GetName(),TargetItemQuantity,QuantityTest)
+		
 		return false;
 	}
 
