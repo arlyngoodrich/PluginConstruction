@@ -93,7 +93,6 @@ public:
 
 	//Moves item to a new position in inventory.  Returns true if the item is moved, returns false if not.  
 	bool MoveItem(FInventoryItemData TargetItem, FInventory2D TargetPosition, bool bRotateITem);
-
 	
 	//Checks to see if Item is in Inventory.  Checks for matching Item GUIDs. Returns true if found
 	bool IsItemInInventory(FItemData Item);
@@ -105,6 +104,9 @@ public:
 	//Checks to see if Item is in Inventory by checking for matching Item GUIDs. Returns true if found and the InventoryItemData
 	//of the item in the inventory.
 	bool IsItemInInventory(FItemData Item, FInventoryItemData& OutInventoryItemData);
+
+	//Given a position, will return the item in that position.  True if an item is found and false if no item is found.
+	bool FindInventoryItemAtPosition(FInventory2D Position, FInventoryItemData& OutInventoryItemData);
 	
 protected:
 	// Called when the game starts
@@ -157,9 +159,6 @@ protected:
 	
 	//Attempts to stack given Item Data into existing stack.  Will return true if fully stacked, will return false if not.
 	bool AttemptStack(FInventoryItemData TargetItemData, FItemData InItemData, FItemData& OutRemainingItem);
-	
-	//Given a position, will return the item in that position.  True if an item is found and false if no item is found.
-	bool FindInventoryItemAtPosition(FInventory2D Position, FInventoryItemData& OutInventoryItemData);
 
 	//Given a positions, will update the slot statuses to the NewIsOccupied.  Will return false if the position
 	//could not be found in the InventorySlot array.

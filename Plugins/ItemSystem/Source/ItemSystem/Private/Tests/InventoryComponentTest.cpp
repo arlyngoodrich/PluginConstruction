@@ -787,6 +787,26 @@ bool FSplitStackTest::RunTest(const FString& Parameters)
 	const float ActualWeight = Inventory->GetInventoryWeight();
 	const float ExpectedWeight = Item1.GetStackWeight();
 	TestEqual(TEXT("Inventory Weight"), ActualWeight,ExpectedWeight);
+
+	FGuid Item1Guid = Item1.ItemGuid;
+
+	FInventoryItemData InventoryItemData;
+
+	Inventory->FindInventoryItemAtPosition(FInventory2D(0,1),InventoryItemData);
+	FGuid Item2Guid = InventoryItemData.Item.ItemGuid;
+	bool bItem2Different = Item1Guid != Item2Guid;
+	TestTrue(TEXT("Item2 GUID test"),bItem2Different);
+	
+
+	Inventory->FindInventoryItemAtPosition(FInventory2D(0,1),InventoryItemData);
+	FGuid Item3Guid = InventoryItemData.Item.ItemGuid;
+	bool bItem3Different = Item1Guid != Item3Guid;
+	TestTrue(TEXT("Item3 GUID test"),bItem3Different);
+
+	Inventory->FindInventoryItemAtPosition(FInventory2D(1,1),InventoryItemData);
+	FGuid Item4Guid = InventoryItemData.Item.ItemGuid;
+	bool bItem4Different = Item1Guid != Item4Guid;
+	TestTrue(TEXT("Item4 GUID test"),bItem4Different);
 	
 	return true;
 	

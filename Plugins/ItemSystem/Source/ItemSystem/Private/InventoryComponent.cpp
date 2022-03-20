@@ -364,7 +364,7 @@ bool UInventoryComponent::SplitItemStackToPosition(const FInventoryItemData Targ
 
 	//Make new item 
 	FItemData NewItemData = TargetItemData.Item;
-	NewItemData.ItemGuid.NewGuid();
+	NewItemData.ItemGuid = FGuid::NewGuid();
 	NewItemData.ItemQuantity = NewStackQuantity;
 	
 	//Attempt to add stack to target position
