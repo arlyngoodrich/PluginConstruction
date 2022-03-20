@@ -185,6 +185,7 @@ struct FItemData
 		bIsValid = false;
 	}
 	
+	
 	float GetStackWeight() const
 	{
 		return PerItemWeight * ItemQuantity;

@@ -729,3 +729,83 @@ bool FRotateItemTest::RunTest(const FString& Parameters)
 	
 	return true;
 }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSplitStackTest,"Inventory.SplitItem",
+								 EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FSplitStackTest::RunTest(const FString& Parameters)
+{
+	//Create World
+	UWorld* World = FAutomationEditorCommonUtils::CreateNewMap();
+
+	//Create Actor
+	AActor* Actor = World->SpawnActor<AActor>();
+	TestTrue(TEXT("Test Actor is not valid"),IsValid(Actor));
+
+	//Create and Add Component to Actor
+	const FName CompName("InventoryComp");
+	UInventoryComponent* Inventory = NewObject<UInventoryComponent>(Actor,CompName);
+	TestTrue(TEXT("Invetory Comp is not valid"),IsValid(Inventory));
+
+	Inventory->RegisterComponent();
+	TestTrue(TEXT("Inventory failed to initialize"),Inventory->GetSlotCount()>0);
+
+	const FItemData Item1 = FItemData::NewItem
+		(
+			"TestItem1",
+			AItemBase::StaticClass(),
+			FInventory2D(1,1),
+			10,
+			10,
+			false,
+			0.1f
+		);
+
+	const bool bInitialAddItemOperation = Inventory->AddItemToPosition(Item1,FInventory2D(0,0));
+	TestTrue(TEXT("Inital Add Item Test"),bInitialAddItemOperation);
+
+	const FInventoryItemData InventoryItemData1 = FInventoryItemData(FInventory2D(0,0),Item1);
+
+	//Make sure splits work
+	const bool bFirstSplit = Inventory->SplitItem(InventoryItemData1,1);
+	TestTrue(TEXT("First Split Test"),bFirstSplit);
+
+	const bool bSecondSplit = Inventory->SplitItem(InventoryItemData1,1);
+	TestTrue(TEXT("Second Split Test"),bSecondSplit);
+	
+	const bool bThirdSplit = Inventory->SplitItem(InventoryItemData1,1);
+	TestTrue(TEXT("Third Split Test"),bThirdSplit);
+
+	const bool bFourthSplit = Inventory->SplitItem(InventoryItemData1,1);
+	TestFalse(TEXT("Fourth Split Test"),bFourthSplit);
+
+	//Make sure only 4 items
+	const int32 ActualItemQty = Inventory->GetItemCount();
+	TestEqual(TEXT("Item Stack Count"),ActualItemQty,4);
+
+	//Make sure weight doesn't change
+	const float ActualWeight = Inventory->GetInventoryWeight();
+	const float ExpectedWeight = Item1.GetStackWeight();
+	TestEqual(TEXT("Inventory Weight"), ActualWeight,ExpectedWeight);
+
+	FGuid Item1Guid = Item1.ItemGuid;
+	FInventoryItemData InventoryItemData;
+
+	Inventory->FindInventoryItemAtPosition(FInventory2D(0,1),InventoryItemData);
+	FGuid Item2Guid = InventoryItemData.Item.ItemGuid;
+	bool bItem2Different = Item1Guid != Item2Guid;
+	TestTrue(TEXT("Item2 GUID test"),bItem2Different);
+
+	Inventory->FindInventoryItemAtPosition(FInventory2D(0,1),InventoryItemData);
+	FGuid Item3Guid = InventoryItemData.Item.ItemGuid;
+	bool bItem3Different = Item1Guid != Item3Guid;
+	TestTrue(TEXT("Item3 GUID test"),bItem3Different);
+
+	Inventory->FindInventoryItemAtPosition(FInventory2D(1,1),InventoryItemData);
+	FGuid Item4Guid = InventoryItemData.Item.ItemGuid;
+	bool bItem4Different = Item1Guid != Item4Guid;
+	TestTrue(TEXT("Item4 GUID test"),bItem4Different);
+	
+	return true;
+	
+}
