@@ -40,6 +40,7 @@ public class ItemSystem : ModuleRules
 				"Slate",
 				"SlateCore",
 				"UnrealEd",
+				"UMG"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
