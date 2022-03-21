@@ -8,6 +8,12 @@
 #include "InventoryData.h"
 #include "InventoryComponent.generated.h"
 
+//Called when updates are made to the items in the inventory.  Will need to get inventory item data directly. 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryItemDataUpdate);
+//Called when updates are made to the slots in the inventory. Will need to get slot data directly.  
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventorySlotUpdate);
+
+
 UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent) )
 class ITEMSYSTEM_API UInventoryComponent : public UActorComponent
 {
@@ -28,6 +34,12 @@ public:
 
 	//Returns the max weight of the inventory
 	float GetInventoryMaxWeight() const;
+
+	//Returns the inventory items 
+	TArray<FInventoryItemData> GetInventoryItemData () const;
+
+	//Returns Inventories Slots
+	TArray<FInventorySlot> GetInventorySlots() const;
 
 	//Returns the quantity of items per class
 	int32 GetTotalCountOfItemClass(TSubclassOf<AItemBase> ItemClass);
@@ -107,6 +119,13 @@ public:
 
 	//Given a position, will return the item in that position.  True if an item is found and false if no item is found.
 	bool FindInventoryItemAtPosition(FInventory2D Position, FInventoryItemData& OutInventoryItemData);
+
+	UPROPERTY(BlueprintAssignable,Category="Inventory")
+	FInventoryItemDataUpdate OnInventoryUpdate;
+
+	UPROPERTY(BlueprintAssignable,Category="Inventory")
+	FInventorySlotUpdate OnInventorySlotUpdate;
+	
 	
 protected:
 	// Called when the game starts
@@ -132,22 +151,25 @@ protected:
 	float CurrentWeight;
 
 	//Array of slots that can hold items in the inventory
-	UPROPERTY(Replicated, BlueprintReadOnly, Category="Inventory Data")
+	UPROPERTY(ReplicatedUsing=OnRep_InventorySlotsUpdated, BlueprintReadOnly, Category="Inventory Data")
 	TArray<FInventorySlot> InventorySlots;
 
 	//Array of items and their positions in the inventory
-	UPROPERTY(Replicated, BlueprintReadOnly,Category="Inventory Data");
+	UPROPERTY(ReplicatedUsing = OnRep_InventoryItemsUpdated, BlueprintReadOnly,Category="Inventory Data");
 	TArray<FInventoryItemData> InventoryItems;
 
 	//Set to true when slots have been created. 
 	UPROPERTY(BlueprintReadOnly, Category="Inventory Data")
-	bool bHaveSlotsBeenInitialized; 
+	bool bHaveSlotsBeenInitialized;
+
+	UFUNCTION()
+	void OnRep_InventoryItemsUpdated() const;
+
+	UFUNCTION()
+	void OnRep_InventorySlotsUpdated() const;
 	
 	//Utilitizes Inventory Size to reset array of InventorySlots.  All slots will be set to unoccupied.  
 	void InitializeSlots();
-	
-	//Method to initialize inventory from an existing InventoryItemData array.   
-	void SetInventory(TArray<FInventoryItemData> InInventoryItems);
 
 	//Checks if the item will fit into a given position by check slots that would be covered by the item.  Returns false
 	//if it will not fit and true if it will. 
@@ -160,9 +182,10 @@ protected:
 	//Attempts to stack given Item Data into existing stack.  Will return true if fully stacked, will return false if not.
 	bool AttemptStack(FInventoryItemData TargetItemData, FItemData InItemData, FItemData& OutRemainingItem);
 
-	//Given a positions, will update the slot statuses to the NewIsOccupied.  Will return false if the position
-	//could not be found in the InventorySlot array.
-	bool SetSlotStatus(FInventory2D TargetPosition, bool NewIsOccupied);
+	//Given a positions, will update the slot statuses to the NewIsOccupied.  ShouldBroadcast will determine if
+	// FInventorySlot Update will be called.  Should be false unless being called directly to update one slot.  
+	//Will return false if the position could not be found in the InventorySlot array.
+	bool SetSlotStatus(FInventory2D TargetPosition, bool NewIsOccupied, bool bShouldBroadCast = false);
 
 	//Given an array of positions, will update the slot statuses to the NewIsOccupied.  Will return false if a position
 	//could not be found in the InventorySlot array.

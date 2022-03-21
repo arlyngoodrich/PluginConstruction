@@ -26,6 +26,9 @@ int32 UInventoryComponent::GetSlotCount() const { return InventorySlots.Num(); }
 int32 UInventoryComponent::GetItemCount() const{return InventoryItems.Num();}
 float UInventoryComponent::GetInventoryWeight() const { return CurrentWeight; }
 float UInventoryComponent::GetInventoryMaxWeight() const { return MaxWeight; }
+TArray<FInventoryItemData> UInventoryComponent::GetInventoryItemData() const {return InventoryItems;}
+TArray<FInventorySlot> UInventoryComponent::GetInventorySlots() const { return InventorySlots;}
+
 
 int32 UInventoryComponent::GetTotalCountOfItemClass(const TSubclassOf<AItemBase> ItemClass)
 {
@@ -45,9 +48,11 @@ int32 UInventoryComponent::GetTotalCountOfItemClass(const TSubclassOf<AItemBase>
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
+	
 	DOREPLIFETIME(UInventoryComponent, InventorySlots);
 	DOREPLIFETIME(UInventoryComponent, InventoryItems);
+	//May be needed to fix replication issue
+	//DOREPLIFETIME_CONDITION_NOTIFY(UInventoryComponent, InventoryItems,COND_None,REPNOTIFY_Always);
 	DOREPLIFETIME(UInventoryComponent, CurrentWeight);
 }
 
@@ -69,6 +74,16 @@ void UInventoryComponent::OnRegister()
 }
 
 
+void UInventoryComponent::OnRep_InventoryItemsUpdated() const
+{
+	OnInventoryUpdate.Broadcast();
+}
+
+void UInventoryComponent::OnRep_InventorySlotsUpdated() const
+{
+	OnInventorySlotUpdate.Broadcast();
+}
+
 void UInventoryComponent::InitializeSlots()
 {
 	InventorySlots.Empty();
@@ -86,27 +101,6 @@ void UInventoryComponent::InitializeSlots()
 	UE_LOG(LogItemSystem,Log,TEXT("%s inventory slots initalized"),*GetOwner()->GetName());
 }
 
-void UInventoryComponent::SetInventory(TArray<FInventoryItemData> InInventoryItems)
-{
-	InitializeSlots();
-
-	TArray<bool> ItemAddedChecks;
-
-	//Cycle through all items to add
-	for (int i = 0; i < InInventoryItems.Num(); ++i)
-	{
-		const FInventoryItemData NewItem = InInventoryItems[i];
-		
-		bool WasItemAdded = AddItemToPosition(NewItem.Item,NewItem.StartPosition);
-		
-		ItemAddedChecks.Add(WasItemAdded);
-	}
-
-	if(ItemAddedChecks.Contains(false))
-	{
-		UE_LOG(LogItemSystem,Error,TEXT("Failed to Set Inventory for %s"),*GetOwner()->GetName());
-	}
-}
 
 bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInventory2D Position)
 {
@@ -140,6 +134,8 @@ bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInvento
 			{
 				InventoryItems.Add(NewInventoryItem);
 				AddWeight(Item);
+
+				OnRep_InventoryItemsUpdated();
 
 				UE_LOG(LogItemSystem,Log,TEXT("Added %s item to position %s in %s inventory"),
 					*Item.DisplayName.ToString(),*Position.GetPositionAsString(),
@@ -385,6 +381,8 @@ bool UInventoryComponent::SplitItemStackToPosition(const FInventoryItemData Targ
 	InventoryItems.Find(TargetItemData,ItemIndex);
 	InventoryItems[ItemIndex].Item.ItemQuantity -= NewStackQuantity;
 
+	OnRep_InventoryItemsUpdated();
+
 	UE_LOG(LogItemSystem,Log,TEXT("Item %s in %s has split %d into a new item at position %s"),
 		*TargetItemData.Item.DisplayName.ToString(), *GetOwner()->GetName(), NewStackQuantity,
 		*TargetPosition.GetPositionAsString())
@@ -432,9 +430,9 @@ bool UInventoryComponent::ReduceQuantityOfInventoryItem(const FInventoryItemData
                                                         int32& OutAmountNotRemoved)
 {
 	int32 ItemIndex;
-
 	OutAmountNotRemoved = QuantityToRemove;
-	
+
+	//Find Inventory Item Index
 	if(InventoryItems.Find(TargetInventoryItem,ItemIndex))
 	{
 		const int32 ItemQuantity = InventoryItems[ItemIndex].Item.ItemQuantity;
@@ -444,6 +442,7 @@ bool UInventoryComponent::ReduceQuantityOfInventoryItem(const FInventoryItemData
 		{
 			const int32 QuantityRemaining = ItemQuantity  - QuantityToRemove;
 			InventoryItems[ItemIndex].Item.ItemQuantity = QuantityRemaining;
+			OnRep_InventoryItemsUpdated();
 
 			const float PerItemWeight = InventoryItems[ItemIndex].Item.PerItemWeight;
 			RemoveWeight(PerItemWeight*QuantityToRemove);
@@ -505,6 +504,8 @@ bool UInventoryComponent::FullyRemoveInventoryItem(const FInventoryItemData Targ
 		if(SetSlotStatuses(TargetInventoryItem.GetCoveredSlots(),false))
 		{
 			InventoryItems.RemoveAt(ItemIndex);
+			OnRep_InventoryItemsUpdated();
+			
 			RemoveWeight(TargetInventoryItem.Item);
 
 			UE_LOG(LogItemSystem,Log,TEXT("%s item was fully removed from %s inventory"),
@@ -564,6 +565,8 @@ bool UInventoryComponent::MoveItem(FInventoryItemData TargetItem, const FInvento
 		{
 			InventoryItems[ItemIndex].RotateItem();
 		}
+
+		OnRep_InventoryItemsUpdated();
 
 		
 		if(SetSlotStatuses(InventoryItems[ItemIndex].GetCoveredSlots(),true) == false)
@@ -757,13 +760,20 @@ bool UInventoryComponent::FindInventoryItemAtPosition(const FInventory2D Positio
 	return false;
 }
 
-bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const bool NewIsOccupied)
+bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const bool NewIsOccupied,
+                                        const bool bShouldBroadCast)
 {
 
 	int32 SlotIndex;
 	if(FindSlotAtPosition(TargetPosition,SlotIndex))
 	{
 		InventorySlots[SlotIndex].bIsOccupied = NewIsOccupied;
+
+		if(bShouldBroadCast)
+		{
+			OnRep_InventorySlotsUpdated();
+		}
+		
 		UE_LOG(LogItemSystem,Log,TEXT("%s inventory updated slot %s to %s"),
 			*GetOwner()->GetName(),*TargetPosition.GetPositionAsString(),
 			NewIsOccupied? TEXT("occupied") : TEXT("unoccupied"))
@@ -784,7 +794,7 @@ bool UInventoryComponent::SetSlotStatuses(TArray<FInventory2D> TargetPositions, 
 	
 	for (int i = 0; i < TargetPositions.Num(); ++i)
 	{
-		bool SlotCheck = SetSlotStatus(TargetPositions[i], NewIsOccupied);
+		bool SlotCheck = SetSlotStatus(TargetPositions[i], NewIsOccupied, false);
 		SlotChecks.Add(SlotCheck);
 	}
 
@@ -794,6 +804,7 @@ bool UInventoryComponent::SetSlotStatuses(TArray<FInventory2D> TargetPositions, 
 	}
 	else
 	{
+		OnRep_InventorySlotsUpdated();
 		return true;
 	}
 }
