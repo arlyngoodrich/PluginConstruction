@@ -15,8 +15,24 @@ void UInventoryGridWidget::NativeConstruct()
 
 	InitializeGrid();
 	InitializeItems();
+
+	OwningInventoryComponent->OnInventorySlotUpdate.AddDynamic(this,&UInventoryGridWidget::OnInventorySlotUpdate);
+	OwningInventoryComponent->OnInventoryUpdate.AddDynamic(this,&UInventoryGridWidget::OnInventoryItemUpdates);
 	
 }
+
+void UInventoryGridWidget::NativeDestruct()
+{
+	Super::NativeDestruct();
+
+	ClearItemWidgets();
+	SlotWidgets.Empty();
+
+	OwningInventoryComponent->OnInventorySlotUpdate.RemoveDynamic(this,&UInventoryGridWidget::OnInventorySlotUpdate);
+	OwningInventoryComponent->OnInventoryUpdate.RemoveDynamic(this,&UInventoryGridWidget::OnInventoryItemUpdates);
+}
+
+
 
 void UInventoryGridWidget::InitializeGrid()
 {
@@ -27,7 +43,7 @@ void UInventoryGridWidget::InitializeGrid()
 		return;
 	}
 
-	SlotWidgets.Empty();
+	ClearSlotWidgets();
 
 	const TArray<FInventorySlot>InventorySlots = OwningInventoryComponent->GetInventorySlots();
 
@@ -56,7 +72,7 @@ void UInventoryGridWidget::InitializeItems()
 		return;
 	}
 
-	ItemWidgets.Empty();
+	ClearItemWidgets();
 
 	const TArray<FInventoryItemData>InventoryItemData = OwningInventoryComponent->GetInventoryItemData();
 
@@ -82,8 +98,63 @@ void UInventoryGridWidget::InitializeItems()
 			}
 
 			ItemWidgets.Add(NewItemWidget);
+
+			//Add to viewport?
+			//Set position?
+			BP_SetItemWidgetsInGrid(ItemWidgets);
 		}
-	}	
+	}
+
+	BP_SetItemWidgetsInGrid(ItemWidgets);
+}
+
+void UInventoryGridWidget::OnInventorySlotUpdate()
+{
+	TArray<FInventorySlot> NewSlotData = OwningInventoryComponent->GetInventorySlots();
+
+	//Update occupied slots for inventory widgets 
+	for (int i = 0; i < NewSlotData.Num(); ++i)
+	{
+		UInventorySlotWidget* TargetSlotWidget;
+		if(GetSlotWidgetFromPosition(NewSlotData[i].Position,TargetSlotWidget))
+		{
+			TargetSlotWidget->MyInventorySlot.bIsOccupied = NewSlotData[i].bIsOccupied;
+		}
+	}
+}
+
+void UInventoryGridWidget::OnInventoryItemUpdates()
+{
+	//Reset items in inventory
+	InitializeItems();
+}
+
+void UInventoryGridWidget::ClearItemWidgets()
+{
+	for (int i = 0; i < ItemWidgets.Num(); ++i)
+	{
+		UInventoryItemWidget* TargetWidget = ItemWidgets[i];
+		if(TargetWidget)
+		{
+			TargetWidget->RemoveFromParent();
+		}
+	}
+
+	ItemWidgets.Empty();
+}
+
+void UInventoryGridWidget::ClearSlotWidgets()
+{
+	for (int i = 0; i < SlotWidgets.Num(); ++i)
+	{
+		UInventorySlotWidget* TargetWidget = SlotWidgets[i];
+		if(TargetWidget)
+		{
+			TargetWidget->RemoveFromParent();
+		}
+	}
+
+	SlotWidgets.Empty();
 }
 
 bool UInventoryGridWidget::GetSlotWidgetFromPosition(const FInventory2D Position, UInventorySlotWidget*& OutSlotWidget)

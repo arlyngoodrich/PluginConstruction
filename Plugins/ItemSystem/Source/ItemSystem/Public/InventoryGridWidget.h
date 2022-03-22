@@ -34,12 +34,15 @@ protected:
 
 	virtual void NativeConstruct() override;
 
+	virtual void NativeDestruct() override;
+
 	//This function should be implemented in blueprint to add the new slot widgets as children in a uniform
-	//grid panel
+	//grid panel.  Should only be called on initial setup as inventory grids should not change.  
 	UFUNCTION(BlueprintImplementableEvent,Category="Inventory",meta = (DisplayName = "Set Slot Widgets in Grid"))
 	void BP_SetSlotWidgetsInGrid(TArray<UInventorySlotWidget*> NewSlotWidgets);
 
-	//This function should be implemented in blueprint to set the items to their target positions
+	//This function should be implemented in blueprint to set the items to their target positions.  Should be called for
+	//all updates to inventory as item positions, rotation, and quantities may change.  
 	UFUNCTION(BlueprintImplementableEvent,Category="Inventory",meta = (DisplayName = "Set Item Widgets in Grid"))
 	void BP_SetItemWidgetsInGrid(TArray<UInventoryItemWidget*> NewItemWidgets);
 	
@@ -47,6 +50,14 @@ protected:
 
 	void InitializeItems();
 
+	void OnInventorySlotUpdate();
+
+	void OnInventoryItemUpdates();
+
+	void ClearItemWidgets();
+
+	void ClearSlotWidgets();
+	
 	bool GetSlotWidgetFromPosition(FInventory2D Position, UInventorySlotWidget*& OutSlotWidget);
 
 
