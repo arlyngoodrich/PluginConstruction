@@ -3,3 +3,57 @@
 
 #include "InventoryItemWidget.h"
 
+#include "InventoryComponent.h"
+
+bool UInventoryItemWidget::CanItemMoveToPosition(const FInventory2D TargetPosition, const bool bShouldRotate) const
+{
+	FItemData ItemData = MyInventoryItemData.Item;
+
+	if(bShouldRotate)
+	{
+		ItemData.Rotate();
+	}
+
+	if(OwningInventory)
+	{
+		return OwningInventory->CheckIfItemFits(ItemData,TargetPosition);
+	}
+
+	return false;
+	
+}
+
+bool UInventoryItemWidget::CanItemTransferToPosition(UInventoryComponent* TargetInventory, const FInventory2D TargetPosition,
+                                                     const bool bShouldRotate) const
+{
+	FItemData ItemData = MyInventoryItemData.Item;
+
+	if(bShouldRotate)
+	{
+		ItemData.Rotate();
+	}
+
+	if(TargetInventory)
+	{
+		return TargetInventory->CheckIfItemFits(ItemData,TargetPosition);
+	}
+
+	return false;
+	
+}
+
+void UInventoryItemWidget::MoveItem(const FInventory2D TargetPosition, const bool bShouldRotate) const
+{
+	if(OwningInventory)
+	{
+		OwningInventory->MoveItem(MyInventoryItemData,TargetPosition,bShouldRotate);
+	}
+}
+
+void UInventoryItemWidget::SplitItem(const FInventoryItemData TargetItemData, const int32 NewStackQuantity) const
+{
+	if(OwningInventory)
+	{
+		OwningInventory->SplitItem(TargetItemData,NewStackQuantity);
+	}
+}

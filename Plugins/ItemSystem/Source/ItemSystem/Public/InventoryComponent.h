@@ -71,6 +71,7 @@ public:
 	//Splits the target item stack into a new unique item stack.  Will cycle new item through slots until it's added.
 	//Returns false if the new stack quantity is greater than what is in the existing stack, if the new stack cannot go
 	//to the target position, or if the target item does not exist.  Will return true if the stack is successfully split.
+	// **** UI Accessible Function
 	bool SplitItem(FInventoryItemData TargetItemData, int32 NewStackQuantity);
 
 	//Splits the target item stack into a new unique item stack at the target position. Will return false if
@@ -102,8 +103,8 @@ public:
 	//Will return false if Item GUID and position not found in inventory. 
 	bool FullyRemoveInventoryItem(FInventoryItemData TargetInventoryItem);
 
-
-	//Moves item to a new position in inventory.  Returns true if the item is moved, returns false if not.  
+	//Moves item to a new position in inventory.  Returns true if the item is moved, returns false if not.
+	// **** UI Accessible Function 
 	bool MoveItem(FInventoryItemData TargetItem, FInventory2D TargetPosition, bool bRotateITem);
 	
 	//Checks to see if Item is in Inventory.  Checks for matching Item GUIDs. Returns true if found
@@ -119,6 +120,10 @@ public:
 
 	//Given a position, will return the item in that position.  True if an item is found and false if no item is found.
 	bool FindInventoryItemAtPosition(FInventory2D Position, FInventoryItemData& OutInventoryItemData);
+
+	//Checks if the item will fit into a given position by check slots that would be covered by the item.  Returns false
+	//if it will not fit and true if it will. 
+	bool CheckIfItemFits(FItemData ItemData, FInventory2D TargetPosition);
 
 	UPROPERTY(BlueprintAssignable,Category="Inventory")
 	FInventoryItemDataUpdate OnInventoryUpdate;
@@ -171,10 +176,6 @@ protected:
 	//Utilitizes Inventory Size to reset array of InventorySlots.  All slots will be set to unoccupied.  
 	void InitializeSlots();
 
-	//Checks if the item will fit into a given position by check slots that would be covered by the item.  Returns false
-	//if it will not fit and true if it will. 
-	bool CheckIfItemFits(FItemData ItemData, FInventory2D TargetPosition);
-
 	//Cylces through all slots until item is added.  Will return false if: Item is not valid, weight cannot be added,
 	//or Item cannot fit in any positions
 	bool AutoAddItemNewStack(FItemData Item);
@@ -225,5 +226,16 @@ protected:
 
 	//Removes the weight from the current weight.  Clamped between 0 and MaxWeight.
 	void RemoveWeight(float RemoveWeight);
-	
+
+
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_MoveItem(FInventoryItemData TargetItem, FInventory2D TargetPosition, bool bRotateITem);
+	bool Server_MoveItem_Validate(FInventoryItemData TargetItem, FInventory2D TargetPosition, bool bRotateITem);
+	void Server_MoveItem_Implementation(FInventoryItemData TargetItem, FInventory2D TargetPosition, bool bRotateITem);
+
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_SplitItem(FInventoryItemData TargetItemData, int32 NewStackQuantity);
+	bool Server_SplitItem_Validate(FInventoryItemData TargetItemData, int32 NewStackQuantity);
+	void Server_SplitItem_Implementation(FInventoryItemData TargetItemData, int32 NewStackQuantity);
+
 };

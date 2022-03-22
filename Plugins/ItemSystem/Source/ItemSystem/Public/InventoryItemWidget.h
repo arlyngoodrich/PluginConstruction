@@ -33,8 +33,22 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category="Inventory")
 	UInventorySlotWidget* OwningSlot;
 
-	//Owning Owning Inventory Component.  Should be set before cosntruct.  
+	//Owning Owning Inventory Component.  Should be set before construct.  
 	UPROPERTY(BlueprintReadOnly,Category="Inventory")
 	UInventoryComponent* OwningInventory;
 	
+protected:
+	
+	UFUNCTION(BlueprintPure,Category="Inventory")
+	bool CanItemMoveToPosition(FInventory2D TargetPosition, bool bShouldRotate) const;
+
+	UFUNCTION(BlueprintPure,Category="Inventory")
+	bool CanItemTransferToPosition(UInventoryComponent* TargetInventory, FInventory2D TargetPosition,
+	                               bool bShouldRotate) const;
+
+	UFUNCTION(BlueprintCallable,Category="Inventory")
+	void MoveItem(FInventory2D TargetPosition, bool bShouldRotate) const;
+	
+	UFUNCTION(BlueprintCallable,Category="Inventory")
+	void SplitItem(FInventoryItemData TargetItemData, int32 NewStackQuantity) const;
 };

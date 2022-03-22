@@ -318,6 +318,12 @@ bool UInventoryComponent::AutoAddItem(const FItemData InItem)
 
 bool UInventoryComponent::SplitItem(const FInventoryItemData TargetItemData, const int32 NewStackQuantity)
 {
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		Server_SplitItem(TargetItemData,NewStackQuantity);
+	}
+	
 	if(SplitItemChecks(TargetItemData,NewStackQuantity) == false)
 	{
 		return false;
@@ -532,6 +538,12 @@ bool UInventoryComponent::FullyRemoveInventoryItem(const FInventoryItemData Targ
 
 bool UInventoryComponent::MoveItem(FInventoryItemData TargetItem, const FInventory2D TargetPosition, const bool bRotateITem)
 {
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		Server_MoveItem(TargetItem,TargetPosition,bRotateITem);
+	}
+	
 	//Ensure target item is in inventory 
 	int32 ItemIndex;
 	if(InventoryItems.Find(TargetItem,ItemIndex) == false)
@@ -988,6 +1000,29 @@ void UInventoryComponent::RemoveWeight(const float RemoveWeight)
 		*FString::SanitizeFloat(RemoveWeight),*FString::SanitizeFloat(CurrentWeight),*GetOwner()->GetName());
 }
 
+bool UInventoryComponent::Server_MoveItem_Validate(FInventoryItemData TargetItem, FInventory2D TargetPosition,
+	bool bRotateITem)
+{
+	return IsItemInInventory(TargetItem.Item);
+}
+
+void UInventoryComponent::Server_MoveItem_Implementation(const FInventoryItemData TargetItem,
+                                                         const FInventory2D TargetPosition,
+                                                         const bool bRotateITem)
+{
+	MoveItem(TargetItem,TargetPosition,bRotateITem);
+}
+
+
+bool UInventoryComponent::Server_SplitItem_Validate(FInventoryItemData TargetItemData, int32 NewStackQuantity)
+{
+	return IsItemInInventory(TargetItemData.Item);
+}
+
+void UInventoryComponent::Server_SplitItem_Implementation(FInventoryItemData TargetItemData, int32 NewStackQuantity)
+{
+	SplitItem(TargetItemData,NewStackQuantity);
+}
 
 
 

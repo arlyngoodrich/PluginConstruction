@@ -60,7 +60,7 @@ void UInventoryGridWidget::InitializeGrid()
 		}
 	}
 
-	BP_SetSlotWidgetsInGrid(SlotWidgets);
+	BP_SetSlotWidgetsInGrid();
 }
 
 void UInventoryGridWidget::InitializeItems()
@@ -101,11 +101,10 @@ void UInventoryGridWidget::InitializeItems()
 
 			//Add to viewport?
 			//Set position?
-			BP_SetItemWidgetsInGrid(ItemWidgets);
 		}
 	}
 
-	BP_SetItemWidgetsInGrid(ItemWidgets);
+	BP_SetItemWidgetsInGrid();
 }
 
 void UInventoryGridWidget::OnInventorySlotUpdate()
