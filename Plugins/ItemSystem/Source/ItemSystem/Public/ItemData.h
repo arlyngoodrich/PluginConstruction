@@ -12,10 +12,10 @@ struct FInventory2D
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "Inventory Position")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory Position")
 	int32 X;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Inventory Position")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory Position")
 	int32 Y;
 
 	FInventory2D()

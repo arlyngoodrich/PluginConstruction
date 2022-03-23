@@ -21,10 +21,18 @@ class ITEMSYSTEM_API UInventoryGridWidget : public UCustomUserWidget
 	
 public:
 
+	UInventoryGridWidget();
+
 	UPROPERTY(BlueprintReadWrite,meta = (ExposeOnSpawn),Category="Inventory")
 	UInventoryComponent* OwningInventoryComponent;
 
 protected:
+	
+	UPROPERTY(EditDefaultsOnly,Category="Inventory")
+	TSubclassOf<UInventorySlotWidget> SlotWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly,Category="Inventory")
+	TSubclassOf<UInventoryItemWidget> ItemWidgetClass;
 	
 	UPROPERTY(BlueprintReadWrite,Category="Inventory")
 	TArray<UInventorySlotWidget*> SlotWidgets;
@@ -45,6 +53,9 @@ protected:
 	//all updates to inventory as item positions, rotation, and quantities may change.  
 	UFUNCTION(BlueprintImplementableEvent,Category="Inventory",meta = (DisplayName = "Set Item Widgets in Grid"))
 	void BP_SetItemWidgetsInGrid();
+
+	UFUNCTION(BlueprintCallable, Category="Inventory")
+	void InitializeInventory();
 	
 	void InitializeGrid();
 

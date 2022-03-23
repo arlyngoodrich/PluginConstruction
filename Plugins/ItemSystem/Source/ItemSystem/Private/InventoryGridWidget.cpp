@@ -9,16 +9,16 @@
 #include "InventorySlotWidget.h"
 #include "ItemSystem.h"
 
+UInventoryGridWidget::UInventoryGridWidget()
+{
+	SlotWidgetClass = UInventorySlotWidget::StaticClass();
+	ItemWidgetClass = UInventoryItemWidget::StaticClass();
+}
+
 void UInventoryGridWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-
-	InitializeGrid();
-	InitializeItems();
-
-	OwningInventoryComponent->OnInventorySlotUpdate.AddDynamic(this,&UInventoryGridWidget::OnInventorySlotUpdate);
-	OwningInventoryComponent->OnInventoryUpdate.AddDynamic(this,&UInventoryGridWidget::OnInventoryItemUpdates);
-	
+		
 }
 
 void UInventoryGridWidget::NativeDestruct()
@@ -30,9 +30,24 @@ void UInventoryGridWidget::NativeDestruct()
 
 	OwningInventoryComponent->OnInventorySlotUpdate.RemoveDynamic(this,&UInventoryGridWidget::OnInventorySlotUpdate);
 	OwningInventoryComponent->OnInventoryUpdate.RemoveDynamic(this,&UInventoryGridWidget::OnInventoryItemUpdates);
+	
 }
 
 
+void UInventoryGridWidget::InitializeInventory()
+{
+    
+    UE_LOG(LogItemSystem,Log,TEXT("Inventory Widget Initialized"))
+
+	InitializeGrid();
+	InitializeItems();
+
+	OwningInventoryComponent->OnInventorySlotUpdate.AddDynamic(this,&UInventoryGridWidget::OnInventorySlotUpdate);
+	OwningInventoryComponent->OnInventoryUpdate.AddDynamic(this,&UInventoryGridWidget::OnInventoryItemUpdates);
+
+	BP_SetSlotWidgetsInGrid();
+	BP_SetItemWidgetsInGrid();
+}
 
 void UInventoryGridWidget::InitializeGrid()
 {
@@ -51,16 +66,16 @@ void UInventoryGridWidget::InitializeGrid()
 	{
 		
 		UInventorySlotWidget* NewSlotWidget = Cast<UInventorySlotWidget>
-		(CreateWidget(this, UInventorySlotWidget::StaticClass(), "InventorySlot"));
+		(CreateWidget(GetOwningPlayer(), SlotWidgetClass));
 
 		if(NewSlotWidget != nullptr)
 		{
 			NewSlotWidget->MyInventorySlot = InventorySlots[i];
+			UE_LOG(LogItemSystem,Log,TEXT("Inventoey Slot Added with Position: %s "),
+				*InventorySlots[i].Position.GetPositionAsString())
 			SlotWidgets.Add(NewSlotWidget);
 		}
 	}
-
-	BP_SetSlotWidgetsInGrid();
 }
 
 void UInventoryGridWidget::InitializeItems()
@@ -79,7 +94,7 @@ void UInventoryGridWidget::InitializeItems()
 	for (int i = 0; i < InventoryItemData.Num(); ++i)
 	{
 		UInventoryItemWidget* NewItemWidget = Cast<UInventoryItemWidget>
-		(CreateWidget(this,UInventoryItemWidget::StaticClass(),"InventoryItem"));
+		(CreateWidget(GetOwningPlayer(),ItemWidgetClass));
 		if(NewItemWidget != nullptr)
 		{
 			NewItemWidget->MyInventoryItemData = InventoryItemData[i];
@@ -103,8 +118,7 @@ void UInventoryGridWidget::InitializeItems()
 			//Set position?
 		}
 	}
-
-	BP_SetItemWidgetsInGrid();
+	
 }
 
 void UInventoryGridWidget::OnInventorySlotUpdate()
