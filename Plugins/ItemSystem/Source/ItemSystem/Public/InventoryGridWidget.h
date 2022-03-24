@@ -26,6 +26,12 @@ public:
 	UPROPERTY(BlueprintReadWrite,meta = (ExposeOnSpawn),Category="Inventory")
 	UInventoryComponent* OwningInventoryComponent;
 
+	void SetSlotsOnDragOver(FInventory2D DragPosition, FItemData DraggedItem);
+
+	void OnItemDragStart(const UInventoryItemWidget* InventoryItemWidget);
+
+	void OnItemDragCancel(const UInventoryItemWidget* InventoryItemWidget);
+
 protected:
 	
 	UPROPERTY(EditDefaultsOnly,Category="Inventory")

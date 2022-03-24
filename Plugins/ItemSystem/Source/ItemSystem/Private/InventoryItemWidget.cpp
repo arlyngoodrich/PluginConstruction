@@ -4,6 +4,31 @@
 #include "InventoryItemWidget.h"
 
 #include "InventoryComponent.h"
+#include "InventoryGridWidget.h"
+
+void UInventoryItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
+                                                UDragDropOperation*& OutOperation)
+{
+	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
+
+	if(OwningGridWidget)
+	{
+		OwningGridWidget->OnItemDragStart(this);
+	}
+
+	
+}
+
+void UInventoryItemWidget::NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
+{
+	Super::NativeOnDragCancelled(InDragDropEvent, InOperation);
+
+	if(OwningGridWidget)
+	{
+		OwningGridWidget->OnItemDragCancel(this);
+	}
+	
+}
 
 bool UInventoryItemWidget::CanItemMoveToPosition(const FInventory2D TargetPosition, const bool bShouldRotate) const
 {

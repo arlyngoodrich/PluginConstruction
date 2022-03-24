@@ -80,7 +80,7 @@ struct FItemData
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
 	UTexture2D* ItemIconLarge;
 	
-	UPROPERTY(BlueprintReadOnly, Category = "Item Data")
+	UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = "Item Data")
 	TSubclassOf<AItemBase> InWorldClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")

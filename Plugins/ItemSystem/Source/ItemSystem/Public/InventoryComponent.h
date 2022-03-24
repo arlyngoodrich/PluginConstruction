@@ -103,6 +103,9 @@ public:
 	//Will return false if Item GUID and position not found in inventory. 
 	bool FullyRemoveInventoryItem(FInventoryItemData TargetInventoryItem);
 
+	//Performs same checks as moving the item but doesn't move it.  Useful for UI/client checks. 
+	bool CheckItemMove(FInventoryItemData TargetItem, FInventory2D TargetPosition, bool bRotateItem);
+	
 	//Moves item to a new position in inventory.  Returns true if the item is moved, returns false if not.
 	// **** UI Accessible Function 
 	bool MoveItem(FInventoryItemData TargetItem, FInventory2D TargetPosition, bool bRotateITem);
@@ -130,7 +133,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable,Category="Inventory")
 	FInventorySlotUpdate OnInventorySlotUpdate;
-	
+
 	
 protected:
 	// Called when the game starts
@@ -226,6 +229,16 @@ protected:
 
 	//Removes the weight from the current weight.  Clamped between 0 and MaxWeight.
 	void RemoveWeight(float RemoveWeight);
+
+
+	/* DEBUGGING */
+	UPROPERTY(EditDefaultsOnly,Category="Debugging")
+	bool bAddDebugItems;
+
+	UPROPERTY(EditDefaultsOnly,Category="Debugging", meta = (EditCondition = "bAddDebugItems"))
+	TArray<FItemData> DebugItems;
+
+	void AddDebugItems();
 
 
 	UFUNCTION(Server,Reliable,WithValidation)

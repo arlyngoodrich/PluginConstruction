@@ -19,8 +19,20 @@ public:
 	
 	UPROPERTY(BlueprintReadOnly,Category="Inventory")
 	FInventorySlot MyInventorySlot;
-	
 
+	UPROPERTY(BlueprintReadOnly,Category="Inventory")
+	class UInventoryGridWidget* OwningGridWidget;
 
+	UPROPERTY(BlueprintReadOnly,Category="Inventory")
+	class UInventoryComponent* OwningInventory;
+
+	UPROPERTY(BlueprintReadOnly, Category="Inventory")
+	bool bDraggedOver;
 	
+	UFUNCTION(BlueprintCallable,Category="Inventory")
+	void OnSlotDraggedOver(FItemData DraggedOverItem) const;
+
+	UFUNCTION(BlueprintCallable,Category="Inventory")
+	bool OnItemDropped(FInventoryItemData DroppedItemData) const;
+
 };

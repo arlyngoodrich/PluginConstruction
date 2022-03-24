@@ -63,6 +63,8 @@ void UInventoryComponent::BeginPlay()
 	Super::BeginPlay();
 	InitializeSlots();
 
+	if(bAddDebugItems) {AddDebugItems();}
+
 	// ...
 	
 }
@@ -536,6 +538,30 @@ bool UInventoryComponent::FullyRemoveInventoryItem(const FInventoryItemData Targ
 	}
 }
 
+bool UInventoryComponent::CheckItemMove(FInventoryItemData TargetItem, FInventory2D TargetPosition, bool bRotateItem)
+{
+	
+	SetSlotStatuses(TargetItem.GetCoveredSlots(),false);
+
+
+	if(bRotateItem)
+	{
+		TargetItem.RotateItem();
+	}
+
+	const bool bMoveCheckStatus = CheckIfItemFits(TargetItem.Item,TargetPosition);
+
+	if(bRotateItem)
+	{
+		TargetItem.RotateItem();
+	}
+
+
+	SetSlotStatuses(TargetItem.GetCoveredSlots(),true);
+
+	return bMoveCheckStatus;
+}
+
 bool UInventoryComponent::MoveItem(FInventoryItemData TargetItem, const FInventory2D TargetPosition, const bool bRotateITem)
 {
 
@@ -570,17 +596,16 @@ bool UInventoryComponent::MoveItem(FInventoryItemData TargetItem, const FInvento
 	
 	if(CheckIfItemFits(TargetItem.Item,TargetPosition))
 	{
-		//Item fits
+		//Move the actual item's position in inventory array 
 		InventoryItems[ItemIndex].StartPosition = TargetPosition;
 
+		//Rotate the actual inventory item
 		if(bRotateITem)
 		{
 			InventoryItems[ItemIndex].RotateItem();
 		}
-
-		OnRep_InventoryItemsUpdated();
-
 		
+		//Set new covered slots as covered 
 		if(SetSlotStatuses(InventoryItems[ItemIndex].GetCoveredSlots(),true) == false)
 		{
 			UE_LOG(LogItemSystem,Error,TEXT("%s could not find slot to set status when moving %s item"),
@@ -588,6 +613,9 @@ bool UInventoryComponent::MoveItem(FInventoryItemData TargetItem, const FInvento
 			return false;
 		}
 
+		OnRep_InventoryItemsUpdated();
+		OnRep_InventorySlotsUpdated();
+		
 		UE_LOG
 		(
 			LogItemSystem,Log,TEXT("%s moved %s item to pos %s.  Item was %s"),
@@ -595,10 +623,21 @@ bool UInventoryComponent::MoveItem(FInventoryItemData TargetItem, const FInvento
 			*TargetPosition.GetPositionAsString(),
 			bRotateITem? TEXT("Rotated") : TEXT("Not Rotated")
 		)
+
+		
 		return true;
 	}
 	else
 	{
+		//Undo Target Item Rotation
+		if(bRotateITem)
+		{
+			TargetItem.RotateItem();
+		}
+
+		//Undo Covered Slot Statuses
+		SetSlotStatuses(TargetItem.GetCoveredSlots(),true);
+		
 		UE_LOG(LogItemSystem,Log,TEXT("%s attempted to move %s item but item doesn not fit in Pos %s"),
 		*GetOwner()->GetName(),*TargetItem.Item.DisplayName.ToString(),*TargetPosition.GetPositionAsString())
 		return false;
@@ -1000,8 +1039,20 @@ void UInventoryComponent::RemoveWeight(const float RemoveWeight)
 		*FString::SanitizeFloat(RemoveWeight),*FString::SanitizeFloat(CurrentWeight),*GetOwner()->GetName());
 }
 
+void UInventoryComponent::AddDebugItems()
+{
+	for (int i = 0; i < DebugItems.Num(); ++i)
+	{
+		FItemData DebugItem = DebugItems[i];
+		DebugItem.ItemGuid = FGuid::NewGuid();
+		AutoAddItem(DebugItem);
+		UE_LOG(LogItemSystem,Log,TEXT("%s added %s debug item"),
+			*GetOwner()->GetName(),*DebugItem.DisplayName.ToString())
+	}
+}
+
 bool UInventoryComponent::Server_MoveItem_Validate(FInventoryItemData TargetItem, FInventory2D TargetPosition,
-	bool bRotateITem)
+                                                   bool bRotateITem)
 {
 	return IsItemInInventory(TargetItem.Item);
 }

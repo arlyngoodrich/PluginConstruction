@@ -15,6 +15,62 @@ UInventoryGridWidget::UInventoryGridWidget()
 	ItemWidgetClass = UInventoryItemWidget::StaticClass();
 }
 
+void UInventoryGridWidget::SetSlotsOnDragOver(FInventory2D DragPosition, FItemData DraggedItem)
+{
+	const FInventoryItemData DraggedInventoryItemData = FInventoryItemData(DragPosition,DraggedItem);
+	TArray<FInventory2D> CoveredSlots = DraggedInventoryItemData.GetCoveredSlots();
+	
+	
+	//Set All to false for drag over
+	for (int i = 0; i < SlotWidgets.Num(); ++i)
+	{
+		SlotWidgets[i]->bDraggedOver = false;
+	}
+	
+	for (int i = 0; i < CoveredSlots.Num(); ++i)
+	{
+		const FInventory2D TargetSlot = CoveredSlots[i];
+		UInventorySlotWidget* TargetSlotWidget;
+		if(GetSlotWidgetFromPosition(TargetSlot,TargetSlotWidget))
+		{
+			TargetSlotWidget->bDraggedOver = true;
+		}
+	}
+}
+
+void UInventoryGridWidget::OnItemDragStart(const UInventoryItemWidget* InventoryItemWidget)
+{
+	const TArray<FInventory2D> CoveredPositions = InventoryItemWidget->MyInventoryItemData.GetCoveredSlots();
+
+	for (int i = 0; i < CoveredPositions.Num(); ++i)
+	{	
+		UInventorySlotWidget* TargetSlot;
+		if(GetSlotWidgetFromPosition(CoveredPositions[i],TargetSlot))
+		{
+			TargetSlot->MyInventorySlot.bIsOccupied = false;
+		}
+	}
+}
+
+void UInventoryGridWidget::OnItemDragCancel(const UInventoryItemWidget* InventoryItemWidget)
+{
+	const TArray<FInventory2D> CoveredPositions = InventoryItemWidget->MyInventoryItemData.GetCoveredSlots();
+
+	for (int i = 0; i < CoveredPositions.Num(); ++i)
+	{	
+		UInventorySlotWidget* TargetSlot;
+		if(GetSlotWidgetFromPosition(CoveredPositions[i],TargetSlot))
+		{
+			TargetSlot->MyInventorySlot.bIsOccupied = true;
+		}
+	}
+
+	for (int i = 0; i < SlotWidgets.Num(); ++i)
+	{
+		SlotWidgets[i]->bDraggedOver = false;
+	}
+}
+
 void UInventoryGridWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -71,6 +127,7 @@ void UInventoryGridWidget::InitializeGrid()
 		if(NewSlotWidget != nullptr)
 		{
 			NewSlotWidget->MyInventorySlot = InventorySlots[i];
+			NewSlotWidget->OwningGridWidget = this;
 			UE_LOG(LogItemSystem,Log,TEXT("Inventoey Slot Added with Position: %s "),
 				*InventorySlots[i].Position.GetPositionAsString())
 			SlotWidgets.Add(NewSlotWidget);
