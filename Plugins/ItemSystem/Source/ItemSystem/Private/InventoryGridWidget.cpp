@@ -15,7 +15,7 @@ UInventoryGridWidget::UInventoryGridWidget()
 	ItemWidgetClass = UInventoryItemWidget::StaticClass();
 }
 
-void UInventoryGridWidget::SetSlotsOnDragOver(FInventory2D DragPosition, FItemData DraggedItem)
+void UInventoryGridWidget::SetSlotsOnDragOver(const FInventory2D DragPosition, const FItemData DraggedItem)
 {
 	const FInventoryItemData DraggedInventoryItemData = FInventoryItemData(DragPosition,DraggedItem);
 	TArray<FInventory2D> CoveredSlots = DraggedInventoryItemData.GetCoveredSlots();
@@ -128,7 +128,8 @@ void UInventoryGridWidget::InitializeGrid()
 		{
 			NewSlotWidget->MyInventorySlot = InventorySlots[i];
 			NewSlotWidget->OwningGridWidget = this;
-			UE_LOG(LogItemSystem,Log,TEXT("Inventoey Slot Added with Position: %s "),
+			NewSlotWidget->OwningInventory = OwningInventoryComponent;
+			UE_LOG(LogItemSystem,Verbose,TEXT("Inventoey Slot Added with Position: %s "),
 				*InventorySlots[i].Position.GetPositionAsString())
 			SlotWidgets.Add(NewSlotWidget);
 		}
@@ -171,8 +172,6 @@ void UInventoryGridWidget::InitializeItems()
 
 			ItemWidgets.Add(NewItemWidget);
 
-			//Add to viewport?
-			//Set position?
 		}
 	}
 	
@@ -189,6 +188,7 @@ void UInventoryGridWidget::OnInventorySlotUpdate()
 		if(GetSlotWidgetFromPosition(NewSlotData[i].Position,TargetSlotWidget))
 		{
 			TargetSlotWidget->MyInventorySlot.bIsOccupied = NewSlotData[i].bIsOccupied;
+			TargetSlotWidget->bDraggedOver = false;
 		}
 	}
 }
@@ -197,6 +197,7 @@ void UInventoryGridWidget::OnInventoryItemUpdates()
 {
 	//Reset items in inventory
 	InitializeItems();
+	BP_SetItemWidgetsInGrid();
 }
 
 void UInventoryGridWidget::ClearItemWidgets()

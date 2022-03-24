@@ -32,6 +32,7 @@ public:
 
 	void OnItemDragCancel(const UInventoryItemWidget* InventoryItemWidget);
 
+
 protected:
 	
 	UPROPERTY(EditDefaultsOnly,Category="Inventory")

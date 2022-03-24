@@ -102,7 +102,7 @@ void UInventoryComponent::InitializeSlots()
 	bHaveSlotsBeenInitialized = true;
 	UE_LOG(LogItemSystem,Log,TEXT("%s inventory slots initalized"),*GetOwner()->GetName());
 }
-
+ 
 
 bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInventory2D Position)
 {
@@ -825,7 +825,7 @@ bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const
 			OnRep_InventorySlotsUpdated();
 		}
 		
-		UE_LOG(LogItemSystem,Log,TEXT("%s inventory updated slot %s to %s"),
+		UE_LOG(LogItemSystem,Verbose,TEXT("%s inventory updated slot %s to %s"),
 			*GetOwner()->GetName(),*TargetPosition.GetPositionAsString(),
 			NewIsOccupied? TEXT("occupied") : TEXT("unoccupied"))
 		return true;

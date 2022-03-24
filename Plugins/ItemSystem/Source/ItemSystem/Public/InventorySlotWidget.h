@@ -30,9 +30,9 @@ public:
 	bool bDraggedOver;
 	
 	UFUNCTION(BlueprintCallable,Category="Inventory")
-	void OnSlotDraggedOver(FItemData DraggedOverItem) const;
+	void OnSlotDraggedOver(FItemData DraggedOverItem,bool bRotateItem);
 
 	UFUNCTION(BlueprintCallable,Category="Inventory")
-	bool OnItemDropped(FInventoryItemData DroppedItemData) const;
+	bool OnItemDropped(FInventoryItemData DroppedItemData, bool bRotateItem);
 
 };

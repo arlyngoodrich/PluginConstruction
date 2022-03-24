@@ -5,12 +5,15 @@
 
 #include "InventoryComponent.h"
 #include "InventoryGridWidget.h"
+#include "ItemSystem.h"
 
 void UInventoryItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
                                                 UDragDropOperation*& OutOperation)
 {
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
 
+	UE_LOG(LogItemSystem,Log,TEXT("Native Drag Called"))
+	
 	if(OwningGridWidget)
 	{
 		OwningGridWidget->OnItemDragStart(this);
@@ -23,6 +26,8 @@ void UInventoryItemWidget::NativeOnDragCancelled(const FDragDropEvent& InDragDro
 {
 	Super::NativeOnDragCancelled(InDragDropEvent, InOperation);
 
+	UE_LOG(LogItemSystem,Log,TEXT("Native Drag Cancel Called"))
+	
 	if(OwningGridWidget)
 	{
 		OwningGridWidget->OnItemDragCancel(this);
