@@ -48,11 +48,9 @@ int32 UInventoryComponent::GetTotalCountOfItemClass(const TSubclassOf<AItemBase>
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
-	DOREPLIFETIME(UInventoryComponent, InventorySlots);
-	DOREPLIFETIME(UInventoryComponent, InventoryItems);
-	//May be needed to fix replication issue
-	//DOREPLIFETIME_CONDITION_NOTIFY(UInventoryComponent, InventoryItems,COND_None,REPNOTIFY_Always);
+
+	DOREPLIFETIME_CONDITION_NOTIFY(UInventoryComponent, InventorySlots,COND_None,REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UInventoryComponent, InventoryItems,COND_None,REPNOTIFY_Always);
 	DOREPLIFETIME(UInventoryComponent, CurrentWeight);
 }
 
@@ -106,6 +104,11 @@ void UInventoryComponent::InitializeSlots()
 
 bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInventory2D Position)
 {
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
 
 	if(false == AddItemChecks(Item)) {return false;}
 	
@@ -163,6 +166,12 @@ bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInvento
 
 bool UInventoryComponent::TransferItem(UInventoryComponent* TargetInventory, const FInventoryItemData TargetItem)
 {
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
 
 	if(TransferItemChecks(TargetItem,TargetInventory) == false)
 	{
@@ -233,6 +242,13 @@ bool UInventoryComponent::TransferItem(UInventoryComponent* TargetInventory, con
 bool UInventoryComponent::TransferItemToPosition(UInventoryComponent* TargetInventory, const FInventory2D TargetPosition,
                                                  const FInventoryItemData TargetItem)
 {
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
+	
 	if(TransferItemChecks(TargetItem,TargetInventory) == false)
 	{
 		return false;
@@ -264,6 +280,13 @@ bool UInventoryComponent::TransferItemToPosition(UInventoryComponent* TargetInve
 
 bool UInventoryComponent::AutoAddItem(const FItemData InItem, FItemData& OutRemainingItem)
 {
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
+	
 	if(AddItemChecks(InItem) == false) {return false;}
 	OutRemainingItem = InItem;
 
@@ -303,6 +326,12 @@ bool UInventoryComponent::AutoAddItem(const FItemData InItem, FItemData& OutRema
 
 bool UInventoryComponent::AutoAddItem(const FItemData InItem)
 {
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
+	
 	FItemData OutItemData;
 	AutoAddItem(InItem,OutItemData);
 
@@ -320,6 +349,12 @@ bool UInventoryComponent::AutoAddItem(const FItemData InItem)
 
 bool UInventoryComponent::SplitItem(const FInventoryItemData TargetItemData, const int32 NewStackQuantity)
 {
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
 
 	if(GetOwnerRole() != ROLE_Authority)
 	{
@@ -361,6 +396,12 @@ bool UInventoryComponent::SplitItem(const FInventoryItemData TargetItemData, con
 bool UInventoryComponent::SplitItemStackToPosition(const FInventoryItemData TargetItemData, const FInventory2D TargetPosition,
                                                    const int32 NewStackQuantity)
 {
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
+	
 	if(SplitItemChecks(TargetItemData,NewStackQuantity) == false)
 	{
 		return false;
@@ -401,6 +442,12 @@ bool UInventoryComponent::SplitItemStackToPosition(const FInventoryItemData Targ
 bool UInventoryComponent::ReduceQuantityOfItemByStaticClass(const TSubclassOf<AItemBase> ItemClass, int32 QuantityToRemove,
                                                             int32& OutAmountNotRemoved)
 {
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
 	
 	//Cycle through all items in the inventory
 	for (int i = 0; i < InventoryItems.Num(); ++i)
@@ -437,6 +484,12 @@ bool UInventoryComponent::ReduceQuantityOfInventoryItem(const FInventoryItemData
                                                         const int32 QuantityToRemove,
                                                         int32& OutAmountNotRemoved)
 {
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
+	
 	int32 ItemIndex;
 	OutAmountNotRemoved = QuantityToRemove;
 
@@ -488,6 +541,12 @@ bool UInventoryComponent::ReduceQuantityOfInventoryItem(const FInventoryItemData
 bool UInventoryComponent::ReduceQuantityOfInventoryItem(const FInventoryItemData TargetInventoryItem,
                                                         const int32 QuantityToRemove)
 {
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
+	
 	int32 QuantityRemaining;
 	const bool bWasRemovalITemFound = ReduceQuantityOfInventoryItem(TargetInventoryItem,QuantityToRemove,
 	                                                                QuantityRemaining);
@@ -504,6 +563,12 @@ bool UInventoryComponent::ReduceQuantityOfInventoryItem(const FInventoryItemData
 
 bool UInventoryComponent::FullyRemoveInventoryItem(const FInventoryItemData TargetInventoryItem)
 {
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
 	int32 ItemIndex;
 	if(InventoryItems.Find(TargetInventoryItem,ItemIndex))
 	{
