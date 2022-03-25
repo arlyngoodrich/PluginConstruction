@@ -350,11 +350,6 @@ bool UInventoryComponent::AutoAddItem(const FItemData InItem)
 bool UInventoryComponent::SplitItem(const FInventoryItemData TargetItemData, const int32 NewStackQuantity)
 {
 
-	if(GetOwnerRole() != ROLE_Authority)
-	{
-		return false;
-	}
-
 
 	if(GetOwnerRole() != ROLE_Authority)
 	{

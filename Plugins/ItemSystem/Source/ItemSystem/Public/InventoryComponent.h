@@ -72,6 +72,7 @@ public:
 	//Returns false if the new stack quantity is greater than what is in the existing stack, if the new stack cannot go
 	//to the target position, or if the target item does not exist.  Will return true if the stack is successfully split.
 	// **** UI Accessible Function
+	UFUNCTION(BlueprintCallable,Category="Inventory")
 	bool SplitItem(FInventoryItemData TargetItemData, int32 NewStackQuantity);
 
 	//Splits the target item stack into a new unique item stack at the target position. Will return false if
