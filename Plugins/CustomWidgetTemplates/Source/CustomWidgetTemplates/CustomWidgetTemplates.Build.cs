@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class ItemSystem : ModuleRules
+public class CustomWidgetTemplates : ModuleRules
 {
-	public ItemSystem(ReadOnlyTargetRules Target) : base(Target)
+	public CustomWidgetTemplates(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
@@ -26,7 +26,6 @@ public class ItemSystem : ModuleRules
 			new string[]
 			{
 				"Core",
-				"CustomWidgetTemplates"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -39,7 +38,6 @@ public class ItemSystem : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-				"UnrealEd",
 				"UMG"
 				// ... add private dependencies that you statically link with here ...	
 			}

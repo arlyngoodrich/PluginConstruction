@@ -12,10 +12,10 @@ struct FInventory2D
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "Inventory Position")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory Position")
 	int32 X;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Inventory Position")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory Position")
 	int32 Y;
 
 	FInventory2D()
@@ -80,7 +80,7 @@ struct FItemData
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
 	UTexture2D* ItemIconLarge;
 	
-	UPROPERTY(BlueprintReadOnly, Category = "Item Data")
+	UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = "Item Data")
 	TSubclassOf<AItemBase> InWorldClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")

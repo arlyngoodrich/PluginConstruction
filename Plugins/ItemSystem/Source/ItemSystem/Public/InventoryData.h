@@ -11,7 +11,7 @@ struct FInventorySlot
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "Inventory Data")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory Data")
 	FInventory2D Position;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Inventory Data")

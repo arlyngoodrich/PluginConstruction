@@ -26,6 +26,9 @@ int32 UInventoryComponent::GetSlotCount() const { return InventorySlots.Num(); }
 int32 UInventoryComponent::GetItemCount() const{return InventoryItems.Num();}
 float UInventoryComponent::GetInventoryWeight() const { return CurrentWeight; }
 float UInventoryComponent::GetInventoryMaxWeight() const { return MaxWeight; }
+TArray<FInventoryItemData> UInventoryComponent::GetInventoryItemData() const {return InventoryItems;}
+TArray<FInventorySlot> UInventoryComponent::GetInventorySlots() const { return InventorySlots;}
+
 
 int32 UInventoryComponent::GetTotalCountOfItemClass(const TSubclassOf<AItemBase> ItemClass)
 {
@@ -46,8 +49,8 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >&
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UInventoryComponent, InventorySlots);
-	DOREPLIFETIME(UInventoryComponent, InventoryItems);
+	DOREPLIFETIME_CONDITION_NOTIFY(UInventoryComponent, InventorySlots,COND_None,REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UInventoryComponent, InventoryItems,COND_None,REPNOTIFY_Always);
 	DOREPLIFETIME(UInventoryComponent, CurrentWeight);
 }
 
@@ -57,6 +60,8 @@ void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	InitializeSlots();
+
+	if(bAddDebugItems) {AddDebugItems();}
 
 	// ...
 	
@@ -68,6 +73,16 @@ void UInventoryComponent::OnRegister()
 	InitializeSlots();
 }
 
+
+void UInventoryComponent::OnRep_InventoryItemsUpdated() const
+{
+	OnInventoryUpdate.Broadcast();
+}
+
+void UInventoryComponent::OnRep_InventorySlotsUpdated() const
+{
+	OnInventorySlotUpdate.Broadcast();
+}
 
 void UInventoryComponent::InitializeSlots()
 {
@@ -85,31 +100,15 @@ void UInventoryComponent::InitializeSlots()
 	bHaveSlotsBeenInitialized = true;
 	UE_LOG(LogItemSystem,Log,TEXT("%s inventory slots initalized"),*GetOwner()->GetName());
 }
-
-void UInventoryComponent::SetInventory(TArray<FInventoryItemData> InInventoryItems)
-{
-	InitializeSlots();
-
-	TArray<bool> ItemAddedChecks;
-
-	//Cycle through all items to add
-	for (int i = 0; i < InInventoryItems.Num(); ++i)
-	{
-		const FInventoryItemData NewItem = InInventoryItems[i];
-		
-		bool WasItemAdded = AddItemToPosition(NewItem.Item,NewItem.StartPosition);
-		
-		ItemAddedChecks.Add(WasItemAdded);
-	}
-
-	if(ItemAddedChecks.Contains(false))
-	{
-		UE_LOG(LogItemSystem,Error,TEXT("Failed to Set Inventory for %s"),*GetOwner()->GetName());
-	}
-}
+ 
 
 bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInventory2D Position)
 {
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
 
 	if(false == AddItemChecks(Item)) {return false;}
 	
@@ -141,6 +140,8 @@ bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInvento
 				InventoryItems.Add(NewInventoryItem);
 				AddWeight(Item);
 
+				OnRep_InventoryItemsUpdated();
+
 				UE_LOG(LogItemSystem,Log,TEXT("Added %s item to position %s in %s inventory"),
 					*Item.DisplayName.ToString(),*Position.GetPositionAsString(),
 					*GetOwner()->GetName())
@@ -165,6 +166,12 @@ bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInvento
 
 bool UInventoryComponent::TransferItem(UInventoryComponent* TargetInventory, const FInventoryItemData TargetItem)
 {
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
 
 	if(TransferItemChecks(TargetItem,TargetInventory) == false)
 	{
@@ -235,6 +242,13 @@ bool UInventoryComponent::TransferItem(UInventoryComponent* TargetInventory, con
 bool UInventoryComponent::TransferItemToPosition(UInventoryComponent* TargetInventory, const FInventory2D TargetPosition,
                                                  const FInventoryItemData TargetItem)
 {
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
+	
 	if(TransferItemChecks(TargetItem,TargetInventory) == false)
 	{
 		return false;
@@ -266,6 +280,13 @@ bool UInventoryComponent::TransferItemToPosition(UInventoryComponent* TargetInve
 
 bool UInventoryComponent::AutoAddItem(const FItemData InItem, FItemData& OutRemainingItem)
 {
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
+	
 	if(AddItemChecks(InItem) == false) {return false;}
 	OutRemainingItem = InItem;
 
@@ -305,6 +326,12 @@ bool UInventoryComponent::AutoAddItem(const FItemData InItem, FItemData& OutRema
 
 bool UInventoryComponent::AutoAddItem(const FItemData InItem)
 {
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
+	
 	FItemData OutItemData;
 	AutoAddItem(InItem,OutItemData);
 
@@ -322,6 +349,18 @@ bool UInventoryComponent::AutoAddItem(const FItemData InItem)
 
 bool UInventoryComponent::SplitItem(const FInventoryItemData TargetItemData, const int32 NewStackQuantity)
 {
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		Server_SplitItem(TargetItemData,NewStackQuantity);
+	}
+	
 	if(SplitItemChecks(TargetItemData,NewStackQuantity) == false)
 	{
 		return false;
@@ -357,6 +396,12 @@ bool UInventoryComponent::SplitItem(const FInventoryItemData TargetItemData, con
 bool UInventoryComponent::SplitItemStackToPosition(const FInventoryItemData TargetItemData, const FInventory2D TargetPosition,
                                                    const int32 NewStackQuantity)
 {
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
+	
 	if(SplitItemChecks(TargetItemData,NewStackQuantity) == false)
 	{
 		return false;
@@ -385,6 +430,8 @@ bool UInventoryComponent::SplitItemStackToPosition(const FInventoryItemData Targ
 	InventoryItems.Find(TargetItemData,ItemIndex);
 	InventoryItems[ItemIndex].Item.ItemQuantity -= NewStackQuantity;
 
+	OnRep_InventoryItemsUpdated();
+
 	UE_LOG(LogItemSystem,Log,TEXT("Item %s in %s has split %d into a new item at position %s"),
 		*TargetItemData.Item.DisplayName.ToString(), *GetOwner()->GetName(), NewStackQuantity,
 		*TargetPosition.GetPositionAsString())
@@ -395,6 +442,12 @@ bool UInventoryComponent::SplitItemStackToPosition(const FInventoryItemData Targ
 bool UInventoryComponent::ReduceQuantityOfItemByStaticClass(const TSubclassOf<AItemBase> ItemClass, int32 QuantityToRemove,
                                                             int32& OutAmountNotRemoved)
 {
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
 	
 	//Cycle through all items in the inventory
 	for (int i = 0; i < InventoryItems.Num(); ++i)
@@ -431,10 +484,16 @@ bool UInventoryComponent::ReduceQuantityOfInventoryItem(const FInventoryItemData
                                                         const int32 QuantityToRemove,
                                                         int32& OutAmountNotRemoved)
 {
-	int32 ItemIndex;
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
 
-	OutAmountNotRemoved = QuantityToRemove;
 	
+	int32 ItemIndex;
+	OutAmountNotRemoved = QuantityToRemove;
+
+	//Find Inventory Item Index
 	if(InventoryItems.Find(TargetInventoryItem,ItemIndex))
 	{
 		const int32 ItemQuantity = InventoryItems[ItemIndex].Item.ItemQuantity;
@@ -444,6 +503,7 @@ bool UInventoryComponent::ReduceQuantityOfInventoryItem(const FInventoryItemData
 		{
 			const int32 QuantityRemaining = ItemQuantity  - QuantityToRemove;
 			InventoryItems[ItemIndex].Item.ItemQuantity = QuantityRemaining;
+			OnRep_InventoryItemsUpdated();
 
 			const float PerItemWeight = InventoryItems[ItemIndex].Item.PerItemWeight;
 			RemoveWeight(PerItemWeight*QuantityToRemove);
@@ -481,6 +541,12 @@ bool UInventoryComponent::ReduceQuantityOfInventoryItem(const FInventoryItemData
 bool UInventoryComponent::ReduceQuantityOfInventoryItem(const FInventoryItemData TargetInventoryItem,
                                                         const int32 QuantityToRemove)
 {
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
+	
 	int32 QuantityRemaining;
 	const bool bWasRemovalITemFound = ReduceQuantityOfInventoryItem(TargetInventoryItem,QuantityToRemove,
 	                                                                QuantityRemaining);
@@ -497,6 +563,12 @@ bool UInventoryComponent::ReduceQuantityOfInventoryItem(const FInventoryItemData
 
 bool UInventoryComponent::FullyRemoveInventoryItem(const FInventoryItemData TargetInventoryItem)
 {
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
 	int32 ItemIndex;
 	if(InventoryItems.Find(TargetInventoryItem,ItemIndex))
 	{
@@ -505,6 +577,8 @@ bool UInventoryComponent::FullyRemoveInventoryItem(const FInventoryItemData Targ
 		if(SetSlotStatuses(TargetInventoryItem.GetCoveredSlots(),false))
 		{
 			InventoryItems.RemoveAt(ItemIndex);
+			OnRep_InventoryItemsUpdated();
+			
 			RemoveWeight(TargetInventoryItem.Item);
 
 			UE_LOG(LogItemSystem,Log,TEXT("%s item was fully removed from %s inventory"),
@@ -529,8 +603,38 @@ bool UInventoryComponent::FullyRemoveInventoryItem(const FInventoryItemData Targ
 	}
 }
 
+bool UInventoryComponent::CheckItemMove(FInventoryItemData TargetItem, FInventory2D TargetPosition, bool bRotateItem)
+{
+	
+	SetSlotStatuses(TargetItem.GetCoveredSlots(),false);
+
+
+	if(bRotateItem)
+	{
+		TargetItem.RotateItem();
+	}
+
+	const bool bMoveCheckStatus = CheckIfItemFits(TargetItem.Item,TargetPosition);
+
+	if(bRotateItem)
+	{
+		TargetItem.RotateItem();
+	}
+
+
+	SetSlotStatuses(TargetItem.GetCoveredSlots(),true);
+
+	return bMoveCheckStatus;
+}
+
 bool UInventoryComponent::MoveItem(FInventoryItemData TargetItem, const FInventory2D TargetPosition, const bool bRotateITem)
 {
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		Server_MoveItem(TargetItem,TargetPosition,bRotateITem);
+	}
+	
 	//Ensure target item is in inventory 
 	int32 ItemIndex;
 	if(InventoryItems.Find(TargetItem,ItemIndex) == false)
@@ -557,15 +661,16 @@ bool UInventoryComponent::MoveItem(FInventoryItemData TargetItem, const FInvento
 	
 	if(CheckIfItemFits(TargetItem.Item,TargetPosition))
 	{
-		//Item fits
+		//Move the actual item's position in inventory array 
 		InventoryItems[ItemIndex].StartPosition = TargetPosition;
 
+		//Rotate the actual inventory item
 		if(bRotateITem)
 		{
 			InventoryItems[ItemIndex].RotateItem();
 		}
-
 		
+		//Set new covered slots as covered 
 		if(SetSlotStatuses(InventoryItems[ItemIndex].GetCoveredSlots(),true) == false)
 		{
 			UE_LOG(LogItemSystem,Error,TEXT("%s could not find slot to set status when moving %s item"),
@@ -573,6 +678,9 @@ bool UInventoryComponent::MoveItem(FInventoryItemData TargetItem, const FInvento
 			return false;
 		}
 
+		OnRep_InventoryItemsUpdated();
+		OnRep_InventorySlotsUpdated();
+		
 		UE_LOG
 		(
 			LogItemSystem,Log,TEXT("%s moved %s item to pos %s.  Item was %s"),
@@ -580,10 +688,21 @@ bool UInventoryComponent::MoveItem(FInventoryItemData TargetItem, const FInvento
 			*TargetPosition.GetPositionAsString(),
 			bRotateITem? TEXT("Rotated") : TEXT("Not Rotated")
 		)
+
+		
 		return true;
 	}
 	else
 	{
+		//Undo Target Item Rotation
+		if(bRotateITem)
+		{
+			TargetItem.RotateItem();
+		}
+
+		//Undo Covered Slot Statuses
+		SetSlotStatuses(TargetItem.GetCoveredSlots(),true);
+		
 		UE_LOG(LogItemSystem,Log,TEXT("%s attempted to move %s item but item doesn not fit in Pos %s"),
 		*GetOwner()->GetName(),*TargetItem.Item.DisplayName.ToString(),*TargetPosition.GetPositionAsString())
 		return false;
@@ -757,14 +876,21 @@ bool UInventoryComponent::FindInventoryItemAtPosition(const FInventory2D Positio
 	return false;
 }
 
-bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const bool NewIsOccupied)
+bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const bool NewIsOccupied,
+                                        const bool bShouldBroadCast)
 {
 
 	int32 SlotIndex;
 	if(FindSlotAtPosition(TargetPosition,SlotIndex))
 	{
 		InventorySlots[SlotIndex].bIsOccupied = NewIsOccupied;
-		UE_LOG(LogItemSystem,Log,TEXT("%s inventory updated slot %s to %s"),
+
+		if(bShouldBroadCast)
+		{
+			OnRep_InventorySlotsUpdated();
+		}
+		
+		UE_LOG(LogItemSystem,Verbose,TEXT("%s inventory updated slot %s to %s"),
 			*GetOwner()->GetName(),*TargetPosition.GetPositionAsString(),
 			NewIsOccupied? TEXT("occupied") : TEXT("unoccupied"))
 		return true;
@@ -784,7 +910,7 @@ bool UInventoryComponent::SetSlotStatuses(TArray<FInventory2D> TargetPositions, 
 	
 	for (int i = 0; i < TargetPositions.Num(); ++i)
 	{
-		bool SlotCheck = SetSlotStatus(TargetPositions[i], NewIsOccupied);
+		bool SlotCheck = SetSlotStatus(TargetPositions[i], NewIsOccupied, false);
 		SlotChecks.Add(SlotCheck);
 	}
 
@@ -794,6 +920,7 @@ bool UInventoryComponent::SetSlotStatuses(TArray<FInventory2D> TargetPositions, 
 	}
 	else
 	{
+		OnRep_InventorySlotsUpdated();
 		return true;
 	}
 }
@@ -977,6 +1104,41 @@ void UInventoryComponent::RemoveWeight(const float RemoveWeight)
 		*FString::SanitizeFloat(RemoveWeight),*FString::SanitizeFloat(CurrentWeight),*GetOwner()->GetName());
 }
 
+void UInventoryComponent::AddDebugItems()
+{
+	for (int i = 0; i < DebugItems.Num(); ++i)
+	{
+		FItemData DebugItem = DebugItems[i];
+		DebugItem.ItemGuid = FGuid::NewGuid();
+		AutoAddItem(DebugItem);
+		UE_LOG(LogItemSystem,Log,TEXT("%s added %s debug item"),
+			*GetOwner()->GetName(),*DebugItem.DisplayName.ToString())
+	}
+}
+
+bool UInventoryComponent::Server_MoveItem_Validate(FInventoryItemData TargetItem, FInventory2D TargetPosition,
+                                                   bool bRotateITem)
+{
+	return IsItemInInventory(TargetItem.Item);
+}
+
+void UInventoryComponent::Server_MoveItem_Implementation(const FInventoryItemData TargetItem,
+                                                         const FInventory2D TargetPosition,
+                                                         const bool bRotateITem)
+{
+	MoveItem(TargetItem,TargetPosition,bRotateITem);
+}
+
+
+bool UInventoryComponent::Server_SplitItem_Validate(FInventoryItemData TargetItemData, int32 NewStackQuantity)
+{
+	return IsItemInInventory(TargetItemData.Item);
+}
+
+void UInventoryComponent::Server_SplitItem_Implementation(FInventoryItemData TargetItemData, int32 NewStackQuantity)
+{
+	SplitItem(TargetItemData,NewStackQuantity);
+}
 
 
 
