@@ -129,6 +129,8 @@ void UInventoryGridWidget::InitializeGrid()
 			NewSlotWidget->MyInventorySlot = InventorySlots[i];
 			NewSlotWidget->OwningGridWidget = this;
 			NewSlotWidget->OwningInventory = OwningInventoryComponent;
+			NewSlotWidget->SetOwningPlayer(GetOwningPlayer());
+			
 			UE_LOG(LogItemSystem,Verbose,TEXT("Inventoey Slot Added with Position: %s "),
 				*InventorySlots[i].Position.GetPositionAsString())
 			SlotWidgets.Add(NewSlotWidget);
@@ -158,6 +160,7 @@ void UInventoryGridWidget::InitializeItems()
 			NewItemWidget->MyInventoryItemData = InventoryItemData[i];
 			NewItemWidget->OwningGridWidget = this;
 			NewItemWidget->OwningInventory = OwningInventoryComponent;
+			NewItemWidget->SetOwningPlayer(GetOwningPlayer());
 
 			UInventorySlotWidget* NewOwningSlot;
 			if(GetSlotWidgetFromPosition(InventoryItemData[i].StartPosition,NewOwningSlot))

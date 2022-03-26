@@ -27,22 +27,9 @@ bool UInventorySlotWidget::OnItemDropped(const FInventoryItemData DroppedItemDat
 {
 	if(OwningInventory != nullptr)
 	{
-		if(OwningInventory->CheckItemMove(DroppedItemData,MyInventorySlot.Position,bRotateItem))
-		{
-			UE_LOG
-				(
-					LogItemSystem,Log,TEXT("%s item dropped on pos: %s.  Requesting move in %s inventory"),
-					*DroppedItemData.Item.DisplayName.ToString(), *MyInventorySlot.Position.GetPositionAsString(),
-					*OwningInventory->GetOwner()->GetName()
-				)
-			
-			OwningInventory->MoveItem(DroppedItemData,MyInventorySlot.Position,bRotateItem);
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		OwningInventory->MoveItem(DroppedItemData,MyInventorySlot.Position,bRotateItem);
+
+		return true;
 	}
 
 	return false;

@@ -49,8 +49,8 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >&
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION_NOTIFY(UInventoryComponent, InventorySlots,COND_None,REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UInventoryComponent, InventoryItems,COND_None,REPNOTIFY_Always);
+	DOREPLIFETIME(UInventoryComponent, InventorySlots);
+	DOREPLIFETIME(UInventoryComponent, InventoryItems);
 	DOREPLIFETIME(UInventoryComponent, CurrentWeight);
 }
 
@@ -86,6 +86,9 @@ void UInventoryComponent::OnRep_InventorySlotsUpdated() const
 
 void UInventoryComponent::InitializeSlots()
 {
+
+	if(GetOwnerRole() != ROLE_Authority){return;}
+	
 	InventorySlots.Empty();
 	
 	for (int X = 0; X < InventorySize.X; ++X)
@@ -349,20 +352,16 @@ bool UInventoryComponent::AutoAddItem(const FItemData InItem)
 
 bool UInventoryComponent::SplitItem(const FInventoryItemData TargetItemData, const int32 NewStackQuantity)
 {
-
-	if(GetOwnerRole() != ROLE_Authority)
-	{
-		return false;
-	}
-
-
+	
 	if(GetOwnerRole() != ROLE_Authority)
 	{
 		Server_SplitItem(TargetItemData,NewStackQuantity);
+		return false;
 	}
 	
 	if(SplitItemChecks(TargetItemData,NewStackQuantity) == false)
 	{
+		UE_LOG(LogItemSystem,Log,TEXT("Split checks failed"))
 		return false;
 	}
 
@@ -398,7 +397,10 @@ bool UInventoryComponent::SplitItemStackToPosition(const FInventoryItemData Targ
 {
 	if(GetOwnerRole() != ROLE_Authority)
 	{
+
+		UE_LOG(LogItemSystem,Log,TEXT("Not Authority, disregarding split request"))
 		return false;
+		
 	}
 
 	
@@ -633,6 +635,7 @@ bool UInventoryComponent::MoveItem(FInventoryItemData TargetItem, const FInvento
 	if(GetOwnerRole() != ROLE_Authority)
 	{
 		Server_MoveItem(TargetItem,TargetPosition,bRotateITem);
+		return false;
 	}
 	
 	//Ensure target item is in inventory 
@@ -793,6 +796,9 @@ bool UInventoryComponent::AutoAddItemNewStack(FItemData Item)
 bool UInventoryComponent::AttemptStack(FInventoryItemData TargetItemData, FItemData InItemData,
                                        FItemData& OutRemainingItem)
 {
+
+	if(GetOwnerRole() != ROLE_Authority){return false;}
+	
 	OutRemainingItem = InItemData;
 
 	if(AddItemChecks(InItemData)==false)
@@ -880,6 +886,8 @@ bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const
                                         const bool bShouldBroadCast)
 {
 
+	if(GetOwnerRole() != ROLE_Authority){return false;}
+
 	int32 SlotIndex;
 	if(FindSlotAtPosition(TargetPosition,SlotIndex))
 	{
@@ -906,6 +914,8 @@ bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const
 bool UInventoryComponent::SetSlotStatuses(TArray<FInventory2D> TargetPositions, const bool NewIsOccupied)
 {
 
+	if(GetOwnerRole() != ROLE_Authority){return false;}
+	
 	TArray<bool> SlotChecks;
 	
 	for (int i = 0; i < TargetPositions.Num(); ++i)
@@ -1072,6 +1082,9 @@ bool UInventoryComponent::SplitItemChecks(const FInventoryItemData InventoryItem
 
 void UInventoryComponent::AddWeight(const FItemData ItemData)
 {
+
+	if(GetOwnerRole() != ROLE_Authority){return;}
+	
 	const float WeightToAdd = ItemData.GetStackWeight();
 	CurrentWeight = FMath::Clamp(CurrentWeight + WeightToAdd,0.f,MaxWeight);
 
@@ -1081,6 +1094,9 @@ void UInventoryComponent::AddWeight(const FItemData ItemData)
 
 void UInventoryComponent::AddWeight(const float AddWeight)
 {
+
+	if(GetOwnerRole() != ROLE_Authority){return;}
+	
 	CurrentWeight = FMath::Clamp(CurrentWeight + AddWeight,0.f,MaxWeight);
 	
 	UE_LOG(LogItemSystem,Log,TEXT("Added %s weight, new weight %s in %s inventory"),
@@ -1089,6 +1105,9 @@ void UInventoryComponent::AddWeight(const float AddWeight)
 
 void UInventoryComponent::RemoveWeight(const FItemData ItemData)
 {
+
+	if(GetOwnerRole() != ROLE_Authority){return;}
+	
 	const float WeightToRemove = ItemData.GetStackWeight();
 	CurrentWeight = FMath::Clamp(CurrentWeight - WeightToRemove,0.f,MaxWeight);
 
@@ -1098,6 +1117,9 @@ void UInventoryComponent::RemoveWeight(const FItemData ItemData)
 
 void UInventoryComponent::RemoveWeight(const float RemoveWeight)
 {
+
+	if(GetOwnerRole() != ROLE_Authority){return;}
+	
 	CurrentWeight = FMath::Clamp(CurrentWeight - RemoveWeight,0.f,MaxWeight);
 
 	UE_LOG(LogItemSystem,Log,TEXT("Removed %s weight, new weight %s in %s inventory"),
@@ -1106,6 +1128,9 @@ void UInventoryComponent::RemoveWeight(const float RemoveWeight)
 
 void UInventoryComponent::AddDebugItems()
 {
+
+	if(GetOwnerRole() != ROLE_Authority){return;}
+	
 	for (int i = 0; i < DebugItems.Num(); ++i)
 	{
 		FItemData DebugItem = DebugItems[i];
@@ -1126,17 +1151,22 @@ void UInventoryComponent::Server_MoveItem_Implementation(const FInventoryItemDat
                                                          const FInventory2D TargetPosition,
                                                          const bool bRotateITem)
 {
+	UE_LOG(LogItemSystem,Log,TEXT("Server Move Item Called"))
+	
 	MoveItem(TargetItem,TargetPosition,bRotateITem);
 }
 
 
-bool UInventoryComponent::Server_SplitItem_Validate(FInventoryItemData TargetItemData, int32 NewStackQuantity)
+bool UInventoryComponent::Server_SplitItem_Validate(const FInventoryItemData TargetItemData, int32 NewStackQuantity)
 {
 	return IsItemInInventory(TargetItemData.Item);
 }
 
-void UInventoryComponent::Server_SplitItem_Implementation(FInventoryItemData TargetItemData, int32 NewStackQuantity)
+void UInventoryComponent::Server_SplitItem_Implementation(const FInventoryItemData TargetItemData, const int32 NewStackQuantity)
 {
+
+	UE_LOG(LogItemSystem,Log,TEXT("Server Split Item Called"))
+		
 	SplitItem(TargetItemData,NewStackQuantity);
 }
 

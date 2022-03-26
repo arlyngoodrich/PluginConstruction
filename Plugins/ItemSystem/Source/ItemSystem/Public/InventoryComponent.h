@@ -14,7 +14,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryItemDataUpdate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventorySlotUpdate);
 
 
-UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(Inventory), Blueprintable, meta=(BlueprintSpawnableComponent) )
 class ITEMSYSTEM_API UInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
