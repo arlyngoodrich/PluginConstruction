@@ -84,6 +84,15 @@ void UInventoryItemWidget::SplitItem(const FInventoryItemData TargetItemData, co
 {
 	if(OwningInventory)
 	{
+
+		UE_LOG(LogItemSystem,Log,TEXT("UI for %s item in %s is requesting split"),
+			*TargetItemData.Item.DisplayName.ToString(),*OwningInventory->GetOwner()->GetName())
+		
 		OwningInventory->SplitItem(TargetItemData,NewStackQuantity);
+	}
+	else
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("UI for %s item is requesting split but has null inventory"),
+			*TargetItemData.Item.DisplayName.ToString())
 	}
 }
