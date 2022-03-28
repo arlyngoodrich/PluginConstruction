@@ -58,6 +58,13 @@ public:
 	bool TransferItemToPosition(UInventoryComponent* TargetInventory, FInventory2D TargetPosition,
 	                            FInventoryItemData TargetItem);
 
+	//Attempts to transfer target item from Instigating Inventory (Inventory calling the method) to a specific position
+	//in the target inventory.  Will return true if the the item was fully OR partially transferred.  Will return false
+	//if the item was not transferred or if there was an error.  Will attempt RPC if not authority.
+	// **** UI Accessible Function
+	bool TransferItemToPosition(UInventoryComponent* TargetInventory, FInventory2D TargetPosition,
+								FInventoryItemData TargetItem, bool bRotateItem);
+
 	//Will attempt to add item into existing stacks.  If it cannot add to an existing stack, will attempt to add as a
 	//new stack. Will return remaining amount of item.
 	//Returns true if stack was full added and returns false if was partially added. 
@@ -71,6 +78,7 @@ public:
 	//Splits the target item stack into a new unique item stack.  Will cycle new item through slots until it's added.
 	//Returns false if the new stack quantity is greater than what is in the existing stack, if the new stack cannot go
 	//to the target position, or if the target item does not exist.  Will return true if the stack is successfully split.
+	//Will attempt RPC if not authority.
 	// **** UI Accessible Function
 	bool SplitItem(FInventoryItemData TargetItemData, int32 NewStackQuantity);
 
@@ -107,6 +115,7 @@ public:
 	bool CheckItemMove(FInventoryItemData TargetItem, FInventory2D TargetPosition, bool bRotateItem);
 	
 	//Moves item to a new position in inventory.  Returns true if the item is moved, returns false if not.
+	// Will attempt RPC if not authority.
 	// **** UI Accessible Function 
 	bool MoveItem(FInventoryItemData TargetItem, FInventory2D TargetPosition, bool bRotateITem);
 	
@@ -251,4 +260,12 @@ protected:
 	bool Server_SplitItem_Validate(FInventoryItemData TargetItemData, int32 NewStackQuantity);
 	void Server_SplitItem_Implementation(FInventoryItemData TargetItemData, int32 NewStackQuantity);
 
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_TransferItemToPosition(UInventoryComponent* TargetInventory, FInventory2D TargetPosition,
+								FInventoryItemData TargetItem, bool bRotateItem);
+	bool Server_TransferItemToPosition_Validate(UInventoryComponent* TargetInventory, FInventory2D TargetPosition,
+								FInventoryItemData TargetItem, bool bRotateItem);
+	void Server_TransferItemToPosition_Implementation(UInventoryComponent* TargetInventory, FInventory2D TargetPosition,
+								FInventoryItemData TargetItem, bool bRotateItem);
+	
 };

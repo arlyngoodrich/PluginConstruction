@@ -280,6 +280,24 @@ bool UInventoryComponent::TransferItemToPosition(UInventoryComponent* TargetInve
 	}
 }
 
+bool UInventoryComponent::TransferItemToPosition(UInventoryComponent* TargetInventory, const FInventory2D TargetPosition,
+	FInventoryItemData TargetItem, const bool bRotateItem)
+{
+
+	if(GetOwnerRole()!=ROLE_Authority)
+	{
+		Server_TransferItemToPosition(TargetInventory,TargetPosition,TargetItem,bRotateItem);
+		return false;
+	}
+	
+	if(bRotateItem)
+	{
+		TargetItem.RotateItem();
+	}
+
+	return TransferItemToPosition(TargetInventory,TargetPosition,TargetItem);
+}
+
 
 bool UInventoryComponent::AutoAddItem(const FItemData InItem, FItemData& OutRemainingItem)
 {
@@ -886,8 +904,6 @@ bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const
                                         const bool bShouldBroadCast)
 {
 
-	if(GetOwnerRole() != ROLE_Authority){return false;}
-
 	int32 SlotIndex;
 	if(FindSlotAtPosition(TargetPosition,SlotIndex))
 	{
@@ -913,8 +929,6 @@ bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const
 
 bool UInventoryComponent::SetSlotStatuses(TArray<FInventory2D> TargetPositions, const bool NewIsOccupied)
 {
-
-	if(GetOwnerRole() != ROLE_Authority){return false;}
 	
 	TArray<bool> SlotChecks;
 	
@@ -1169,6 +1183,19 @@ void UInventoryComponent::Server_SplitItem_Implementation(const FInventoryItemDa
 		
 	SplitItem(TargetItemData,NewStackQuantity);
 }
+
+bool UInventoryComponent::Server_TransferItemToPosition_Validate(UInventoryComponent* TargetInventory,
+	FInventory2D TargetPosition, FInventoryItemData TargetItem, bool bRotateItem)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_TransferItemToPosition_Implementation(UInventoryComponent* TargetInventory,
+	const FInventory2D TargetPosition,const FInventoryItemData TargetItem, const bool bRotateItem)
+{
+	TransferItemToPosition(TargetInventory,TargetPosition,TargetItem,bRotateItem);
+}
+
 
 
 
