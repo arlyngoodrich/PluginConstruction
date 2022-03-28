@@ -9,9 +9,16 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(ClassGroup=(Inventory), Blueprintable, meta=(BlueprintSpawnableComponent))
 class ITEMSYSTEM_API UStorageInventory : public UInventoryComponent
 {
 	GENERATED_BODY()
+
+public:
+
+	//Validates player controller and set's owning actor ownership to the player controller.  This will facilitate RPC
+	//calls for the player.  
+	UFUNCTION(BlueprintAuthorityOnly,Category="Inventory")
+	void OnInventoryInteract(APlayerController* InstigatingPlayer) const;
 	
 };
