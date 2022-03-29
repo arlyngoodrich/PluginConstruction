@@ -9,8 +9,13 @@
 class UCameraComponent;
 class USpringArmComponent;
 
+//Delegate called when character starts to sprint
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWantsToSprint);
+
+//Delegate called when character stops sprinting
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWantsToNotSprint);
+
+//Delegate called when character starts taking damage
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTakeDamageSignature, float, Damage);
 
 UCLASS()
@@ -33,26 +38,36 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	// Called by Movement component to see if character wants to sprint
+	// Called every frame by Custom Movement Component  to see if character wants to sprint.
 	bool GetWantsToSprint();
 
-	// Called by Movement component to multiply default walk speed
+	// Called every frame by Custom Movement Component to multiply default walk speed.
 	float GetSprintSpeedModifier() const;
 
+	//Public accessor to set the sprint speed modifier.  
+	//Use case would be for stamina componenents to change the sprint speed modifer to 1 if stamina is 0.
 	UFUNCTION()
 	void SetSprintSpeedModifer(float NewSprintModifer);
 
+	//Called from player input bound to sprint action.  Will toggle boolean 'bWantsToSprint' which is then processed by Custom Movement Component. 
+	//Will perform RPC if not authority.  
+	//This function is public so attributes can effect as well.
+	//Use case would be for stamina component to force character to stop sprinting if not enough stamina.  
 	UFUNCTION()
 	void SetWantsToSprint();
 
+	//Called every frame by Custom Movement Component to calculate character speed. 
 	float GetDefaultWalkSpeed() const;
 
+	//Delegate called when character starts to sprint
 	UPROPERTY(BlueprintAssignable)
 	FWantsToSprint WantsToSprint_OnSprintStart;
 
+	//Delegate called when character stops sprinting
 	UPROPERTY(BlueprintAssignable)
 	FWantsToNotSprint WantsToNotSprint_OnSptrintStop;
 
+	//Delegate called when character starts taking damage
 	UPROPERTY(BlueprintAssignable)
 	FOnTakeDamageSignature Damage_DamageTaken;
 
