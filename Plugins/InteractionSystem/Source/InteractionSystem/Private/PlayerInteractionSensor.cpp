@@ -48,6 +48,8 @@ void UPlayerInteractionSensor::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 void UPlayerInteractionSensor::Initialize()
 {
+
+	//TODO Change to Owning Pawn.  Interaction sensor could be used on non-character actor.  
 	ACharacter* OwningCharacterCheck = Cast<ACharacter>(GetOwner());
 
 	if(!OwningCharacterCheck)
