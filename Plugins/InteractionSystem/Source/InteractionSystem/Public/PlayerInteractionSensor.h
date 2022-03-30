@@ -24,45 +24,64 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	//Boolean property for if an interactable object is in view.   
 	UPROPERTY(BlueprintReadOnly, Category = "Interaction System")
 	bool bInteractableObjectInView;
 
+	//Pointer to interactable object component that is in view.  Will but null if no actors with an IOC is in view. 
 	UPROPERTY(BlueprintReadOnly, Category = "Interaction System")
 	UInteractableObjectComponent* InteractableObjectComponentInView;
 
+	//Float property to see the maximum distance for the line trace to check for actors with IOCs.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction System")
 	float InteractionDistance;
 
+	//Boolean property to add a debug line to interaction check trace.  
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug")
 	bool bDrawDebug;
 
+	//Boolean that controls the interaction loop. Use case is to turn of interaction check if a UI menu is open.  Set by ToggleInteraciton function.  
+	UPROPERTY(BlueprintReadOnly,Category = "Debug")
 	bool bShouldCheckForInteractable;
 
+	//Owning player controller for pawn or character component is attached to. 
+	UPROPERTY(BlueprintReadOnly,Category="Interaction System")
 	APlayerController* OwningController;
 
+	//Actor returned by the line trace.  May or may not have an interactable object component.  Used for comparisons between frames
+	//to determine focus.  Should use Owner of Interactable Object Component to get parent actor in view.  
+	UPROPERTY(BlueprintReadOnly,Category="Interaction System")
 	AActor* ActorInView;
 
+	//Ensures component owner is a player controlled pawn and starts interaction loop.  
 	void Initialize();
 
+	//Called by player to interact with object in view.  Ideally this is bound to an input binding.  Will do an RPC if player is a client. 
 	UFUNCTION(BlueprintCallable, Category = "Interaction System")
 	void Interact();
 
+	//Native implementation to interact with IOC in view.  Will do nothing if not in view.  
 	void TriggerInteraction(UInteractableObjectComponent* ComponentInView) const;
 
+	//RPC for the client to trigger interaction
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_TriggerInteraction(UInteractableObjectComponent* ComponentInView);
 	bool Server_TriggerInteraction_Validate(UInteractableObjectComponent* ComponentInView);
 	void Server_TriggerInteraction_Implementation(UInteractableObjectComponent* ComponentInView);
 
+	//Function that can toggles interaction 
 	UFUNCTION(BlueprintCallable, Category = "Interaction System")
 	void ToggleInteraction(bool bShouldCheckForInteraction);
 
+	//Function loop that ticks every frame.  Checks for an interactable object in view.
 	UFUNCTION()
 	void InteractionCheckLoop();
 
+	//Helper function to get the hit actor from the lince trace
 	UFUNCTION()
 	bool GetHitActorInView(AActor*& HitActor) const;
 
+	//Helper function to retrieve interactoable object from an actor 
 	UFUNCTION()
 	static bool GetInteractableComponent(const AActor* HitActor, UInteractableObjectComponent*& HitActorInteractableObjectComponent);
 		
