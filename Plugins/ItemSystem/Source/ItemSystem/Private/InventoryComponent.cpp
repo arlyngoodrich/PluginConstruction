@@ -632,22 +632,29 @@ bool UInventoryComponent::FullyRemoveInventoryItem(const FInventoryItemData Targ
 	}
 }
 
-bool UInventoryComponent::CheckItemMove(FInventoryItemData TargetItem, FInventory2D TargetPosition, bool bRotateItem)
+bool UInventoryComponent::CheckItemMove(FInventoryItemData TargetItem, const FInventory2D TargetPosition, const bool bRotateItem)
 {
 
+	//Set originating slots to unoccupied
+	if(InventoryItems.Contains(TargetItem))
+	{
+		SetSlotStatuses(TargetItem.GetCoveredSlots(),false);
+	}
+	
 	if(bRotateItem)
 	{
 		TargetItem.RotateItem();
 	}
 	
 
-	if(InventoryItems.Contains(TargetItem))
-	{
-		SetSlotStatuses(TargetItem.GetCoveredSlots(),false);
-	}
-
 	const bool bMoveCheckStatus = CheckIfItemFits(TargetItem.Item,TargetPosition);
 
+	//Undo Rotation
+	if(bRotateItem)
+	{
+		TargetItem.RotateItem();
+	}
+	
 
 	if(InventoryItems.Contains(TargetItem))
 	{
@@ -675,23 +682,11 @@ bool UInventoryComponent::MoveItem(FInventoryItemData TargetItem, const FInvento
 		return false;
 	}
 
-	//Set all covered slots as free so it doesn't interfere with checking if item fits
-	if(SetSlotStatuses(TargetItem.GetCoveredSlots(),false) == false)
+	if(CheckItemMove(TargetItem,TargetPosition,bRotateITem))
 	{
-		UE_LOG(LogItemSystem,Error,TEXT("%s could not find slot to set status when moving %s item"),
-			*GetOwner()->GetName(),*TargetItem.Item.DisplayName.ToString())
-
-		return false;
-	}
-
-	if(bRotateITem)
-	{
-		TargetItem.RotateItem();
-	}
-
-	
-	if(CheckIfItemFits(TargetItem.Item,TargetPosition))
-	{
+		//Set current covered slots to empty
+		SetSlotStatuses(InventoryItems[ItemIndex].GetCoveredSlots(),false);
+		
 		//Move the actual item's position in inventory array 
 		InventoryItems[ItemIndex].StartPosition = TargetPosition;
 
@@ -736,6 +731,10 @@ bool UInventoryComponent::MoveItem(FInventoryItemData TargetItem, const FInvento
 		
 		UE_LOG(LogItemSystem,Log,TEXT("%s attempted to move %s item but item doesn not fit in Pos %s"),
 		*GetOwner()->GetName(),*TargetItem.Item.DisplayName.ToString(),*TargetPosition.GetPositionAsString())
+
+		OnRep_InventoryItemsUpdated();
+		OnRep_InventorySlotsUpdated();
+		
 		return false;
 	}
 }
@@ -924,7 +923,7 @@ bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const
 			OnRep_InventorySlotsUpdated();
 		}
 		
-		UE_LOG(LogItemSystem,Verbose,TEXT("%s inventory updated slot %s to %s"),
+		UE_LOG(LogItemSystem,Log,TEXT("%s inventory updated slot %s to %s"),
 			*GetOwner()->GetName(),*TargetPosition.GetPositionAsString(),
 			NewIsOccupied? TEXT("occupied") : TEXT("unoccupied"))
 		return true;
