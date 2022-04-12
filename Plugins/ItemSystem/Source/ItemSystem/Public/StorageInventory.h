@@ -4,7 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "InventoryComponent.h"
+#include "GameFramework/PlayerController.h"
 #include "StorageInventory.generated.h"
+
+class UPlayerInventory;
+
 
 /**
  * 
@@ -25,7 +29,7 @@ public:
 	void CloseInventory(APlayerController* InstigatingPlayer);
 
 	UFUNCTION(BlueprintImplementableEvent, Category="Inventory")
-	void AddTransferUI();
+	void AddTransferUI(UPlayerInventory* PlayerInventory, APlayerController* OwningPlayer);
 	
 
 
@@ -40,7 +44,7 @@ protected:
 	void Server_CloseInventory_Implementation(APlayerController* InstigatingPlayer);
 	
 	UFUNCTION(Client,Reliable)
-	void Client_AddTransferUI();
-	void Client_AddTransferUI_Implementation();
+	void Client_AddTransferUI(UPlayerInventory* PlayerInventory,APlayerController* OwningPlayer);
+	void Client_AddTransferUI_Implementation(UPlayerInventory* PlayerInventory,APlayerController* OwningPlayer);
 	
 };
