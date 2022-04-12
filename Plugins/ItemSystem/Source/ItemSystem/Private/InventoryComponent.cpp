@@ -173,7 +173,7 @@ bool UInventoryComponent::TransferItem(UInventoryComponent* TargetInventory, con
 
 	if(GetOwnerRole() != ROLE_Authority)
 	{
-		return false;
+		Server_TransferItem(TargetInventory,TargetItem);
 	}
 
 
@@ -1211,8 +1211,18 @@ void UInventoryComponent::Server_SplitItem_Implementation(const FInventoryItemDa
 	SplitItem(TargetItemData,NewStackQuantity);
 }
 
+bool UInventoryComponent::Server_TransferItem_Validate(UInventoryComponent* TargetInventory,FInventoryItemData TargetItem)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_TransferItem_Implementation(UInventoryComponent* TargetInventory, const FInventoryItemData TargetItem)
+{
+	TransferItem(TargetInventory,TargetItem);
+}
+
 bool UInventoryComponent::Server_TransferItemToPosition_Validate(UInventoryComponent* TargetInventory,
-	FInventory2D TargetPosition, FInventoryItemData TargetItem, bool bRotateItem)
+                                                                 FInventory2D TargetPosition, FInventoryItemData TargetItem, bool bRotateItem)
 {
 	return true;
 }

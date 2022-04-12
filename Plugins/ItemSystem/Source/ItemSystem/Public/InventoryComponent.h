@@ -50,6 +50,7 @@ public:
 
 	//Attempts to transfer target item from Instigating Inventory (Inventory calling the method).  Will return true if
 	//item was fully or partially transferred. Will return false if the item was not transferred or if there was an error.
+	//**** UI Accessible Function
 	bool TransferItem(UInventoryComponent* TargetInventory,FInventoryItemData TargetItem);
 
 	//Attempts to transfer target item from Instigating Inventory (Inventory calling the method) to a specific position
@@ -262,6 +263,11 @@ protected:
 	void Server_SplitItem(FInventoryItemData TargetItemData, int32 NewStackQuantity);
 	bool Server_SplitItem_Validate(FInventoryItemData TargetItemData, int32 NewStackQuantity);
 	void Server_SplitItem_Implementation(FInventoryItemData TargetItemData, int32 NewStackQuantity);
+
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_TransferItem(UInventoryComponent* TargetInventory,FInventoryItemData TargetItem);
+	bool Server_TransferItem_Validate(UInventoryComponent* TargetInventory,FInventoryItemData TargetItem);
+	void Server_TransferItem_Implementation(UInventoryComponent* TargetInventory,FInventoryItemData TargetItem);
 
 	UFUNCTION(Server,Reliable,WithValidation)
 	void Server_TransferItemToPosition(UInventoryComponent* TargetInventory, FInventory2D TargetPosition,

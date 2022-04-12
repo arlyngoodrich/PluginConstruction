@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CustomUserWidget.h"
+#include "InventoryData.h"
 #include "ItemData.h"
 #include "InventoryGridWidget.generated.h"
 
@@ -32,6 +33,15 @@ public:
 
 	void OnItemDragCancel(const UInventoryItemWidget* InventoryItemWidget);
 
+	UFUNCTION(BlueprintCallable,Category = "Inventory")
+	void AllowTransfer(UInventoryComponent* TargetInventoryComponent);
+
+	UFUNCTION(BlueprintCallable,Category = "Inventory")
+	void RemoveTransfer();
+
+	UFUNCTION(BlueprintCallable,Category = "Inventory")
+	void RequestTransfer(FInventoryItemData TargetItem) const;
+
 
 protected:
 	
@@ -47,6 +57,12 @@ protected:
 	UPROPERTY(BlueprintReadWrite,Category="Inventory")
 	TArray<UInventoryItemWidget*> ItemWidgets;
 
+	UPROPERTY(BlueprintReadOnly, Category="Inventory")
+	UInventoryComponent* TransferInventory;
+
+	UPROPERTY(BlueprintReadOnly,Category="Inventory")
+	bool bTransferAvailable;
+	
 	virtual void NativeConstruct() override;
 
 	virtual void NativeDestruct() override;

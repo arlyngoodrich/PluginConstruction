@@ -71,6 +71,29 @@ void UInventoryGridWidget::OnItemDragCancel(const UInventoryItemWidget* Inventor
 	}
 }
 
+void UInventoryGridWidget::AllowTransfer(UInventoryComponent* TargetInventoryComponent)
+{
+	if(TargetInventoryComponent == nullptr){return;}
+
+	bTransferAvailable = true;
+	TransferInventory = TargetInventoryComponent;
+}
+
+void UInventoryGridWidget::RemoveTransfer()
+{
+	bTransferAvailable = false;
+	TransferInventory = nullptr;
+}
+
+void UInventoryGridWidget::RequestTransfer(const FInventoryItemData TargetItem) const
+{
+	if(TransferInventory == nullptr){return;}
+
+	OwningInventoryComponent->TransferItem(TransferInventory,TargetItem);
+	
+}
+
+
 void UInventoryGridWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
