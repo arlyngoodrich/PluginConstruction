@@ -222,7 +222,10 @@ protected:
 	bool AddItemChecks(FItemData ItemToCheck) const;
 
 	//Helper functions that performs checks before transferring items
-	bool TransferItemChecks(FInventoryItemData ItemToCheck,UInventoryComponent* InventoryToCheck) const;
+	bool TransferItemChecks(FInventoryItemData ItemToCheck, UInventoryComponent* InventoryToCheck, const FInventory2D TargetPosition) const;
+
+	//Helper functions that performs checks before transferring items
+	bool TransferItemChecks(FInventoryItemData ItemToCheck, const UInventoryComponent* InventoryToCheck) const;
 
 	//Helper function that performs checks before splitting an item stack
 	bool SplitItemChecks(FInventoryItemData Item, int32 QuantityTest) const;

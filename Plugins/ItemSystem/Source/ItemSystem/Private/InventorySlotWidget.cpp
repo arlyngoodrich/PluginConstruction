@@ -43,6 +43,7 @@ bool UInventorySlotWidget::OnItemDropped(UInventoryComponent* OriginatingInvento
 			if(OwningInventory->CheckItemMove(DroppedItemData,MyInventorySlot.Position,bRotateItem))
 			{
 				OriginatingInventory->TransferItemToPosition(OwningInventory,MyInventorySlot.Position,DroppedItemData,bRotateItem);
+				return true;
 			}
 		}
 

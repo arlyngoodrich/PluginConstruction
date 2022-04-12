@@ -129,6 +129,7 @@ bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInvento
 	//If target slot is occupied return false.  No need to log since occupied slots are expected
 	if(TargetSlot.bIsOccupied == true)
 	{
+		UE_LOG(LogItemSystem,Log,TEXT("Could not add item to %s. Position is occuipied"),*TargetSlot.Position.GetPositionAsString())
 		return false;
 	}
 	else
@@ -246,26 +247,34 @@ bool UInventoryComponent::TransferItemToPosition(UInventoryComponent* TargetInve
                                                  const FInventoryItemData TargetItem)
 {
 
+	UE_LOG(LogItemSystem,Log,TEXT("Attempting to transfer %s item from %s to position %s in inventory %s"),
+		*TargetItem.Item.DisplayName.ToString(),*GetOwner()->GetName(),*TargetInventory->GetOwner()->GetName(),
+		*TargetPosition.GetPositionAsString())
+
+	
 	if(GetOwnerRole() != ROLE_Authority)
 	{
 		return false;
 	}
 
 	
-	if(TransferItemChecks(TargetItem,TargetInventory) == false)
+	if(TransferItemChecks(TargetItem,TargetInventory,TargetPosition) == false)
 	{
+		return false;
+	}
+
+	if(FullyRemoveInventoryItem(TargetItem) == false)
+	{
+
+		//Item Removed from source inventory
+		UE_LOG(LogItemSystem,Error,TEXT("%s item attempted to transferred to %s but could not be removed from source"),
+			*TargetItem.Item.DisplayName.ToString(),*TargetInventory->GetOwner()->GetName())
 		return false;
 	}
 
 	if(TargetInventory->AddItemToPosition(TargetItem.Item,TargetPosition))
 	{
-		//Item Added
-		if(FullyRemoveInventoryItem(TargetItem) == false)
-		{
-			UE_LOG(LogItemSystem,Error,TEXT("%s item was transferred to %s but was not removed from source"),
-				*TargetItem.Item.DisplayName.ToString(),*TargetInventory->GetOwner()->GetName())
-			return false;
-		}
+		//Item Added to target inventory
 
 		UE_LOG(LogItemSystem,Log,TEXT("%s item was transferred to %s from %s"),
 			*TargetItem.Item.DisplayName.ToString(),*TargetInventory->GetOwner()->GetName(),*GetOwner()->GetName())
@@ -625,25 +634,26 @@ bool UInventoryComponent::FullyRemoveInventoryItem(const FInventoryItemData Targ
 
 bool UInventoryComponent::CheckItemMove(FInventoryItemData TargetItem, FInventory2D TargetPosition, bool bRotateItem)
 {
-	
-	SetSlotStatuses(TargetItem.GetCoveredSlots(),false);
-
 
 	if(bRotateItem)
 	{
 		TargetItem.RotateItem();
+	}
+	
+
+	if(InventoryItems.Contains(TargetItem))
+	{
+		SetSlotStatuses(TargetItem.GetCoveredSlots(),false);
 	}
 
 	const bool bMoveCheckStatus = CheckIfItemFits(TargetItem.Item,TargetPosition);
 
-	if(bRotateItem)
+
+	if(InventoryItems.Contains(TargetItem))
 	{
-		TargetItem.RotateItem();
+		SetSlotStatuses(TargetItem.GetCoveredSlots(),true);
 	}
-
-
-	SetSlotStatuses(TargetItem.GetCoveredSlots(),true);
-
+	
 	return bMoveCheckStatus;
 }
 
@@ -1049,9 +1059,8 @@ bool UInventoryComponent::AddItemChecks(const FItemData ItemToCheck) const
 	return true;
 }
 
-bool UInventoryComponent::TransferItemChecks(const FInventoryItemData ItemToCheck, UInventoryComponent* InventoryToCheck) const
+bool UInventoryComponent::TransferItemChecks(const FInventoryItemData ItemToCheck, const UInventoryComponent* InventoryToCheck) const
 {
-
 	if(InventoryToCheck == nullptr)
 	{
 		UE_LOG(LogItemSystem,Warning,TEXT("%s is attempting to transfer %s item to null inventory"),
@@ -1062,6 +1071,25 @@ bool UInventoryComponent::TransferItemChecks(const FInventoryItemData ItemToChec
 	if(ItemToCheck.Item.bIsValid == false)
 	{
 		UE_LOG(LogItemSystem,Warning,TEXT("%s attempting to transfer invalid item"),*GetOwner()->GetName())
+		return false;
+	}
+
+	return true;
+}
+
+bool UInventoryComponent::TransferItemChecks(const FInventoryItemData ItemToCheck, UInventoryComponent* InventoryToCheck,
+	const FInventory2D TargetPosition) const
+{
+
+	if(TransferItemChecks(ItemToCheck,InventoryToCheck) == false)
+	{
+		return false;
+	}
+	
+	if(InventoryToCheck->CheckIfItemFits(ItemToCheck.Item,TargetPosition) == false)
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("%s item will not fit in %s inventory"),
+			*ItemToCheck.Item.DisplayName.ToString(),*InventoryToCheck->GetOwner()->GetName())
 		return false;
 	}
 
