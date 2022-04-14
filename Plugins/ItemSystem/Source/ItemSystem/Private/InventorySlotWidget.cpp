@@ -5,7 +5,6 @@
 
 #include "InventoryComponent.h"
 #include "InventoryGridWidget.h"
-#include "ItemSystem.h"
 
 
 void UInventorySlotWidget::OnSlotDraggedOver(FItemData DraggedOverItem, const bool bRotateItem)
@@ -23,13 +22,32 @@ void UInventorySlotWidget::OnSlotDraggedOver(FItemData DraggedOverItem, const bo
 	}
 }
 
-bool UInventorySlotWidget::OnItemDropped(const FInventoryItemData DroppedItemData, const bool bRotateItem)
+bool UInventorySlotWidget::OnItemDropped(UInventoryComponent* OriginatingInventory,const FInventoryItemData DroppedItemData, const bool bRotateItem)
 {
 	if(OwningInventory != nullptr)
 	{
-		OwningInventory->MoveItem(DroppedItemData,MyInventorySlot.Position,bRotateItem);
 
-		return true;
+		//If Originating Inventory is null or it is the same as the owning inventory, attempt to do move.  
+		if(OriginatingInventory == nullptr || OriginatingInventory == OwningInventory)
+		{
+			if(OwningInventory->CheckItemMove(DroppedItemData,MyInventorySlot.Position,bRotateItem))
+			{
+				OwningInventory->MoveItem(DroppedItemData,MyInventorySlot.Position,bRotateItem);
+				return true;
+			}
+		}
+		else
+		{
+			
+			//If the originating inventory is not null AND it is not equal to the owning inventory, try to do transfer
+			if(OwningInventory->CheckItemMove(DroppedItemData,MyInventorySlot.Position,bRotateItem))
+			{
+				OriginatingInventory->TransferItemToPosition(OwningInventory,MyInventorySlot.Position,DroppedItemData,bRotateItem);
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	return false;

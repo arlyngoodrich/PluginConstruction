@@ -33,6 +33,6 @@ public:
 	void OnSlotDraggedOver(FItemData DraggedOverItem,bool bRotateItem);
 
 	UFUNCTION(BlueprintCallable,Category="Inventory")
-	bool OnItemDropped(FInventoryItemData DroppedItemData, bool bRotateItem);
+	bool OnItemDropped(UInventoryComponent* OriginatingInventory, FInventoryItemData DroppedItemData, bool bRotateItem);
 
 };

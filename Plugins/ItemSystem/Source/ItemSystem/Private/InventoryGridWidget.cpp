@@ -26,7 +26,8 @@ void UInventoryGridWidget::SetSlotsOnDragOver(const FInventory2D DragPosition, c
 	{
 		SlotWidgets[i]->bDraggedOver = false;
 	}
-	
+
+	//Set slots that are hovered over as hovered
 	for (int i = 0; i < CoveredSlots.Num(); ++i)
 	{
 		const FInventory2D TargetSlot = CoveredSlots[i];
@@ -65,11 +66,35 @@ void UInventoryGridWidget::OnItemDragCancel(const UInventoryItemWidget* Inventor
 		}
 	}
 
+	//Tell all slots that no longer dragged over
 	for (int i = 0; i < SlotWidgets.Num(); ++i)
 	{
 		SlotWidgets[i]->bDraggedOver = false;
 	}
 }
+
+void UInventoryGridWidget::AllowTransfer(UInventoryComponent* TargetInventoryComponent)
+{
+	if(TargetInventoryComponent == nullptr){return;}
+
+	bTransferAvailable = true;
+	TransferInventory = TargetInventoryComponent;
+}
+
+void UInventoryGridWidget::RemoveTransfer()
+{
+	bTransferAvailable = false;
+	TransferInventory = nullptr;
+}
+
+void UInventoryGridWidget::RequestTransfer(const FInventoryItemData TargetItem) const
+{
+	if(TransferInventory == nullptr){return;}
+
+	OwningInventoryComponent->TransferItem(TransferInventory,TargetItem);
+	
+}
+
 
 void UInventoryGridWidget::NativeConstruct()
 {
@@ -183,6 +208,9 @@ void UInventoryGridWidget::InitializeItems()
 void UInventoryGridWidget::OnInventorySlotUpdate()
 {
 	TArray<FInventorySlot> NewSlotData = OwningInventoryComponent->GetInventorySlots();
+
+	UE_LOG(LogItemSystem,Log,TEXT("Update Inventory Slots called for %s"),
+		*OwningInventoryComponent->GetOwner()->GetName())
 
 	//Update occupied slots for inventory widgets 
 	for (int i = 0; i < NewSlotData.Num(); ++i)

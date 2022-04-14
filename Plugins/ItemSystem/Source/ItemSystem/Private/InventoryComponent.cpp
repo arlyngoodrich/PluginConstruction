@@ -49,7 +49,8 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >&
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UInventoryComponent, InventorySlots);
+	//DOREPLIFETIME(UInventoryComponent, InventorySlots);
+	DOREPLIFETIME_CONDITION_NOTIFY(UInventoryComponent,InventorySlots,COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME(UInventoryComponent, InventoryItems);
 	DOREPLIFETIME(UInventoryComponent, CurrentWeight);
 }
@@ -129,6 +130,7 @@ bool UInventoryComponent::AddItemToPosition(const FItemData Item, const FInvento
 	//If target slot is occupied return false.  No need to log since occupied slots are expected
 	if(TargetSlot.bIsOccupied == true)
 	{
+		UE_LOG(LogItemSystem,Log,TEXT("Could not add item to %s. Position is occuipied"),*TargetSlot.Position.GetPositionAsString())
 		return false;
 	}
 	else
@@ -172,7 +174,7 @@ bool UInventoryComponent::TransferItem(UInventoryComponent* TargetInventory, con
 
 	if(GetOwnerRole() != ROLE_Authority)
 	{
-		return false;
+		Server_TransferItem(TargetInventory,TargetItem);
 	}
 
 
@@ -246,26 +248,34 @@ bool UInventoryComponent::TransferItemToPosition(UInventoryComponent* TargetInve
                                                  const FInventoryItemData TargetItem)
 {
 
+	UE_LOG(LogItemSystem,Log,TEXT("Attempting to transfer %s item from %s to position %s in inventory %s"),
+		*TargetItem.Item.DisplayName.ToString(),*GetOwner()->GetName(),*TargetInventory->GetOwner()->GetName(),
+		*TargetPosition.GetPositionAsString())
+
+	
 	if(GetOwnerRole() != ROLE_Authority)
 	{
 		return false;
 	}
 
 	
-	if(TransferItemChecks(TargetItem,TargetInventory) == false)
+	if(TransferItemChecks(TargetItem,TargetInventory,TargetPosition) == false)
 	{
+		return false;
+	}
+
+	if(FullyRemoveInventoryItem(TargetItem) == false)
+	{
+
+		//Item Removed from source inventory
+		UE_LOG(LogItemSystem,Error,TEXT("%s item attempted to transferred to %s but could not be removed from source"),
+			*TargetItem.Item.DisplayName.ToString(),*TargetInventory->GetOwner()->GetName())
 		return false;
 	}
 
 	if(TargetInventory->AddItemToPosition(TargetItem.Item,TargetPosition))
 	{
-		//Item Added
-		if(FullyRemoveInventoryItem(TargetItem) == false)
-		{
-			UE_LOG(LogItemSystem,Error,TEXT("%s item was transferred to %s but was not removed from source"),
-				*TargetItem.Item.DisplayName.ToString(),*TargetInventory->GetOwner()->GetName())
-			return false;
-		}
+		//Item Added to target inventory
 
 		UE_LOG(LogItemSystem,Log,TEXT("%s item was transferred to %s from %s"),
 			*TargetItem.Item.DisplayName.ToString(),*TargetInventory->GetOwner()->GetName(),*GetOwner()->GetName())
@@ -278,6 +288,24 @@ bool UInventoryComponent::TransferItemToPosition(UInventoryComponent* TargetInve
 			*GetOwner()->GetName(),*TargetItem.Item.DisplayName.ToString(),*TargetInventory->GetOwner()->GetName())
 		return false;
 	}
+}
+
+bool UInventoryComponent::TransferItemToPosition(UInventoryComponent* TargetInventory, const FInventory2D TargetPosition,
+	FInventoryItemData TargetItem, const bool bRotateItem)
+{
+
+	if(GetOwnerRole()!=ROLE_Authority)
+	{
+		Server_TransferItemToPosition(TargetInventory,TargetPosition,TargetItem,bRotateItem);
+		return false;
+	}
+	
+	if(bRotateItem)
+	{
+		TargetItem.RotateItem();
+	}
+
+	return TransferItemToPosition(TargetInventory,TargetPosition,TargetItem);
 }
 
 
@@ -605,27 +633,35 @@ bool UInventoryComponent::FullyRemoveInventoryItem(const FInventoryItemData Targ
 	}
 }
 
-bool UInventoryComponent::CheckItemMove(FInventoryItemData TargetItem, FInventory2D TargetPosition, bool bRotateItem)
+bool UInventoryComponent::CheckItemMove(FInventoryItemData TargetItem, const FInventory2D TargetPosition, const bool bRotateItem)
 {
+
+	//Set originating slots to unoccupied
+	if(InventoryItems.Contains(TargetItem))
+	{
+		SetSlotStatuses(TargetItem.GetCoveredSlots(),false);
+	}
 	
-	SetSlotStatuses(TargetItem.GetCoveredSlots(),false);
-
-
 	if(bRotateItem)
 	{
 		TargetItem.RotateItem();
 	}
+	
 
 	const bool bMoveCheckStatus = CheckIfItemFits(TargetItem.Item,TargetPosition);
 
+	//Undo Rotation
 	if(bRotateItem)
 	{
 		TargetItem.RotateItem();
 	}
+	
 
-
-	SetSlotStatuses(TargetItem.GetCoveredSlots(),true);
-
+	if(InventoryItems.Contains(TargetItem))
+	{
+		SetSlotStatuses(TargetItem.GetCoveredSlots(),true);
+	}
+	
 	return bMoveCheckStatus;
 }
 
@@ -647,23 +683,11 @@ bool UInventoryComponent::MoveItem(FInventoryItemData TargetItem, const FInvento
 		return false;
 	}
 
-	//Set all covered slots as free so it doesn't interfere with checking if item fits
-	if(SetSlotStatuses(TargetItem.GetCoveredSlots(),false) == false)
+	if(CheckItemMove(TargetItem,TargetPosition,bRotateITem))
 	{
-		UE_LOG(LogItemSystem,Error,TEXT("%s could not find slot to set status when moving %s item"),
-			*GetOwner()->GetName(),*TargetItem.Item.DisplayName.ToString())
-
-		return false;
-	}
-
-	if(bRotateITem)
-	{
-		TargetItem.RotateItem();
-	}
-
-	
-	if(CheckIfItemFits(TargetItem.Item,TargetPosition))
-	{
+		//Set current covered slots to empty
+		SetSlotStatuses(InventoryItems[ItemIndex].GetCoveredSlots(),false);
+		
 		//Move the actual item's position in inventory array 
 		InventoryItems[ItemIndex].StartPosition = TargetPosition;
 
@@ -708,6 +732,10 @@ bool UInventoryComponent::MoveItem(FInventoryItemData TargetItem, const FInvento
 		
 		UE_LOG(LogItemSystem,Log,TEXT("%s attempted to move %s item but item doesn not fit in Pos %s"),
 		*GetOwner()->GetName(),*TargetItem.Item.DisplayName.ToString(),*TargetPosition.GetPositionAsString())
+
+		OnRep_InventoryItemsUpdated();
+		OnRep_InventorySlotsUpdated();
+		
 		return false;
 	}
 }
@@ -844,6 +872,9 @@ bool UInventoryComponent::AttemptStack(FInventoryItemData TargetItemData, FItemD
 		UE_LOG(LogItemSystem,Log,TEXT("%s was fully stacked into slot %s of %s inventory"),
 		       *InItemData.DisplayName.ToString(),*InventoryItems[TargetItemIndex].StartPosition.GetPositionAsString(),
 		       *GetOwner()->GetName())
+
+		OnRep_InventoryItemsUpdated();
+		OnRep_InventorySlotsUpdated();
 		
 		return true;
 	}
@@ -859,6 +890,9 @@ bool UInventoryComponent::AttemptStack(FInventoryItemData TargetItemData, FItemD
 		UE_LOG(LogItemSystem,Log,TEXT("%s was partially stacked into slot %s of %s inventory"),
 		       *InItemData.DisplayName.ToString(),*InventoryItems[TargetItemIndex].StartPosition.GetPositionAsString(),
 		       *GetOwner()->GetName())
+
+		OnRep_InventoryItemsUpdated();
+		OnRep_InventorySlotsUpdated();
 		
 		return false;
 	}
@@ -886,8 +920,6 @@ bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const
                                         const bool bShouldBroadCast)
 {
 
-	if(GetOwnerRole() != ROLE_Authority){return false;}
-
 	int32 SlotIndex;
 	if(FindSlotAtPosition(TargetPosition,SlotIndex))
 	{
@@ -913,8 +945,6 @@ bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const
 
 bool UInventoryComponent::SetSlotStatuses(TArray<FInventory2D> TargetPositions, const bool NewIsOccupied)
 {
-
-	if(GetOwnerRole() != ROLE_Authority){return false;}
 	
 	TArray<bool> SlotChecks;
 	
@@ -1035,9 +1065,8 @@ bool UInventoryComponent::AddItemChecks(const FItemData ItemToCheck) const
 	return true;
 }
 
-bool UInventoryComponent::TransferItemChecks(const FInventoryItemData ItemToCheck, UInventoryComponent* InventoryToCheck) const
+bool UInventoryComponent::TransferItemChecks(const FInventoryItemData ItemToCheck, const UInventoryComponent* InventoryToCheck) const
 {
-
 	if(InventoryToCheck == nullptr)
 	{
 		UE_LOG(LogItemSystem,Warning,TEXT("%s is attempting to transfer %s item to null inventory"),
@@ -1048,6 +1077,25 @@ bool UInventoryComponent::TransferItemChecks(const FInventoryItemData ItemToChec
 	if(ItemToCheck.Item.bIsValid == false)
 	{
 		UE_LOG(LogItemSystem,Warning,TEXT("%s attempting to transfer invalid item"),*GetOwner()->GetName())
+		return false;
+	}
+
+	return true;
+}
+
+bool UInventoryComponent::TransferItemChecks(const FInventoryItemData ItemToCheck, UInventoryComponent* InventoryToCheck,
+	const FInventory2D TargetPosition) const
+{
+
+	if(TransferItemChecks(ItemToCheck,InventoryToCheck) == false)
+	{
+		return false;
+	}
+	
+	if(InventoryToCheck->CheckIfItemFits(ItemToCheck.Item,TargetPosition) == false)
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("%s item will not fit in %s inventory"),
+			*ItemToCheck.Item.DisplayName.ToString(),*InventoryToCheck->GetOwner()->GetName())
 		return false;
 	}
 
@@ -1169,6 +1217,29 @@ void UInventoryComponent::Server_SplitItem_Implementation(const FInventoryItemDa
 		
 	SplitItem(TargetItemData,NewStackQuantity);
 }
+
+bool UInventoryComponent::Server_TransferItem_Validate(UInventoryComponent* TargetInventory,FInventoryItemData TargetItem)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_TransferItem_Implementation(UInventoryComponent* TargetInventory, const FInventoryItemData TargetItem)
+{
+	TransferItem(TargetInventory,TargetItem);
+}
+
+bool UInventoryComponent::Server_TransferItemToPosition_Validate(UInventoryComponent* TargetInventory,
+                                                                 FInventory2D TargetPosition, FInventoryItemData TargetItem, bool bRotateItem)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_TransferItemToPosition_Implementation(UInventoryComponent* TargetInventory,
+	const FInventory2D TargetPosition,const FInventoryItemData TargetItem, const bool bRotateItem)
+{
+	TransferItemToPosition(TargetInventory,TargetPosition,TargetItem,bRotateItem);
+}
+
 
 
 
