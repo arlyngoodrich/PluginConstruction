@@ -14,6 +14,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryItemDataUpdate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventorySlotUpdate);
 
 
+/**
+ * @brief Actor component parent class for inventories 
+ */
 UCLASS( ClassGroup=(Inventory), Blueprintable, meta=(BlueprintSpawnableComponent) )
 class ITEMSYSTEM_API UInventoryComponent : public UActorComponent
 {

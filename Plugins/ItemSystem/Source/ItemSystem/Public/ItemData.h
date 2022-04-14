@@ -18,16 +18,20 @@ struct FInventory2D
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory Position")
 	int32 Y;
 
+	bool bIsValid;
+
 	FInventory2D()
 	{
-		X = 1;
-		Y = 1;
+		X = 0;
+		Y = 0;
+		bIsValid = false;
 	}
 
 	FInventory2D(const int32 InX, const int32 InY)
 	{
 		X = InX;
 		Y = InY;
+		bIsValid = true;
 	}
 
 	FString GetPositionAsString() const
@@ -45,7 +49,7 @@ struct FInventory2D
 
 	bool IsEqualTo(const FInventory2D In2D) const
 	{
-		if(In2D.X == X && In2D.Y == Y)
+		if(In2D.X == X && In2D.Y == Y && In2D.bIsValid == true && bIsValid == true)
 		{
 			return true;
 		}
@@ -58,7 +62,7 @@ struct FInventory2D
 
 	bool operator==(const FInventory2D& Position) const
 	{
-		return (X == Position.X && Y == Position.Y);
+		return (X == Position.X && Y == Position.Y && bIsValid == true);
 	}
 };
 
