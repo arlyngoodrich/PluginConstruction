@@ -49,7 +49,8 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >&
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UInventoryComponent, InventorySlots);
+	//DOREPLIFETIME(UInventoryComponent, InventorySlots);
+	DOREPLIFETIME_CONDITION_NOTIFY(UInventoryComponent,InventorySlots,COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME(UInventoryComponent, InventoryItems);
 	DOREPLIFETIME(UInventoryComponent, CurrentWeight);
 }
@@ -871,6 +872,9 @@ bool UInventoryComponent::AttemptStack(FInventoryItemData TargetItemData, FItemD
 		UE_LOG(LogItemSystem,Log,TEXT("%s was fully stacked into slot %s of %s inventory"),
 		       *InItemData.DisplayName.ToString(),*InventoryItems[TargetItemIndex].StartPosition.GetPositionAsString(),
 		       *GetOwner()->GetName())
+
+		OnRep_InventoryItemsUpdated();
+		OnRep_InventorySlotsUpdated();
 		
 		return true;
 	}
@@ -886,6 +890,9 @@ bool UInventoryComponent::AttemptStack(FInventoryItemData TargetItemData, FItemD
 		UE_LOG(LogItemSystem,Log,TEXT("%s was partially stacked into slot %s of %s inventory"),
 		       *InItemData.DisplayName.ToString(),*InventoryItems[TargetItemIndex].StartPosition.GetPositionAsString(),
 		       *GetOwner()->GetName())
+
+		OnRep_InventoryItemsUpdated();
+		OnRep_InventorySlotsUpdated();
 		
 		return false;
 	}
@@ -923,7 +930,7 @@ bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const
 			OnRep_InventorySlotsUpdated();
 		}
 		
-		UE_LOG(LogItemSystem,Log,TEXT("%s inventory updated slot %s to %s"),
+		UE_LOG(LogItemSystem,Verbose,TEXT("%s inventory updated slot %s to %s"),
 			*GetOwner()->GetName(),*TargetPosition.GetPositionAsString(),
 			NewIsOccupied? TEXT("occupied") : TEXT("unoccupied"))
 		return true;
