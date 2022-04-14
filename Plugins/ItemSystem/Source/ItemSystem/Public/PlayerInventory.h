@@ -7,9 +7,10 @@
 #include "PlayerInventory.generated.h"
 
 /**
- * 
+ *@brief Base class for player inventory.  Used to extend inventory class for more player specific functions
  */
-UCLASS()
+
+UCLASS(ClassGroup=(Inventory), Blueprintable, meta=(BlueprintSpawnableComponent))
 class ITEMSYSTEM_API UPlayerInventory : public UInventoryComponent
 {
 	GENERATED_BODY()
