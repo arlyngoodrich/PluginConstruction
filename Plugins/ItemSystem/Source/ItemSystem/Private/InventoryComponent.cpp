@@ -255,6 +255,7 @@ bool UInventoryComponent::TransferItemToPosition(UInventoryComponent* TargetInve
 	
 	if(GetOwnerRole() != ROLE_Authority)
 	{
+		Server_TransferItemToPosition(TargetInventory,TargetPosition,TargetItem,false);
 		return false;
 	}
 
@@ -608,7 +609,6 @@ bool UInventoryComponent::FullyRemoveInventoryItem(const FInventoryItemData Targ
 		{
 			InventoryItems.RemoveAt(ItemIndex);
 			OnRep_InventoryItemsUpdated();
-			
 			RemoveWeight(TargetInventoryItem.Item);
 
 			UE_LOG(LogItemSystem,Log,TEXT("%s item was fully removed from %s inventory"),
