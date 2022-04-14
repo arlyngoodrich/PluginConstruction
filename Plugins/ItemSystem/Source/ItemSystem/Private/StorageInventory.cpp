@@ -25,6 +25,13 @@ void UStorageInventory::OpenInventory(APlayerController* InstigatingPlayer)
 		return;
 	}
 
+	if(bIsInventoryOpen)
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("Cannot open %s becuase a player already has inventory open"),
+			*GetOwner()->GetName())
+		return;
+	}
+	
 	if(InstigatingPlayer != nullptr)
 	{
 		GetOwner()->SetOwner(Cast<AActor>(InstigatingPlayer));
