@@ -75,7 +75,7 @@ struct FInventory2D
 	 */
 	bool IsEqualTo(const FInventory2D In2D) const
 	{
-		if(In2D.X == X && In2D.Y == Y && In2D.bIsValid == true && bIsValid == true)
+		if(In2D.X == X && In2D.Y == Y)
 		{
 			return true;
 		}
@@ -88,7 +88,7 @@ struct FInventory2D
 
 	bool operator==(const FInventory2D& Position) const
 	{
-		return (X == Position.X && Y == Position.Y && bIsValid == true);
+		return (X == Position.X && Y == Position.Y);
 	}
 };
 
