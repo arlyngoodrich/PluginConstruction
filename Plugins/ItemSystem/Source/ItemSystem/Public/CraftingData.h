@@ -7,6 +7,7 @@
 #include "CraftingData.generated.h"
 
 class AItemBase;
+class UCraftingComponent;
 
 USTRUCT(BlueprintType)
 struct FRecipeComponent 
@@ -16,13 +17,13 @@ struct FRecipeComponent
 	/**
 	 * @brief Subclass for type of Recipe Component
 	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory Position")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Crafting Recipe")
 	TSubclassOf<AItemBase> ComponentClass;
 
 	/**
 	 * @brief Quantity of item in Recipe Component
 	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory Position")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Crafting Recipe")
 	int32 Quantity;
 
 };
@@ -35,19 +36,25 @@ struct FCraftingRecipe : public FTableRowBase
 	/**
 	 * @brief Name of Recipe
 	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory Position")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Crafting Recipe")
 	FName RecipeName;
 
 	/**
 	 * @brief Array of items required to craft recipe 
 	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory Position")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Crafting Recipe")
 	TArray<FRecipeComponent> RecipeInputs;
 
 	/**
 	 * @brief Array of items that are produced by the recipe 
 	 */	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory Position")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Crafting Recipe")
 	TArray<FRecipeComponent> RecipeOutputs;
+
+	/**
+	 * @brief Array of Crafting Stations classes that can craft this recipe 
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Crafting Recipe")
+	TArray<TSubclassOf<UCraftingComponent>> EligibleCraftingComponentTypes;
 
 };
