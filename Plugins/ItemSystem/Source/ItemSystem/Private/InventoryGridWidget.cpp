@@ -71,6 +71,9 @@ void UInventoryGridWidget::OnItemDragCancel(const UInventoryItemWidget* Inventor
 	{
 		SlotWidgets[i]->bDraggedOver = false;
 	}
+
+	OnInventoryItemUpdates();
+	OnInventorySlotUpdate();
 }
 
 void UInventoryGridWidget::AllowTransfer(UInventoryComponent* TargetInventoryComponent)
@@ -93,6 +96,12 @@ void UInventoryGridWidget::RequestTransfer(const FInventoryItemData TargetItem) 
 
 	OwningInventoryComponent->TransferItem(TransferInventory,TargetItem);
 	
+}
+
+void UInventoryGridWidget::RefreshGrid()
+{
+	OnInventorySlotUpdate();
+	OnInventoryItemUpdates();
 }
 
 

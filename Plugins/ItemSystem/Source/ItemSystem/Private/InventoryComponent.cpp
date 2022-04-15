@@ -829,11 +829,13 @@ bool UInventoryComponent::AttemptStack(FInventoryItemData TargetItemData, FItemD
 	
 	OutRemainingItem = InItemData;
 
+	//Make sure item can actually be added
 	if(AddItemChecks(InItemData)==false)
 	{
 		return false;
 	}
 
+	//Make sure item should stack
 	if(TargetItemData.Item.bShouldItemStack == false)
 	{
 		UE_LOG(LogItemSystem,Log,TEXT("Cannot stack %s item in %s inventory"),
@@ -841,6 +843,14 @@ bool UInventoryComponent::AttemptStack(FInventoryItemData TargetItemData, FItemD
 		return false;
 	}
 
+	//Make sure in world classes are the same
+	if(TargetItemData.Item.InWorldClass != InItemData.InWorldClass)
+	{
+		return false;
+	}
+		
+
+	//Make sure target item is in inventory
 	int32 TargetItemIndex;
 	if(InventoryItems.Find(TargetItemData,TargetItemIndex) == false)
 	{
@@ -849,6 +859,7 @@ bool UInventoryComponent::AttemptStack(FInventoryItemData TargetItemData, FItemD
 		return false;
 	}
 
+	//Make sure target item stack is not max already 
 	if(TargetItemData.Item.MaxStackQuantity == TargetItemData.Item.ItemQuantity)
 	{
 		//return false since target stack is already.  This is expected to happen so no need to log. 
