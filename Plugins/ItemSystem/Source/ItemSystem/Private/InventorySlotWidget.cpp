@@ -47,6 +47,8 @@ bool UInventorySlotWidget::OnItemDropped(UInventoryComponent* OriginatingInvento
 			}
 		}
 
+		OwningGridWidget->RefreshGrid();
+		
 		return false;
 	}
 
