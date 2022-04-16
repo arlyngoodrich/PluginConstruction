@@ -212,6 +212,18 @@ public:
 	 * @return Returns true if the item is moved, returns false if not.
 	 */
 	bool MoveItem(FInventoryItemData TargetItem, FInventory2D TargetPosition, bool bRotateITem);
+
+
+	/**
+	 * @brief Combines two items stacks into one.  If fully combined, will remove Originating stack. If partially combined,
+	 * will update originating stack. 
+	 * @param OriginatingStack Stack that is being combined into another stack
+	 * @param TargetStack Stack that is the originating stack is combining into
+	 * @return returns false if stacks are not of the same class or if target stack is already max.  True if at least 1 quantity
+	 * added to target stack.
+	 */
+	bool CombineStacks_SameInventory(FInventoryItemData OriginatingStack, FInventoryItemData TargetStack);
+
 	
 	/**
 	 * @brief Checks to see if Item is in Inventory.  Checks for matching Item GUIDs. Useful if position of item in
@@ -503,5 +515,10 @@ protected:
 								FInventoryItemData TargetItem, bool bRotateItem);
 	void Server_TransferItemToPosition_Implementation(UInventoryComponent* TargetInventory, FInventory2D TargetPosition,
 								FInventoryItemData TargetItem, bool bRotateItem);
+
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_CombineStackSameInventory(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack);
+	bool Server_CombineStackSameInventory_Validate(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack);
+	void Server_CombineStackSameInventory_Implementation(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack);
 	
 };
