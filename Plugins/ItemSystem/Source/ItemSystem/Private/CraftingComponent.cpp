@@ -240,9 +240,11 @@ void UCraftingComponent::DeliverRecipeOutput(const FRecipeComponent RecipeOutput
 {
 	const AItemBase* DefaultItem = RecipeOutput.ComponentClass.GetDefaultObject();
 
+	//Create Item Data from Item Class Defaults
 	FItemData ItemData = DefaultItem->GetItemData();
 	ItemData.ItemGuid = FGuid::NewGuid();
 	ItemData.InWorldClass = RecipeOutput.ComponentClass;
+	ItemData.bIsValid = true;
 
 	FItemData RemainingItemData = ItemData;
 	
