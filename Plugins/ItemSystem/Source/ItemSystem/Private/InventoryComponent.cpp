@@ -48,8 +48,7 @@ int32 UInventoryComponent::GetTotalCountOfItemClass(const TSubclassOf<AItemBase>
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	//DOREPLIFETIME(UInventoryComponent, InventorySlots);
+	
 	DOREPLIFETIME_CONDITION_NOTIFY(UInventoryComponent,InventorySlots,COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME(UInventoryComponent, InventoryItems);
 	DOREPLIFETIME(UInventoryComponent, CurrentWeight);
@@ -750,22 +749,10 @@ bool UInventoryComponent::CombineStacks_SameInventory(const FInventoryItemData O
 		Server_CombineStackSameInventory(OriginatingStack,TargetStack);
 		return false;
 	}
-	
-	//Ensure originating stack is in inventory
-	int32 OriginatingStackIndex;
-	if(InventoryItems.Find(OriginatingStack,OriginatingStackIndex) == false)
+
+	if(CombineStacks_SameInventory_Checks(OriginatingStack,TargetStack) == false)
 	{
-		UE_LOG(LogItemSystem,Warning,TEXT("%s inventory attempted to combine stacks but Originating stack is not in inventory"),
-			*GetOwner()->GetName())
-		return false;
-	}
-	
-	//Ensure target stack is in inventory
-	int32 TargetStackIndex;
-	if(InventoryItems.Find(TargetStack,TargetStackIndex) == false)
-	{
-		UE_LOG(LogItemSystem,Warning,TEXT("%s inventory attempted to combine stacks but target stack is not in inventory"),
-			*GetOwner()->GetName())
+		//Reset Inventory UI back to original 
 		return false;
 	}
 
@@ -795,8 +782,11 @@ bool UInventoryComponent::CombineStacks_SameInventory(const FInventoryItemData O
 		else
 		{
 			//Item was partially stacked
+			int32 OriginatingStackIndex;
+			InventoryItems.Find(OriginatingStack,OriginatingStackIndex);
 
 			InventoryItems[OriginatingStackIndex].Item.ItemQuantity = RemainingItemData.ItemQuantity;
+
 			OnRep_InventoryItemsUpdated();
 			
 			UE_LOG(LogItemSystem,Log,TEXT("%s inventory partially stack %s item into postion %s"),
@@ -805,6 +795,46 @@ bool UInventoryComponent::CombineStacks_SameInventory(const FInventoryItemData O
 			return true;
 		}
 	}
+}
+
+bool UInventoryComponent::CombineStacks_SameInventory_Checks(const FInventoryItemData OriginatingStack,
+                                                             const FInventoryItemData TargetStack) const
+{
+	//Ensure both stacks are in the inventory
+	if (IsInventoryItemInInventory(OriginatingStack) == false || IsInventoryItemInInventory(TargetStack) == false)
+	{
+		return false;
+	}
+
+	//Ensure the same class
+	if(TargetStack.Item.InWorldClass != OriginatingStack.Item.InWorldClass)
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("%s inventory failed to combine %s item into %s item at position %s due to not same class"),
+	*GetOwner()->GetName(),*OriginatingStack.Item.DisplayName.ToString(),*TargetStack.Item.DisplayName.ToString(),
+	*TargetStack.StartPosition.GetPositionAsString())
+		return false;
+	}
+
+	//Ensure items can stack
+	if(TargetStack.Item.bShouldItemStack == false)
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("%s inventory failed to combine %s item into %s item at position %s due to target stack cannot stack"),
+	*GetOwner()->GetName(),*OriginatingStack.Item.DisplayName.ToString(),*TargetStack.Item.DisplayName.ToString(),
+	*TargetStack.StartPosition.GetPositionAsString())
+		return false;
+	}
+
+	//Ensure target stack not maxed out
+	if(TargetStack.Item.ItemQuantity == TargetStack.Item.MaxStackQuantity)
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("%s inventory failed to combine %s item into %s item at position %s due to target stack at max"),
+			*GetOwner()->GetName(),*OriginatingStack.Item.DisplayName.ToString(),*TargetStack.Item.DisplayName.ToString(),
+			*TargetStack.StartPosition.GetPositionAsString())
+		return false;
+	}
+
+	return true;
+	
 }
 
 bool UInventoryComponent::IsItemInInventory(const FItemData Item)
@@ -849,6 +879,11 @@ bool UInventoryComponent::IsItemInInventory(const FItemData Item, FInventoryItem
 	}
 
 	return false;
+}
+
+bool UInventoryComponent::IsInventoryItemInInventory(const FInventoryItemData InventoryItemData) const
+{
+	return InventoryItems.Contains(InventoryItemData);
 }
 
 bool UInventoryComponent::AutoAddItemNewStack(FItemData Item)
