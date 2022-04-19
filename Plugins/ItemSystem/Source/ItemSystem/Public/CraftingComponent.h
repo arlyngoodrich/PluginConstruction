@@ -51,13 +51,69 @@ protected:
 	TArray<FCraftingRecipe> EligibleCraftingRecipes;
 
 	/**
+	 * @brief Called when a crafted recipe output cannot be placed into an inventory.  
+	 * @param ItemData Item Data that needs to be spawned into the world
+	 */
+	UFUNCTION(BlueprintNativeEvent,Category="Crafting")
+	void SpawnExcessItem(FItemData ItemData);
+	
+	/**
 	 * @brief Uses set Crafting Recipe Table reference to fill Eligible Crafting Recipe array
 	 */
 	void InitializeRecipes();
-
+	
 	/**
 	 * @brief Checks a recipe to see if the crafting component is able to craft it
 	 * @return True if eligible, false if not
 	 */
-	bool CanCraftRecipe(FCraftingRecipe RecipeToCheck) const;
+	bool IsComponentEligibleToCraftRecipe(FCraftingRecipe RecipeToCheck) const;
+
+
+	/**
+	 * @brief Uses inventories attached to owning actor to craft a recipe
+	 * @param Recipe Recipe to craft
+	 * @return Returns true if recipe was crafted, returns false if not
+	 */
+	bool CraftRecipe(FCraftingRecipe Recipe);
+
+	/**
+	 * @brief Performs checks to see if the recipe can be crafted
+	 * @param Recipe Recipe to check 
+	 * @return Returns true if recipe can be crafted, returns false if it cannot
+	 */
+	bool CraftRecipeChecks(FCraftingRecipe Recipe) const;
+
+
+	/**
+	 * @brief Checks inventories to ensure enough quantity of a component is available 
+	 * @param Component to to check quantities
+	 * @param InventoryComponents Inventories to check  
+	 * @return Returns true if enough input component available, returns false if not. 
+	 */
+	static bool InputComponentCheck(FRecipeComponent Component,TArray<UInventoryComponent*> InventoryComponents);
+
+	/**
+	 * @brief Removes recipe component from inventories
+	 * @param RecipeComponent Component to consume
+	 * @param InventoryComponents Inventories to remove items from
+	 * @return return true if components were removed, false if not
+	 */
+	bool ConsumeComponentInput(FRecipeComponent RecipeComponent,TArray<UInventoryComponent*> InventoryComponents);
+
+	/**
+	 * @brief Creates Recipe component output.  Will attempt to add to inventories. If not, then will call blueprint native event
+	 * to spawn excess item into world 
+	 * @param RecipeOutput Recipe Component to output
+	 * @param InventoryComponents Inventory Components to attempt to add item to
+	 */
+	void DeliverRecipeOutput(FRecipeComponent RecipeOutput, TArray<UInventoryComponent*> InventoryComponents);
+	
+	/**
+	 * @brief Helper function to gets pointers of inventories attached to owning actor
+	 * @param OutInventoryComponents inventory pointers
+	 * @return True if inventories found, false if not
+	 */
+	bool GetInventories(TArray<UInventoryComponent*> OutInventoryComponents) const;
 };
+
+

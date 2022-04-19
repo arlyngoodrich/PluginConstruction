@@ -45,14 +45,14 @@ int32 UInventoryComponent::GetTotalCountOfItemClass(const TSubclassOf<AItemBase>
 	return ItemQty;
 }
 
-int32 UInventoryComponent::GetTotalCountOfItemSubClass(TSubclassOf<AItemBase> ItemClass)
+int32 UInventoryComponent::GetTotalCountOfItemSubClass(const TSubclassOf<AItemBase> ItemClass)
 {
 	int32 ItemQty = 0;
 	for (int i = 0; i < InventoryItems.Num(); ++i)
 	{
 		const FItemData  TargetItem = InventoryItems[i].Item;
 
-		if(ItemClass->IsChildOf(TargetItem.InWorldClass)
+		if(ItemClass->IsChildOf(TargetItem.InWorldClass))
 		{
 			ItemQty += TargetItem.ItemQuantity;
 		}
@@ -524,6 +524,43 @@ bool UInventoryComponent::ReduceQuantityOfItemByStaticClass(const TSubclassOf<AI
 	return (OutAmountNotRemoved > 0);
 }
 
+bool UInventoryComponent::ReduceQuantityOfItemByClassSubType(TSubclassOf<AItemBase> ItemClass, int32 QuantityToRemove,
+	int32& OutAmountNotRemoved)
+{
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+
+	
+	//Cycle through all items in the inventory
+	for (int i = 0; i < InventoryItems.Num(); ++i)
+	{
+		const FInventoryItemData TargetInventoryItemData = InventoryItems[i];
+
+		//Check to see if the class matches
+		if(ItemClass->IsChildOf(TargetInventoryItemData.Item.InWorldClass))
+		{
+			
+			//If it does, attempt to remove items
+			if(ReduceQuantityOfInventoryItem(TargetInventoryItemData,QuantityToRemove,OutAmountNotRemoved))
+			{
+				if(OutAmountNotRemoved == 0)
+				{
+					return true;
+				}
+				else
+				{
+					QuantityToRemove = OutAmountNotRemoved;
+				}
+			}
+		}
+	}
+
+	// If at least some amount was removed, then return true
+	//Return false if nothing was removed
+	return (OutAmountNotRemoved > 0);
+}
 
 
 bool UInventoryComponent::ReduceQuantityOfInventoryItem(const FInventoryItemData TargetInventoryItem,

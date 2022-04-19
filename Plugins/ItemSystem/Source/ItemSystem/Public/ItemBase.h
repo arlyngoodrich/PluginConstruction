@@ -21,6 +21,8 @@ public:
 	 */
 	AItemBase();
 
+	FItemData GetItemData() const;
+
 protected:
 	/**
 	 * @brief Called when the game starts or when spawned

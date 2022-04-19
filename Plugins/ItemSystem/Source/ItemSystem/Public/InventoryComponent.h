@@ -165,12 +165,23 @@ public:
 	 * @param ItemClass Item class targeted for quantity removal
 	 * @param QuantityToRemove Amount of item that should be removed
 	 * @param OutAmountNotRemoved Quantity requested removed minus amount actually removed
-	 * @return Will return false if a matching item class could not be found in the inventory
+	 * @return Will return false if not authority or a matching item class could not be found in the inventory
 	 */
 	bool ReduceQuantityOfItemByStaticClass(TSubclassOf<AItemBase> ItemClass, int32 QuantityToRemove,
 	                                       int32& OutAmountNotRemoved);
 	
 
+	/**
+	* @brief Cycles through items in inventory that matches the item's class or sub type and will remove as much of the
+	* quantity to remove as possible.
+	 * @param ItemClass Item class targeted for quantity removal
+	 * @param QuantityToRemove Amount of item that should be removed
+	 * @param OutAmountNotRemoved Quantity requested removed minus amount actually removed
+	 * @return Will return false if not authority or a matching item class could not be found in the inventory
+	 */
+	bool ReduceQuantityOfItemByClassSubType(TSubclassOf<AItemBase> ItemClass, int32 QuantityToRemove,
+										   int32& OutAmountNotRemoved);
+	
 	/**
 	 * @brief Checks for Items by GUID and Position and reduces it's item quantity. Will fully remove item if the removal amount
 	 * is greater than or equal to the current amount.  Will return the amount that was not removed.

@@ -14,6 +14,8 @@ AItemBase::AItemBase()
 
 }
 
+FItemData AItemBase::GetItemData() const {return ItemData;}
+
 // Called when the game starts or when spawned
 void AItemBase::BeginPlay()
 {
