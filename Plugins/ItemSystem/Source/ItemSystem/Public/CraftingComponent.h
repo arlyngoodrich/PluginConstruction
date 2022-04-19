@@ -21,10 +21,18 @@ public:
 	// Sets default values for this component's properties
 	UCraftingComponent();
 
+	/**
+	 * @brief ONLY FOR TESTING. Do not use for gameplay.
+	 * @param NewRecipe recipe to add to Eligible crafting array
+	 */
+	void Debug_AddEligibleRecipe(FCraftingRecipe NewRecipe);
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	virtual void OnRegister() override;
+	
 	/**
 	 * @brief Data table to reference for filling Eligible Crafting Recipe array
 	 */
@@ -37,7 +45,14 @@ protected:
 	UPROPERTY(BlueprintReadOnly,Replicated,Category="Crafting Data")
 	TArray<FCraftingRecipe> EligibleCraftingRecipes;
 
-	
+	/**
+	 * @brief Uses set Crafting Recipe Table reference to fill Eligible Crafting Recipe array
+	 */
+	void InitializeRecipes();
 
-		
+	/**
+	 * @brief Checks a recipe to see if the crafting component is able to craft it
+	 * @return True if eligible, false if not
+	 */
+	bool CanCraftRecipe(FCraftingRecipe RecipeToCheck) const;
 };
