@@ -21,6 +21,9 @@ void UCraftingComponent::Debug_AddEligibleRecipe(const FCraftingRecipe NewRecipe
 	if(CanCraftRecipe(NewRecipe))
 	{
 		EligibleCraftingRecipes.Add(NewRecipe);
+		
+		UE_LOG(LogItemSystem,Log,TEXT("Added debug recipe %s to %s crafting component"),
+			*NewRecipe.RecipeName.ToString(),*GetOwner()->GetName())
 	}
 }
 
@@ -45,6 +48,8 @@ void UCraftingComponent::BeginPlay()
 
 void UCraftingComponent::OnRegister()
 {
+
+	Super::OnRegister();
 	
 	InitializeRecipes();
 	
@@ -59,7 +64,8 @@ void UCraftingComponent::InitializeRecipes()
 	//Make sure crafting data table pointer is valid
 	if(CraftingRecipeTable == nullptr)
 	{
-		UE_LOG(LogItemSystem,Log,TEXT("%s crafting component failed to initialize recipes. Not DT is set."))
+		UE_LOG(LogItemSystem,Log,TEXT("%s crafting component failed to initialize recipes. Not DT is set."),
+			*GetOwner()->GetName())
 		return;
 	}
 
