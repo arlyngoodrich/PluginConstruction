@@ -5,7 +5,6 @@
 
 #include "ItemBase.h"
 #include "ItemSystem.h"
-#include "BehaviorTree/BehaviorTreeTypes.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
