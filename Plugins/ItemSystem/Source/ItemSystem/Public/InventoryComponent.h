@@ -212,6 +212,27 @@ public:
 	 * @return Returns true if the item is moved, returns false if not.
 	 */
 	bool MoveItem(FInventoryItemData TargetItem, FInventory2D TargetPosition, bool bRotateITem);
+
+
+	/**
+	 * @brief Combines two items stacks into one.  If fully combined, will remove Originating stack. If partially combined,
+	 * will update originating stack. 
+	 * @param OriginatingStack Stack that is being combined into another stack
+	 * @param TargetStack Stack that is the originating stack is combining into
+	 * @return returns false if stacks are not of the same class or if target stack is already max.  True if at least 1 quantity
+	 * added to target stack.
+	 */
+	bool CombineStacks_SameInventory(FInventoryItemData OriginatingStack, FInventoryItemData TargetStack);
+
+
+	/**
+	 * @brief Client friendly method that performs same checks as actual combining stacks method.  Helpful for UI drag
+	 * and drop operation. 
+	 * @param OriginatingStack Item stack instigating the combine operation
+	 * @param TargetStack  Item stack receiving the originating stack
+	 * @return True if OK to combine, false if not
+	 */
+	bool CombineStacks_SameInventory_Checks(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack) const;
 	
 	/**
 	 * @brief Checks to see if Item is in Inventory.  Checks for matching Item GUIDs. Useful if position of item in
@@ -222,7 +243,7 @@ public:
 	bool IsItemInInventory(FItemData Item);
 	
 	/**
-	 * @brief Checks to see if Item is in Inventory by checking for matching Item GUIDs. 
+	 * @brief Checks to see if Item is in Inventory by checking for matching Item GUIDs. UI accessible function. 
 	 * @param Item Item to look for 
 	 * @param OutItemPosition Position of item in inventory
 	 * @return Returns true if found and the position of the item in the inventory.
@@ -236,6 +257,14 @@ public:
 	 * @return Returns true if found and the InventoryItemData of the item in the inventory.
 	 */
 	bool IsItemInInventory(FItemData Item, FInventoryItemData& OutInventoryItemData);
+
+
+	/**
+	 * @brief Checks to see if inventory item is in inventory.  
+	 * @param InventoryItemData Inventory Item to check 
+	 * @return True if in inventory, false if not
+	 */
+	bool IsInventoryItemInInventory(FInventoryItemData InventoryItemData) const;
 	
 	/**
 	 * @brief Given a position, will return the item in that position. 
@@ -503,5 +532,10 @@ protected:
 								FInventoryItemData TargetItem, bool bRotateItem);
 	void Server_TransferItemToPosition_Implementation(UInventoryComponent* TargetInventory, FInventory2D TargetPosition,
 								FInventoryItemData TargetItem, bool bRotateItem);
+
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_CombineStackSameInventory(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack);
+	bool Server_CombineStackSameInventory_Validate(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack);
+	void Server_CombineStackSameInventory_Implementation(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack);
 	
 };

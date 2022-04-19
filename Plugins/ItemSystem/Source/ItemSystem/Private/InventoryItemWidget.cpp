@@ -96,3 +96,17 @@ void UInventoryItemWidget::SplitItem(const FInventoryItemData TargetItemData, co
 			*TargetItemData.Item.DisplayName.ToString())
 	}
 }
+
+bool UInventoryItemWidget::CombineStacks_SameInventory(FInventoryItemData const OriginatingStack,
+	FInventoryItemData const TargetStack)
+{
+	if(OwningInventory == nullptr){return false;}
+
+	if(OwningInventory->CombineStacks_SameInventory_Checks(OriginatingStack,TargetStack) == false)
+	{
+		return false;
+	}
+	
+	OwningInventory->CombineStacks_SameInventory(OriginatingStack,TargetStack);
+	return true;
+}

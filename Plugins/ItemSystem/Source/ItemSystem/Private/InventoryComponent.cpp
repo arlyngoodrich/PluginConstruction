@@ -48,8 +48,7 @@ int32 UInventoryComponent::GetTotalCountOfItemClass(const TSubclassOf<AItemBase>
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	//DOREPLIFETIME(UInventoryComponent, InventorySlots);
+	
 	DOREPLIFETIME_CONDITION_NOTIFY(UInventoryComponent,InventorySlots,COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME(UInventoryComponent, InventoryItems);
 	DOREPLIFETIME(UInventoryComponent, CurrentWeight);
@@ -740,6 +739,104 @@ bool UInventoryComponent::MoveItem(FInventoryItemData TargetItem, const FInvento
 	}
 }
 
+bool UInventoryComponent::CombineStacks_SameInventory(const FInventoryItemData OriginatingStack,
+                                                      const FInventoryItemData TargetStack)
+{
+
+	
+	if(GetOwnerRole()!=ROLE_Authority)
+	{
+		Server_CombineStackSameInventory(OriginatingStack,TargetStack);
+		return false;
+	}
+
+	if(CombineStacks_SameInventory_Checks(OriginatingStack,TargetStack) == false)
+	{
+		//Reset Inventory UI back to original 
+		return false;
+	}
+
+	FItemData RemainingItemData;
+	if(AttemptStack(TargetStack,OriginatingStack.Item,RemainingItemData))
+	{
+		//Item was fully stacked, remove originating stack from inventory
+		FullyRemoveInventoryItem(OriginatingStack);
+
+		UE_LOG(LogItemSystem,Log,TEXT("%s inventory fully stacked %s item into postion %s"),
+			*GetOwner()->GetName(),*TargetStack.Item.DisplayName.ToString(),*TargetStack.StartPosition.GetPositionAsString())
+		
+		return true;
+		
+	}
+	else
+	{
+		//See if item was partially stacked or not stacked at all
+		if(RemainingItemData.ItemQuantity == OriginatingStack.Item.ItemQuantity)
+		{
+			//Item was not stacked at all
+			UE_LOG(LogItemSystem,Log,TEXT("%s inventory could not stack %s item into postion %s"),
+				*GetOwner()->GetName(),*TargetStack.Item.DisplayName.ToString(),*TargetStack.StartPosition.GetPositionAsString())
+			
+			return false;
+		}
+		else
+		{
+			//Item was partially stacked
+			int32 OriginatingStackIndex;
+			InventoryItems.Find(OriginatingStack,OriginatingStackIndex);
+
+			InventoryItems[OriginatingStackIndex].Item.ItemQuantity = RemainingItemData.ItemQuantity;
+
+			OnRep_InventoryItemsUpdated();
+			
+			UE_LOG(LogItemSystem,Log,TEXT("%s inventory partially stack %s item into postion %s"),
+				*GetOwner()->GetName(),*TargetStack.Item.DisplayName.ToString(),*TargetStack.StartPosition.GetPositionAsString())
+			
+			return true;
+		}
+	}
+}
+
+bool UInventoryComponent::CombineStacks_SameInventory_Checks(const FInventoryItemData OriginatingStack,
+                                                             const FInventoryItemData TargetStack) const
+{
+	//Ensure both stacks are in the inventory
+	if (IsInventoryItemInInventory(OriginatingStack) == false || IsInventoryItemInInventory(TargetStack) == false)
+	{
+		return false;
+	}
+
+	//Ensure the same class
+	if(TargetStack.Item.InWorldClass != OriginatingStack.Item.InWorldClass)
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("%s inventory failed to combine %s item into %s item at position %s due to not same class"),
+	*GetOwner()->GetName(),*OriginatingStack.Item.DisplayName.ToString(),*TargetStack.Item.DisplayName.ToString(),
+	*TargetStack.StartPosition.GetPositionAsString())
+		return false;
+	}
+
+	//Ensure items can stack
+	if(TargetStack.Item.bShouldItemStack == false)
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("%s inventory failed to combine %s item into %s item at position %s due to target stack cannot stack"),
+	*GetOwner()->GetName(),*OriginatingStack.Item.DisplayName.ToString(),*TargetStack.Item.DisplayName.ToString(),
+	*TargetStack.StartPosition.GetPositionAsString())
+		return false;
+	}
+
+	//Ensure target stack not maxed out
+	if(TargetStack.Item.ItemQuantity == TargetStack.Item.MaxStackQuantity)
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("%s inventory failed to combine %s item into %s item at position %s due to target stack at max"),
+			*GetOwner()->GetName(),*OriginatingStack.Item.DisplayName.ToString(),*TargetStack.Item.DisplayName.ToString(),
+			*TargetStack.StartPosition.GetPositionAsString())
+		return false;
+	}
+
+	return true;
+	
+}
+
 bool UInventoryComponent::IsItemInInventory(const FItemData Item)
 {
 	for (int i = 0; i < InventoryItems.Num(); ++i)
@@ -782,6 +879,11 @@ bool UInventoryComponent::IsItemInInventory(const FItemData Item, FInventoryItem
 	}
 
 	return false;
+}
+
+bool UInventoryComponent::IsInventoryItemInInventory(const FInventoryItemData InventoryItemData) const
+{
+	return InventoryItems.Contains(InventoryItemData);
 }
 
 bool UInventoryComponent::AutoAddItemNewStack(FItemData Item)
@@ -1251,6 +1353,16 @@ void UInventoryComponent::Server_TransferItemToPosition_Implementation(UInventor
 	TransferItemToPosition(TargetInventory,TargetPosition,TargetItem,bRotateItem);
 }
 
+bool UInventoryComponent::Server_CombineStackSameInventory_Validate(FInventoryItemData OriginatingStack,
+	FInventoryItemData TargetStack)
+{
+	return  true;
+}
 
+void UInventoryComponent::Server_CombineStackSameInventory_Implementation(FInventoryItemData OriginatingStack,
+	FInventoryItemData TargetStack)
+{
+	CombineStacks_SameInventory(OriginatingStack,TargetStack);
+}
 
 

@@ -89,4 +89,15 @@ protected:
 	 */
 	UFUNCTION(BlueprintCallable,Category="Inventory")
 	void SplitItem(FInventoryItemData TargetItemData, int32 NewStackQuantity) const;
+
+	/**
+	 * @brief Combines the originating stack into the target stack.  Will remove the originating stack if fully combined
+	 * into the target stack or will update the originating stack if partially combined.  Only works for combining stacks
+	 * of the same inventory
+	 * @param OriginatingStack stack that is instigating the combining action 
+	 * @param TargetStack stack that will receive the originating stack 
+	 */
+	UFUNCTION(BlueprintCallable,Category="Inventory")
+	bool CombineStacks_SameInventory(FInventoryItemData OriginatingStack, FInventoryItemData TargetStack);
+	
 };
