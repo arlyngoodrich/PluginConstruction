@@ -18,8 +18,14 @@ UCraftingComponent::UCraftingComponent()
 
 void UCraftingComponent::Debug_AddEligibleRecipe(const FCraftingRecipe NewRecipe)
 {
-	EligibleCraftingRecipes.Add(NewRecipe);
+	if(CanCraftRecipe(NewRecipe))
+	{
+		EligibleCraftingRecipes.Add(NewRecipe);
+	}
 }
+
+int32 UCraftingComponent::GetNumValidRecipes() const {return EligibleCraftingRecipes.Num();}
+
 
 void UCraftingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifetimeProps) const
 {

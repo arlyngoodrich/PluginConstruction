@@ -27,6 +27,11 @@ public:
 	 */
 	void Debug_AddEligibleRecipe(FCraftingRecipe NewRecipe);
 
+	/**
+	 * @return Number of recipes in eligible recipe array
+	 */
+	int32 GetNumValidRecipes() const;
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
