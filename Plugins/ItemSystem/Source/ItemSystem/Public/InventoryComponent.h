@@ -60,11 +60,18 @@ public:
 	TArray<FInventorySlot> GetInventorySlots() const;
 	
 	/**
-	 * @brief Returns the quantity of items per class
-	 * @param ItemClass Subclass of item to find quantity of
+	 * @brief Returns the quantity of items per exact class
+	 * @param ItemClass class of item to find quantity of
 	 * @return Summation of all item stacks that match the item class
 	 */
 	int32 GetTotalCountOfItemClass(TSubclassOf<AItemBase> ItemClass);
+
+	/**
+	 * @brief Returns the quantity of items of a class type and sub types
+	 * @param ItemClass class of item to find quantity of
+	 * @return Summation of all item stacks that match the item class
+	 */
+	int32 GetTotalCountOfItemSubClass(TSubclassOf<AItemBase> ItemClass);
 	
 
 	/**

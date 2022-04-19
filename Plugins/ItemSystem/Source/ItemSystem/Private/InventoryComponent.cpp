@@ -35,7 +35,24 @@ int32 UInventoryComponent::GetTotalCountOfItemClass(const TSubclassOf<AItemBase>
 	for (int i = 0; i < InventoryItems.Num(); ++i)
 	{
 		const FItemData  TargetItem = InventoryItems[i].Item;
+
 		if(TargetItem.InWorldClass->StaticClass() == ItemClass->StaticClass())
+		{
+			ItemQty += TargetItem.ItemQuantity;
+		}
+	}
+
+	return ItemQty;
+}
+
+int32 UInventoryComponent::GetTotalCountOfItemSubClass(TSubclassOf<AItemBase> ItemClass)
+{
+	int32 ItemQty = 0;
+	for (int i = 0; i < InventoryItems.Num(); ++i)
+	{
+		const FItemData  TargetItem = InventoryItems[i].Item;
+
+		if(ItemClass->IsChildOf(TargetItem.InWorldClass)
 		{
 			ItemQty += TargetItem.ItemQuantity;
 		}
