@@ -5,7 +5,6 @@
 
 #include "ItemBase.h"
 #include "ItemSystem.h"
-#include "BehaviorTree/BehaviorTreeTypes.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
@@ -36,7 +35,24 @@ int32 UInventoryComponent::GetTotalCountOfItemClass(const TSubclassOf<AItemBase>
 	for (int i = 0; i < InventoryItems.Num(); ++i)
 	{
 		const FItemData  TargetItem = InventoryItems[i].Item;
+
 		if(TargetItem.InWorldClass->StaticClass() == ItemClass->StaticClass())
+		{
+			ItemQty += TargetItem.ItemQuantity;
+		}
+	}
+
+	return ItemQty;
+}
+
+int32 UInventoryComponent::GetTotalCountOfItemSubClass(const TSubclassOf<AItemBase> ItemClass)
+{
+	int32 ItemQty = 0;
+	for (int i = 0; i < InventoryItems.Num(); ++i)
+	{
+		const FItemData  TargetItem = InventoryItems[i].Item;
+
+		if(ItemClass->IsChildOf(TargetItem.InWorldClass) || ItemClass == TargetItem.InWorldClass)
 		{
 			ItemQty += TargetItem.ItemQuantity;
 		}
@@ -479,8 +495,8 @@ bool UInventoryComponent::ReduceQuantityOfItemByStaticClass(const TSubclassOf<AI
 	}
 
 	
-	//Cycle through all items in the inventory
-	for (int i = 0; i < InventoryItems.Num(); ++i)
+	//Cycle through all items in the inventory so if an item is removed, it doesn't mess up the order
+	for (int i = InventoryItems.Num() - 1; i >= 0; --i)
 	{
 		const FInventoryItemData TargetInventoryItemData = InventoryItems[i];
 
@@ -508,6 +524,43 @@ bool UInventoryComponent::ReduceQuantityOfItemByStaticClass(const TSubclassOf<AI
 	return (OutAmountNotRemoved > 0);
 }
 
+bool UInventoryComponent::ReduceQuantityOfItemByClassSubType(TSubclassOf<AItemBase> ItemClass, int32 QuantityToRemove,
+	int32& OutAmountNotRemoved)
+{
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+	
+	//Cycle through all items in the inventory backwards so if an item is fully removed, it doesn't mess up the order
+	for (int i = InventoryItems.Num() - 1; i >= 0; --i)
+	{
+		const FInventoryItemData TargetInventoryItemData = InventoryItems[i];
+
+		//Check to see if the class matches
+		if(ItemClass->IsChildOf(TargetInventoryItemData.Item.InWorldClass) || ItemClass == TargetInventoryItemData.Item.InWorldClass)
+		{
+			
+			//If it does, attempt to remove items
+			if(ReduceQuantityOfInventoryItem(TargetInventoryItemData,QuantityToRemove,OutAmountNotRemoved))
+			{
+								
+				if(OutAmountNotRemoved == 0)
+				{
+					return true;
+				}
+				else
+				{
+					QuantityToRemove = OutAmountNotRemoved;
+				}
+			}
+		}
+	}
+
+	// If at least some amount was removed, then return true
+	//Return false if nothing was removed
+	return (OutAmountNotRemoved > 0);
+}
 
 
 bool UInventoryComponent::ReduceQuantityOfInventoryItem(const FInventoryItemData TargetInventoryItem,

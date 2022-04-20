@@ -60,11 +60,18 @@ public:
 	TArray<FInventorySlot> GetInventorySlots() const;
 	
 	/**
-	 * @brief Returns the quantity of items per class
-	 * @param ItemClass Subclass of item to find quantity of
+	 * @brief Returns the quantity of items per exact class
+	 * @param ItemClass class of item to find quantity of
 	 * @return Summation of all item stacks that match the item class
 	 */
 	int32 GetTotalCountOfItemClass(TSubclassOf<AItemBase> ItemClass);
+
+	/**
+	 * @brief Returns the quantity of items of a class type and sub types
+	 * @param ItemClass class of item to find quantity of
+	 * @return Summation of all item stacks that match the item class
+	 */
+	int32 GetTotalCountOfItemSubClass(TSubclassOf<AItemBase> ItemClass);
 	
 
 	/**
@@ -158,12 +165,23 @@ public:
 	 * @param ItemClass Item class targeted for quantity removal
 	 * @param QuantityToRemove Amount of item that should be removed
 	 * @param OutAmountNotRemoved Quantity requested removed minus amount actually removed
-	 * @return Will return false if a matching item class could not be found in the inventory
+	 * @return Will return false if not authority or a matching item class could not be found in the inventory
 	 */
 	bool ReduceQuantityOfItemByStaticClass(TSubclassOf<AItemBase> ItemClass, int32 QuantityToRemove,
 	                                       int32& OutAmountNotRemoved);
 	
 
+	/**
+	* @brief Cycles through items in inventory that matches the item's class or sub type and will remove as much of the
+	* quantity to remove as possible.
+	 * @param ItemClass Item class targeted for quantity removal
+	 * @param QuantityToRemove Amount of item that should be removed
+	 * @param OutAmountNotRemoved Quantity requested removed minus amount actually removed
+	 * @return Will return false if not authority or a matching item class could not be found in the inventory
+	 */
+	bool ReduceQuantityOfItemByClassSubType(TSubclassOf<AItemBase> ItemClass, int32 QuantityToRemove,
+										   int32& OutAmountNotRemoved);
+	
 	/**
 	 * @brief Checks for Items by GUID and Position and reduces it's item quantity. Will fully remove item if the removal amount
 	 * is greater than or equal to the current amount.  Will return the amount that was not removed.

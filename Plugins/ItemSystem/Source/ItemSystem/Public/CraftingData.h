@@ -3,12 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ItemBase.h"
 #include "Engine/DataTable.h"
 #include "CraftingData.generated.h"
 
 class AItemBase;
 class UCraftingComponent;
 
+/**
+ * @brief Data Struct for standardized crafting recipe inputs and outputs
+ */
 USTRUCT(BlueprintType)
 struct FRecipeComponent 
 {
@@ -26,8 +30,34 @@ struct FRecipeComponent
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Crafting Recipe")
 	int32 Quantity;
 
+	/**
+	 * @brief Default Constructor for RecipeComponent
+	 */
+	FRecipeComponent()
+	{
+		ComponentClass = nullptr;
+		Quantity = 0;
+	}
+
+	/**
+	 * @brief Valid Constructor for crafting recipe
+	 */
+	FRecipeComponent(TSubclassOf<AItemBase> const SetComponentClass,int32 const SetQuantity)
+	{
+		ComponentClass = SetComponentClass;
+		Quantity = SetQuantity;
+	}
+
+	bool operator==(const FRecipeComponent& RecipeComponent) const
+	{
+		return (ComponentClass == RecipeComponent.ComponentClass);
+	}
+
 };
 
+/**
+ * @brief Data struct for encapsulating crafting recipes.  Used by crafting components to create new items.  
+ */
 USTRUCT(BlueprintType)
 struct FCraftingRecipe : public FTableRowBase
 {
@@ -56,5 +86,30 @@ struct FCraftingRecipe : public FTableRowBase
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Crafting Recipe")
 	TArray<TSubclassOf<UCraftingComponent>> EligibleCraftingComponentTypes;
+
+	/**
+	 * @brief Default Constructor for Crafting Recipe
+	 */
+	FCraftingRecipe()
+	{
+		RecipeName = FName();
+	}
+
+	/**
+	 * @brief Valid Constructor for crafting Recipe 
+	 */
+	FCraftingRecipe(const FName SetRecipeName,const TArray<FRecipeComponent> SetRecipeInputs,const TArray<FRecipeComponent> SetRecipeOutputs,
+	                const TArray<TSubclassOf<UCraftingComponent>> SetEligibleCraftingComponentTypes)
+	{
+		RecipeName = SetRecipeName;
+		RecipeInputs = SetRecipeInputs;
+		RecipeOutputs = SetRecipeOutputs;
+		EligibleCraftingComponentTypes = SetEligibleCraftingComponentTypes;
+	}
+
+	bool operator==(const FCraftingRecipe& Recipe) const
+	{
+		return (RecipeName == Recipe.RecipeName);
+	}
 
 };
