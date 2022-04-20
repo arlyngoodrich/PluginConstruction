@@ -123,7 +123,7 @@ bool UCraftingComponent::CraftRecipe(FCraftingRecipe Recipe)
 	}
 
 	//Make sure there are inventories to use for crafting
-	const TArray<UInventoryComponent*> InventoryComponents;
+	TArray<UInventoryComponent*> InventoryComponents;
 	if(GetInventories(InventoryComponents) == false)
 	{
 		 return false;
@@ -138,10 +138,19 @@ bool UCraftingComponent::CraftRecipe(FCraftingRecipe Recipe)
 		ConsumeInputChecks.Add(ConsumeInputCheck);
 	}
 
+	if(ConsumeInputChecks.Contains(false))
+	{
+		return false;
+	}
 	
+	const TArray<FRecipeComponent> Outputs = Recipe.RecipeOutputs;
+	for (int i = 0; i < Outputs.Num(); ++i)
+	{
+		DeliverRecipeOutput(Outputs[i],InventoryComponents);
+	}
+
+	return true;
 	
-	
-	return false;
 }
 
 bool UCraftingComponent::CraftRecipeChecks(const FCraftingRecipe Recipe) const
@@ -156,7 +165,7 @@ bool UCraftingComponent::CraftRecipeChecks(const FCraftingRecipe Recipe) const
 	}
 
 	//Get Eligible Inventory Components
-	const TArray<UInventoryComponent*> InventoryComponents;
+	TArray<UInventoryComponent*> InventoryComponents;
 	if(GetInventories(InventoryComponents) == false)
 	{
 		UE_LOG(LogItemSystem,Log,TEXT("%s attempted to craft %s recipe but there are no inventories"),
@@ -192,7 +201,9 @@ bool UCraftingComponent::InputComponentCheck(const FRecipeComponent Component,TA
 	{
 		UInventoryComponent* TargetInventory = InventoryComponents[i];
 		Quantity += TargetInventory->GetTotalCountOfItemSubClass(Component.ComponentClass);
+		UE_LOG(LogItemSystem,Log,TEXT("Total Input = %d"),Quantity)
 	}
+
 
 	return Quantity >= Component.Quantity;
 }
@@ -219,7 +230,7 @@ bool UCraftingComponent::ConsumeComponentInput(const FRecipeComponent RecipeComp
 		                                                             QtyRemainingToConsume);
 		//Set new Qty to consume to Qty remaining to consume 
 		QtyToConsume = QtyRemainingToConsume;
-
+	
 		//Fully consumed input
 		if(QtyToConsume == 0)
 		{
@@ -273,11 +284,11 @@ void UCraftingComponent::DeliverRecipeOutput(const FRecipeComponent RecipeOutput
 	
 }
 
-bool UCraftingComponent::GetInventories(TArray<UInventoryComponent*> OutInventoryComponents) const
+bool UCraftingComponent::GetInventories(TArray<UInventoryComponent*>& OutInventoryComponents) const
 {
 	const AActor* Owner = GetOwner();
 	Owner->GetComponents<UInventoryComponent>(OutInventoryComponents);
-
+	
 	return (OutInventoryComponents.Num() > 0 );
 }
 

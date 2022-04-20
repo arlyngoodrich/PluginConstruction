@@ -32,6 +32,13 @@ public:
 	 */
 	int32 GetNumValidRecipes() const;
 
+	/**
+	 * @brief Uses inventories attached to owning actor to craft a recipe
+	 * @param Recipe Recipe to craft
+	 * @return Returns true if recipe was crafted, returns false if not
+	 */
+	bool CraftRecipe(FCraftingRecipe Recipe);
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -67,14 +74,6 @@ protected:
 	 * @return True if eligible, false if not
 	 */
 	bool IsComponentEligibleToCraftRecipe(FCraftingRecipe RecipeToCheck) const;
-
-
-	/**
-	 * @brief Uses inventories attached to owning actor to craft a recipe
-	 * @param Recipe Recipe to craft
-	 * @return Returns true if recipe was crafted, returns false if not
-	 */
-	bool CraftRecipe(FCraftingRecipe Recipe);
 
 	/**
 	 * @brief Performs checks to see if the recipe can be crafted
@@ -113,7 +112,7 @@ protected:
 	 * @param OutInventoryComponents inventory pointers
 	 * @return True if inventories found, false if not
 	 */
-	bool GetInventories(TArray<UInventoryComponent*> OutInventoryComponents) const;
+	bool GetInventories(TArray<UInventoryComponent*>& OutInventoryComponents) const;
 };
 
 

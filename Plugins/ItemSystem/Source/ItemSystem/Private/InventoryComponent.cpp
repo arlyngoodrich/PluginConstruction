@@ -52,7 +52,7 @@ int32 UInventoryComponent::GetTotalCountOfItemSubClass(const TSubclassOf<AItemBa
 	{
 		const FItemData  TargetItem = InventoryItems[i].Item;
 
-		if(ItemClass->IsChildOf(TargetItem.InWorldClass))
+		if(ItemClass->IsChildOf(TargetItem.InWorldClass) || ItemClass == TargetItem.InWorldClass)
 		{
 			ItemQty += TargetItem.ItemQuantity;
 		}
@@ -495,8 +495,8 @@ bool UInventoryComponent::ReduceQuantityOfItemByStaticClass(const TSubclassOf<AI
 	}
 
 	
-	//Cycle through all items in the inventory
-	for (int i = 0; i < InventoryItems.Num(); ++i)
+	//Cycle through all items in the inventory so if an item is removed, it doesn't mess up the order
+	for (int i = InventoryItems.Num() - 1; i >= 0; --i)
 	{
 		const FInventoryItemData TargetInventoryItemData = InventoryItems[i];
 
@@ -531,20 +531,20 @@ bool UInventoryComponent::ReduceQuantityOfItemByClassSubType(TSubclassOf<AItemBa
 	{
 		return false;
 	}
-
 	
-	//Cycle through all items in the inventory
-	for (int i = 0; i < InventoryItems.Num(); ++i)
+	//Cycle through all items in the inventory backwards so if an item is fully removed, it doesn't mess up the order
+	for (int i = InventoryItems.Num() - 1; i >= 0; --i)
 	{
 		const FInventoryItemData TargetInventoryItemData = InventoryItems[i];
 
 		//Check to see if the class matches
-		if(ItemClass->IsChildOf(TargetInventoryItemData.Item.InWorldClass))
+		if(ItemClass->IsChildOf(TargetInventoryItemData.Item.InWorldClass) || ItemClass == TargetInventoryItemData.Item.InWorldClass)
 		{
 			
 			//If it does, attempt to remove items
 			if(ReduceQuantityOfInventoryItem(TargetInventoryItemData,QuantityToRemove,OutAmountNotRemoved))
 			{
+								
 				if(OutAmountNotRemoved == 0)
 				{
 					return true;
