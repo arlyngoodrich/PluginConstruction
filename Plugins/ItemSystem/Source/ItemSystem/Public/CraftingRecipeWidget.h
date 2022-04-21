@@ -19,10 +19,14 @@ class ITEMSYSTEM_API UCraftingRecipeWidget : public UCustomUserWidget
 
 public:
 
-	UPROPERTY(BlueprintReadOnly, Category="Crafting Data")
+	UPROPERTY(BlueprintReadOnly, Category="Crafting")
 	FCraftingRecipe MyCraftingRecipe;
 
-	UPROPERTY(BlueprintReadOnly, Category="Crafting Data")
+	UPROPERTY(BlueprintReadOnly, Category="Crafting")
 	UCraftingComponent* MyCraftingComponent;
+
+	UFUNCTION(BlueprintCallable,Category="Crafting")
+	void SetReferences(FCraftingRecipe SetMyCraftingRecipe, UCraftingComponent* SetMyCraftingComponent,
+	                   APlayerController* OwningPlayer);
 	
 };

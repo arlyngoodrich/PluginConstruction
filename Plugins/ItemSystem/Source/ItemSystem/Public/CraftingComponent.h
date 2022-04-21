@@ -39,6 +39,12 @@ public:
 	 */
 	bool CraftRecipe(FCraftingRecipe Recipe);
 
+	/**
+	 * @brief Gets Crafting Components' eligible crafting recipes
+	 */
+	UFUNCTION(BlueprintCallable,Category="Crafting")
+	TArray<FCraftingRecipe> GetEligibleCraftingRecipes();
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

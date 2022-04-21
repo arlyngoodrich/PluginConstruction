@@ -3,3 +3,10 @@
 
 #include "CraftingRecipeWidget.h"
 
+void UCraftingRecipeWidget::SetReferences(FCraftingRecipe SetMyCraftingRecipe,
+	UCraftingComponent* SetMyCraftingComponent, APlayerController* OwningPlayer)
+{
+	MyCraftingRecipe = SetMyCraftingRecipe;
+	MyCraftingComponent = SetMyCraftingComponent;
+	SetOwningPlayer(OwningPlayer);
+}

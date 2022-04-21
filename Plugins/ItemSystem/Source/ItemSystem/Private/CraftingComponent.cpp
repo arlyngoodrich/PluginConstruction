@@ -150,6 +150,8 @@ bool UCraftingComponent::CraftRecipe(FCraftingRecipe Recipe)
 	
 }
 
+TArray<FCraftingRecipe> UCraftingComponent::GetEligibleCraftingRecipes() {return EligibleCraftingRecipes;}
+
 bool UCraftingComponent::CraftRecipeChecks(const FCraftingRecipe Recipe) const
 {
 
