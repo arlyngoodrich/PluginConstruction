@@ -37,6 +37,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Crafting")
 	TSubclassOf<UCraftingRecipeWidget> CraftingRecipeWidgetClass;
 
+	UFUNCTION(BlueprintCallable,Category="Crafting")
+	void SetReferences(UCraftingComponent* SetMyCraftingComponent,APlayerController* OwningPlayer);
+
 protected:
 
 	/**

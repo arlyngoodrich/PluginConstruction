@@ -12,6 +12,12 @@ UCraftingWidget::UCraftingWidget()
 	CraftingRecipeWidgetClass = UCraftingRecipeWidget::StaticClass();
 }
 
+void UCraftingWidget::SetReferences(UCraftingComponent* SetMyCraftingComponent, APlayerController* OwningPlayer)
+{
+	MyCraftingComponent = SetMyCraftingComponent;
+	SetOwningPlayer(OwningPlayer);
+}
+
 void UCraftingWidget::InitializeRecipes()
 {
 	if(MyCraftingComponent == nullptr)
