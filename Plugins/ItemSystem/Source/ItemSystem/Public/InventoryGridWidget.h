@@ -74,11 +74,6 @@ public:
 	UFUNCTION(BlueprintCallable,Category = "Inventory")
 	void RequestTransfer(FInventoryItemData TargetItem) const;
 
-	/**
-	 * @brief Calls update Slots and Items
-	 */
-	UFUNCTION(BlueprintCallable,Category="Inventory")
-	void RefreshGrid();
 	
 protected:
 	
