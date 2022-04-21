@@ -102,6 +102,7 @@ void UInventoryGridWidget::SetReferences(UInventoryComponent* SetOwningInventory
 {
 	OwningInventoryComponent = SetOwningInventoryComponent;
 	SetOwningPlayer(OwningPlayer);
+	InitializeGrid();
 }
 
 void UInventoryGridWidget::RefreshGrid()
@@ -124,8 +125,12 @@ void UInventoryGridWidget::NativeDestruct()
 	ClearItemWidgets();
 	SlotWidgets.Empty();
 
-	OwningInventoryComponent->OnInventorySlotUpdate.RemoveDynamic(this,&UInventoryGridWidget::OnInventorySlotUpdate);
-	OwningInventoryComponent->OnInventoryUpdate.RemoveDynamic(this,&UInventoryGridWidget::OnInventoryItemUpdates);
+	if(OwningInventoryComponent)
+	{
+		OwningInventoryComponent->OnInventorySlotUpdate.RemoveDynamic(this,&UInventoryGridWidget::OnInventorySlotUpdate);
+		OwningInventoryComponent->OnInventoryUpdate.RemoveDynamic(this,&UInventoryGridWidget::OnInventoryItemUpdates);
+	}
+
 	
 }
 

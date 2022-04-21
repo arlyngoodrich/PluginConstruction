@@ -24,5 +24,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite,Category="Item Management",meta = (ExposeOnSpawn))
 	UCraftingComponent* PlayerCraftingComponent;
+
+	
 	
 };
