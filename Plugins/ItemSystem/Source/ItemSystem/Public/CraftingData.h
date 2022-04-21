@@ -7,7 +7,6 @@
 #include "Engine/DataTable.h"
 #include "CraftingData.generated.h"
 
-class AItemBase;
 class UCraftingComponent;
 
 /**
@@ -46,6 +45,20 @@ struct FRecipeComponent
 	{
 		ComponentClass = SetComponentClass;
 		Quantity = SetQuantity;
+	}
+
+	static FItemData ConvertComponentToItemData(const FRecipeComponent Component)
+	{
+		{
+			if(const AItemBase* ItemBase = Cast<AItemBase>(Component.ComponentClass->GetDefaultObject()))
+			{
+				return ItemBase->GetItemData();
+			}
+			else
+			{
+				return FItemData();
+			}
+		}
 	}
 
 	bool operator==(const FRecipeComponent& RecipeComponent) const
@@ -119,4 +132,7 @@ struct FCraftingRecipe : public FTableRowBase
 		return (RecipeName == Recipe.RecipeName);
 	}
 
+
+
 };
+

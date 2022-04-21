@@ -250,10 +250,9 @@ bool UCraftingComponent::ConsumeComponentInput(const FRecipeComponent RecipeComp
 void UCraftingComponent::DeliverRecipeOutput(const FRecipeComponent RecipeOutput,
                                              TArray<UInventoryComponent*> InventoryComponents)
 {
-	const AItemBase* DefaultItem = RecipeOutput.ComponentClass.GetDefaultObject();
 
 	//Create Item Data from Item Class Defaults
-	FItemData ItemData = DefaultItem->GetItemData();
+	FItemData ItemData = FRecipeComponent::ConvertComponentToItemData(RecipeOutput);
 	ItemData.ItemGuid = FGuid::NewGuid();
 	ItemData.InWorldClass = RecipeOutput.ComponentClass;
 	ItemData.bIsValid = true;

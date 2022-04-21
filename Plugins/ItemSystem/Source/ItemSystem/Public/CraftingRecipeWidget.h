@@ -47,6 +47,6 @@ protected:
 	
 	void SetItemDataReferences(FCraftingRecipe CraftingRecipe);
 
-	FItemData ConvertItemBaseToItemData(TSubclassOf<AItemBase> ItemClass) const;
+	//FItemData ConvertItemBaseToItemData(TSubclassOf<AItemBase> ItemClass) const;
 	
 };

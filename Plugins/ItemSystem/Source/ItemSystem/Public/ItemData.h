@@ -288,6 +288,7 @@ struct FItemData
 		return PerItemWeight * ItemQuantity;
 	}
 
+
 	/**
 	 * @brief Checks to see if items are equal
 	 * @param InItem Item to check
