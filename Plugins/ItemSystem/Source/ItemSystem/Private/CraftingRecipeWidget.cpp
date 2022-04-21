@@ -2,9 +2,10 @@
 
 
 #include "CraftingRecipeWidget.h"
+#include "CraftingWidget.h"
 
 void UCraftingRecipeWidget::SetReferences(FCraftingRecipe SetMyCraftingRecipe,
-	UCraftingComponent* SetMyCraftingComponent,UCraftingWidget* SetMyCraftingWidget, APlayerController* OwningPlayer)
+                                          UCraftingComponent* SetMyCraftingComponent,UCraftingWidget* SetMyCraftingWidget, APlayerController* OwningPlayer)
 {
 	MyCraftingRecipe = SetMyCraftingRecipe;
 	MyCraftingComponent = SetMyCraftingComponent;
@@ -12,6 +13,16 @@ void UCraftingRecipeWidget::SetReferences(FCraftingRecipe SetMyCraftingRecipe,
 	SetOwningPlayer(OwningPlayer);
 
 	SetItemDataReferences(MyCraftingRecipe);
+}
+
+
+void UCraftingRecipeWidget::SetActiveRecipe()
+{
+	if(MyCraftingWidget)
+	{
+		MyCraftingWidget->SetActiveRecipe(MyCraftingRecipe);
+	}
+
 }
 
 void UCraftingRecipeWidget::SetItemDataReferences(const FCraftingRecipe CraftingRecipe)
@@ -36,4 +47,4 @@ FItemData UCraftingRecipeWidget::ConvertItemBaseToItemData(const TSubclassOf<AIt
 		return FItemData();
 	}
 	
-	}
+}

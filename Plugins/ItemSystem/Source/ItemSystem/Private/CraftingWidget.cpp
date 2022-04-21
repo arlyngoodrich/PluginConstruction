@@ -10,6 +10,7 @@
 UCraftingWidget::UCraftingWidget()
 {
 	CraftingRecipeWidgetClass = UCraftingRecipeWidget::StaticClass();
+	ActiveRecipe = FCraftingRecipe();
 }
 
 void UCraftingWidget::SetReferences(UCraftingComponent* SetMyCraftingComponent, APlayerController* OwningPlayer)
@@ -17,6 +18,7 @@ void UCraftingWidget::SetReferences(UCraftingComponent* SetMyCraftingComponent, 
 	MyCraftingComponent = SetMyCraftingComponent;
 	SetOwningPlayer(OwningPlayer);
 }
+
 
 void UCraftingWidget::InitializeRecipes()
 {
@@ -43,3 +45,10 @@ void UCraftingWidget::InitializeRecipes()
 	BP_SetupCraftingGrid();
 	
 }
+
+void UCraftingWidget::SetActiveRecipe(const FCraftingRecipe NewActiveRecipe)
+{
+	ActiveRecipe = NewActiveRecipe;
+	bHasActiveRecipe = true;
+}
+

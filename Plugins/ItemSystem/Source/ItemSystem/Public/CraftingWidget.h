@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CraftingData.h"
 #include "CustomUserWidget.h"
 #include "CraftingWidget.generated.h"
 
@@ -40,6 +41,8 @@ public:
 	UFUNCTION(BlueprintCallable,Category="Crafting")
 	void SetReferences(UCraftingComponent* SetMyCraftingComponent,APlayerController* OwningPlayer);
 
+	void SetActiveRecipe(FCraftingRecipe NewActiveRecipe);
+
 protected:
 
 	/**
@@ -60,6 +63,10 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent,Category="Crafting",DisplayName="Setup Crafting Grid")
 	void BP_SetupCraftingGrid();
 
-	
+	UPROPERTY(BlueprintReadOnly, Category="Crafting")
+	FCraftingRecipe ActiveRecipe;
+
+	UPROPERTY(BlueprintReadOnly, Category="Crafting")
+	bool bHasActiveRecipe = false;
 	
 };

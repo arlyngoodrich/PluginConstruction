@@ -88,11 +88,17 @@ struct FCraftingRecipe : public FTableRowBase
 	TArray<TSubclassOf<UCraftingComponent>> EligibleCraftingComponentTypes;
 
 	/**
+	 * @brief If Recipe is valid recipe
+	 */
+	bool bIsValid;
+
+	/**
 	 * @brief Default Constructor for Crafting Recipe
 	 */
 	FCraftingRecipe()
 	{
 		RecipeName = FName();
+		bIsValid = false;
 	}
 
 	/**
@@ -105,6 +111,7 @@ struct FCraftingRecipe : public FTableRowBase
 		RecipeInputs = SetRecipeInputs;
 		RecipeOutputs = SetRecipeOutputs;
 		EligibleCraftingComponentTypes = SetEligibleCraftingComponentTypes;
+		bIsValid = true;
 	}
 
 	bool operator==(const FCraftingRecipe& Recipe) const

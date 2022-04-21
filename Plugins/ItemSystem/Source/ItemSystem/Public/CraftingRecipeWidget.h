@@ -40,6 +40,10 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly,Category="Crafting")
 	TArray<FItemData> InputItemData;
+
+
+	UFUNCTION(BlueprintCallable,Category="Crafting")
+	void SetActiveRecipe();
 	
 	void SetItemDataReferences(FCraftingRecipe CraftingRecipe);
 
