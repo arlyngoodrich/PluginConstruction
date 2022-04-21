@@ -36,7 +36,7 @@ void UCraftingWidget::InitializeRecipes()
 		UCraftingRecipeWidget* NewRecipeWidget = Cast<UCraftingRecipeWidget>(
 			CreateWidget(GetOwningPlayer(), CraftingRecipeWidgetClass));
 
-		NewRecipeWidget->SetReferences(CraftingRecipes[i],MyCraftingComponent,GetOwningPlayer());
+		NewRecipeWidget->SetReferences(CraftingRecipes[i],MyCraftingComponent,this,GetOwningPlayer());
 		CraftingRecipeWidgets.Add(NewRecipeWidget);
 	}
 

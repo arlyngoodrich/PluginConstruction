@@ -8,6 +8,7 @@
 #include "CraftingRecipeWidget.generated.h"
 
 class UCraftingComponent;
+class UCraftingWidget;
 
 /**
  * 
@@ -24,10 +25,13 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category="Crafting")
 	UCraftingComponent* MyCraftingComponent;
+
+	UPROPERTY(BlueprintReadOnly,Category="Crafting")
+	UCraftingWidget* MyCraftingWidget;
 	
 	UFUNCTION(BlueprintCallable,Category="Crafting")
 	void SetReferences(FCraftingRecipe SetMyCraftingRecipe, UCraftingComponent* SetMyCraftingComponent,
-	                   APlayerController* OwningPlayer);
+	                   UCraftingWidget* SetMyCraftingWidget, APlayerController* OwningPlayer);
 
 protected:
 	
