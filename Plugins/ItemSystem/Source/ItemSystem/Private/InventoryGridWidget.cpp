@@ -98,6 +98,11 @@ void UInventoryGridWidget::RequestTransfer(const FInventoryItemData TargetItem) 
 	
 }
 
+void UInventoryGridWidget::SetReferences(UInventoryComponent* SetOwningInventoryComponent)
+{
+	OwningInventoryComponent = SetOwningInventoryComponent;
+}
+
 void UInventoryGridWidget::RefreshGrid()
 {
 	OnInventorySlotUpdate();
@@ -127,7 +132,12 @@ void UInventoryGridWidget::NativeDestruct()
 void UInventoryGridWidget::InitializeInventory()
 {
     
-    UE_LOG(LogItemSystem,Log,TEXT("Inventory Widget Initialized"))
+   if(OwningInventoryComponent==nullptr)
+   {
+		UE_LOG(LogItemSystem,Warning,TEXT("%s inventory grid widget attemped to initalize without an owning inventory"),
+			*GetOwningPlayer()->GetName())
+   		return;
+   }
 
 	InitializeGrid();
 	InitializeItems();
@@ -137,6 +147,8 @@ void UInventoryGridWidget::InitializeInventory()
 
 	BP_SetSlotWidgetsInGrid();
 	BP_SetItemWidgetsInGrid();
+
+	//UE_LOG(LogItemSystem,Log,TEXT("Inventory Widget Initialized"))
 }
 
 void UInventoryGridWidget::InitializeGrid()

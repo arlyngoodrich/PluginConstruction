@@ -48,6 +48,10 @@ public:
 	UPROPERTY(BlueprintReadOnly,Category="Inventory")
 	UInventoryComponent* OwningInventory;
 
+	UFUNCTION(BlueprintCallable,Category="Inventory")
+	void SetReferences(FInventoryItemData SetMyInventoryItemData, UInventoryGridWidget* SetOwningGridWidget,
+	                   UInventorySlotWidget* SetOwningSlot);
+
 	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
 
 	virtual void NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;

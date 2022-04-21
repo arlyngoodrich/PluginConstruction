@@ -7,6 +7,14 @@
 #include "InventoryGridWidget.h"
 #include "ItemSystem.h"
 
+void UInventoryItemWidget::SetReferences(const FInventoryItemData SetMyInventoryItemData,
+                                         UInventoryGridWidget* SetOwningGridWidget, UInventorySlotWidget* SetOwningSlot)
+{
+	MyInventoryItemData = SetMyInventoryItemData;
+	OwningGridWidget = SetOwningGridWidget;
+	OwningSlot = SetOwningSlot;
+}
+
 void UInventoryItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
                                                 UDragDropOperation*& OutOperation)
 {

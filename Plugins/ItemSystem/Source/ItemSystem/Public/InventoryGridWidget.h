@@ -74,6 +74,19 @@ public:
 	UFUNCTION(BlueprintCallable,Category = "Inventory")
 	void RequestTransfer(FInventoryItemData TargetItem) const;
 
+	/**
+	 * @brief When used as a component, parent widgets can call to set the references for this widget
+	 */
+	UFUNCTION(BlueprintCallable,Category="Inventory")
+	void SetReferences(UInventoryComponent* SetOwningInventoryComponent);
+
+	/**
+	 * @brief Refreshes slots and items in grid
+	 */
+	UFUNCTION(BlueprintCallable,Category = "Inventory")
+	void RefreshGrid();
+
+	
 	
 protected:
 	
