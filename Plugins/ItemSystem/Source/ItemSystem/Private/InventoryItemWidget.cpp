@@ -8,11 +8,14 @@
 #include "ItemSystem.h"
 
 void UInventoryItemWidget::SetReferences(const FInventoryItemData SetMyInventoryItemData,
-                                         UInventoryGridWidget* SetOwningGridWidget, UInventorySlotWidget* SetOwningSlot)
+                                         UInventoryGridWidget* SetOwningGridWidget, UInventorySlotWidget* SetOwningSlot,
+                                         UInventoryComponent* SetOwningInventory,APlayerController* OwningPlayer)
 {
 	MyInventoryItemData = SetMyInventoryItemData;
 	OwningGridWidget = SetOwningGridWidget;
 	OwningSlot = SetOwningSlot;
+	OwningInventory = SetOwningInventory;
+	SetOwningPlayer(OwningPlayer);
 }
 
 void UInventoryItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
@@ -105,8 +108,9 @@ void UInventoryItemWidget::SplitItem(const FInventoryItemData TargetItemData, co
 	}
 }
 
+// ReSharper disable once CppUE4BlueprintCallableFunctionMayBeConst
 bool UInventoryItemWidget::CombineStacks_SameInventory(FInventoryItemData const OriginatingStack,
-	FInventoryItemData const TargetStack)
+                                                       FInventoryItemData const TargetStack)
 {
 	if(OwningInventory == nullptr){return false;}
 

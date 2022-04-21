@@ -78,7 +78,7 @@ public:
 	 * @brief When used as a component, parent widgets can call to set the references for this widget
 	 */
 	UFUNCTION(BlueprintCallable,Category="Inventory")
-	void SetReferences(UInventoryComponent* SetOwningInventoryComponent);
+	void SetReferences(UInventoryComponent* SetOwningInventoryComponent,APlayerController* OwningPlayer);
 
 	/**
 	 * @brief Refreshes slots and items in grid

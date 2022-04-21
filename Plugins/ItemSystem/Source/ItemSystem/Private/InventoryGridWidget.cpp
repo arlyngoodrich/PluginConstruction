@@ -98,9 +98,10 @@ void UInventoryGridWidget::RequestTransfer(const FInventoryItemData TargetItem) 
 	
 }
 
-void UInventoryGridWidget::SetReferences(UInventoryComponent* SetOwningInventoryComponent)
+void UInventoryGridWidget::SetReferences(UInventoryComponent* SetOwningInventoryComponent, APlayerController* OwningPlayer)
 {
 	OwningInventoryComponent = SetOwningInventoryComponent;
+	SetOwningPlayer(OwningPlayer);
 }
 
 void UInventoryGridWidget::RefreshGrid()
@@ -172,10 +173,7 @@ void UInventoryGridWidget::InitializeGrid()
 
 		if(NewSlotWidget != nullptr)
 		{
-			NewSlotWidget->MyInventorySlot = InventorySlots[i];
-			NewSlotWidget->OwningGridWidget = this;
-			NewSlotWidget->OwningInventory = OwningInventoryComponent;
-			NewSlotWidget->SetOwningPlayer(GetOwningPlayer());
+			NewSlotWidget->SetReferences(InventorySlots[i],this,OwningInventoryComponent,GetOwningPlayer());
 			
 			UE_LOG(LogItemSystem,Verbose,TEXT("Inventoey Slot Added with Position: %s "),
 				*InventorySlots[i].Position.GetPositionAsString())
@@ -203,21 +201,16 @@ void UInventoryGridWidget::InitializeItems()
 		(CreateWidget(GetOwningPlayer(),ItemWidgetClass));
 		if(NewItemWidget != nullptr)
 		{
-			NewItemWidget->MyInventoryItemData = InventoryItemData[i];
-			NewItemWidget->OwningGridWidget = this;
-			NewItemWidget->OwningInventory = OwningInventoryComponent;
-			NewItemWidget->SetOwningPlayer(GetOwningPlayer());
-
-			UInventorySlotWidget* NewOwningSlot;
-			if(GetSlotWidgetFromPosition(InventoryItemData[i].StartPosition,NewOwningSlot))
-			{
-				NewItemWidget->OwningSlot = NewOwningSlot;
-			}
-			else
+		
+			UInventorySlotWidget* NewOwningSlot = nullptr;
+			if(GetSlotWidgetFromPosition(InventoryItemData[i].StartPosition,NewOwningSlot) == false)
 			{
 				UE_LOG(LogItemSystem,Error,TEXT("Could not add a owning slot to %s item in %s"),
 					*InventoryItemData[i].Item.DisplayName.ToString(),*GetName())
 			}
+
+			NewItemWidget->SetReferences(InventoryItemData[i],this,
+				NewOwningSlot,OwningInventoryComponent,GetOwningPlayer());
 
 			ItemWidgets.Add(NewItemWidget);
 
@@ -256,8 +249,7 @@ void UInventoryGridWidget::ClearItemWidgets()
 {
 	for (int i = 0; i < ItemWidgets.Num(); ++i)
 	{
-		UInventoryItemWidget* TargetWidget = ItemWidgets[i];
-		if(TargetWidget)
+		if(UInventoryItemWidget* TargetWidget = ItemWidgets[i])
 		{
 			TargetWidget->RemoveFromParent();
 		}
@@ -270,8 +262,7 @@ void UInventoryGridWidget::ClearSlotWidgets()
 {
 	for (int i = 0; i < SlotWidgets.Num(); ++i)
 	{
-		UInventorySlotWidget* TargetWidget = SlotWidgets[i];
-		if(TargetWidget)
+		if(UInventorySlotWidget* TargetWidget = SlotWidgets[i])
 		{
 			TargetWidget->RemoveFromParent();
 		}

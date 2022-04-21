@@ -7,6 +7,15 @@
 #include "InventoryGridWidget.h"
 
 
+void UInventorySlotWidget::SetReferences(const FInventorySlot SetMyInventorySlot, UInventoryGridWidget* SetOwningGridWidget,
+                                         UInventoryComponent* SetOwningInventory,APlayerController* OwningPlayer)
+{
+	MyInventorySlot = SetMyInventorySlot;
+	OwningGridWidget = SetOwningGridWidget;
+	OwningInventory = SetOwningInventory;
+	SetOwningPlayer(OwningPlayer);
+}
+
 void UInventorySlotWidget::OnSlotDraggedOver(FItemData DraggedOverItem, const bool bRotateItem)
 {
 	if(OwningGridWidget != nullptr)
