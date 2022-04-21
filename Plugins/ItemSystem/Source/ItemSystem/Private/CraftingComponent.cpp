@@ -143,12 +143,9 @@ bool UCraftingComponent::CraftRecipe(FCraftingRecipe Recipe)
 		return false;
 	}
 	
-	const TArray<FRecipeComponent> Outputs = Recipe.RecipeOutputs;
-	for (int i = 0; i < Outputs.Num(); ++i)
-	{
-		DeliverRecipeOutput(Outputs[i],InventoryComponents);
-	}
-
+	const FRecipeComponent Outputs = Recipe.RecipeOutputs;
+	DeliverRecipeOutput(Outputs,InventoryComponents);
+	
 	return true;
 	
 }

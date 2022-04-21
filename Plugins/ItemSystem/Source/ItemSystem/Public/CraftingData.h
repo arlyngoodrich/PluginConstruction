@@ -79,7 +79,7 @@ struct FCraftingRecipe : public FTableRowBase
 	 * @brief Array of items that are produced by the recipe 
 	 */	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Crafting Recipe")
-	TArray<FRecipeComponent> RecipeOutputs;
+	FRecipeComponent RecipeOutputs;
 
 	/**
 	 * @brief Array of Crafting Stations classes that can craft this recipe 
@@ -98,7 +98,7 @@ struct FCraftingRecipe : public FTableRowBase
 	/**
 	 * @brief Valid Constructor for crafting Recipe 
 	 */
-	FCraftingRecipe(const FName SetRecipeName,const TArray<FRecipeComponent> SetRecipeInputs,const TArray<FRecipeComponent> SetRecipeOutputs,
+	FCraftingRecipe(const FName SetRecipeName,const TArray<FRecipeComponent> SetRecipeInputs,const FRecipeComponent SetRecipeOutputs,
 	                const TArray<TSubclassOf<UCraftingComponent>> SetEligibleCraftingComponentTypes)
 	{
 		RecipeName = SetRecipeName;
