@@ -26,6 +26,13 @@ void UCraftingRecipeWidget::SetItemDataReferences(const FCraftingRecipe Crafting
 
 FItemData UCraftingRecipeWidget::ConvertItemBaseToItemData(const TSubclassOf<AItemBase> ItemClass) const
 {
-	const AItemBase* ItemBase = Cast<AItemBase>(ItemClass->GetDefaultObject());
-	return ItemBase->GetItemData();
-}
+	if(const AItemBase* ItemBase = Cast<AItemBase>(ItemClass->GetDefaultObject()))
+	{
+		return ItemBase->GetItemData();
+	}
+	else
+	{
+		return FItemData();
+	}
+	
+	}

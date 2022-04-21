@@ -42,7 +42,7 @@ public:
 	/**
 	 * @brief Gets Crafting Components' eligible crafting recipes
 	 */
-	UFUNCTION(BlueprintCallable,Category="Crafting")
+	UFUNCTION(BlueprintPure,Category="Crafting")
 	TArray<FCraftingRecipe> GetEligibleCraftingRecipes();
 
 protected:
@@ -69,6 +69,11 @@ protected:
 	 */
 	UFUNCTION(BlueprintNativeEvent,Category="Crafting")
 	void SpawnExcessItem(FItemData ItemData);
+
+	/**
+	 * @brief Set as true when Recipes are initialized
+	 */
+	bool bRecipesInitialized;
 	
 	/**
 	 * @brief Uses set Crafting Recipe Table reference to fill Eligible Crafting Recipe array
@@ -119,6 +124,7 @@ protected:
 	 * @return True if inventories found, false if not
 	 */
 	bool GetInventories(TArray<UInventoryComponent*>& OutInventoryComponents) const;
+	
 };
 
 

@@ -43,7 +43,6 @@ void UCraftingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& 
 void UCraftingComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
 	InitializeRecipes();
 	
 }
@@ -52,7 +51,6 @@ void UCraftingComponent::OnRegister()
 {
 
 	Super::OnRegister();
-	
 	InitializeRecipes();
 	
 }
@@ -68,6 +66,8 @@ void UCraftingComponent::InitializeRecipes()
 
 	//Only execute on authority
 	if(GetOwnerRole() != ROLE_Authority){return;}
+
+	if(bRecipesInitialized){return;}
 
 	//Make sure crafting data table pointer is valid
 	if(CraftingRecipeTable == nullptr)
@@ -90,6 +90,8 @@ void UCraftingComponent::InitializeRecipes()
 			EligibleCraftingRecipes.Add(TargetRecipe);
 		}
 	}
+
+	bRecipesInitialized = true;
 }
 
 bool UCraftingComponent::IsComponentEligibleToCraftRecipe(const FCraftingRecipe RecipeToCheck) const
