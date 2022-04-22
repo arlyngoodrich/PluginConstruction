@@ -154,6 +154,20 @@ bool UCraftingComponent::CraftRecipe(FCraftingRecipe Recipe)
 
 TArray<FCraftingRecipe> UCraftingComponent::GetEligibleCraftingRecipes() {return EligibleCraftingRecipes;}
 
+int32 UCraftingComponent::GetAvailableQtyOfItem(const FItemData ItemData) const
+{
+	int32 ItemQuantity = 0;
+	TArray<UInventoryComponent*> TargetInventories;
+	GetInventories(TargetInventories);
+
+	for (int i = 0; i < TargetInventories.Num(); ++i)
+	{
+		ItemQuantity += TargetInventories[i]->GetTotalCountOfItemSubClass(ItemData.InWorldClass);
+	}
+
+	return ItemQuantity;
+}
+
 bool UCraftingComponent::CraftRecipeChecks(const FCraftingRecipe Recipe) const
 {
 
@@ -204,8 +218,7 @@ bool UCraftingComponent::InputComponentCheck(const FRecipeComponent Component,TA
 		Quantity += TargetInventory->GetTotalCountOfItemSubClass(Component.ComponentClass);
 		UE_LOG(LogItemSystem,Log,TEXT("Total Input = %d"),Quantity)
 	}
-
-
+	
 	return Quantity >= Component.Quantity;
 }
 

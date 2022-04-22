@@ -19,10 +19,25 @@ class ITEMSYSTEM_API UCraftingRecipeComponentWidget : public UCustomUserWidget
 
 public:
 
-	UPROPERTY(BlueprintReadOnly,Category="Crafting Data")
+	UPROPERTY(BlueprintReadOnly,Category="Crafting")
 	FRecipeComponent MyRecipeComponent;
 
-	UPROPERTY(BlueprintReadOnly, Category="Crafting Data")
+	UPROPERTY(BlueprintReadOnly, Category="Crafting")
 	UCraftingComponent* MyCraftingComponent;
+
+	UFUNCTION(BlueprintCallable,Category="Crafting")
+	void SetReferences(FRecipeComponent SetMyRecipeComponent,UCraftingComponent* SetMyCraftingComponent,APlayerController* OwningPlayer);
+
+	UPROPERTY(BlueprintReadOnly,Category="Crafting")
+	FItemData ComponentItemData;
+
+	UPROPERTY(BlueprintReadOnly,Category="Crafting")
+	int32 ItemQtyInInventories;
 	
+	UPROPERTY(BlueprintReadOnly, Category="Crafting")
+	int32 ItemQtyNeeded;
+
+
+
+
 };

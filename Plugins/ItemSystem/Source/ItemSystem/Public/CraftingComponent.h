@@ -45,6 +45,14 @@ public:
 	UFUNCTION(BlueprintPure,Category="Crafting")
 	TArray<FCraftingRecipe> GetEligibleCraftingRecipes();
 
+	/**
+	 * @brief Checks attached inventories for 
+	 * @param ItemData 
+	 * @return 
+	 */
+	UFUNCTION(BlueprintCallable,Category="Crafting")
+	int32 GetAvailableQtyOfItem(FItemData ItemData) const;
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
