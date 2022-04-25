@@ -51,6 +51,9 @@ public:
 	UFUNCTION(BlueprintCallable,Category="Crafting")
 	void SetReferences(UCraftingComponent* SetMyCraftingComponent,APlayerController* OwningPlayer);
 
+	/**
+	 * @brief Updates Input widgets with the available quantity of their input from the parent crafting component
+	 */
 	UFUNCTION(BlueprintCallable,Category="Crafting")
 	void UpdateCraftingInputComponentQuantities();
 	
@@ -68,12 +71,22 @@ protected:
 	UPROPERTY(BlueprintReadOnly,Category="Crafting")
 	TArray<UCraftingRecipeWidget*> CraftingRecipeWidgets;
 
+	/**
+	 * @brief Pointers to the input widgets created when an active recipe is selected
+	 */
 	UPROPERTY(BlueprintReadOnly,Category="Crafting")
 	TArray<UCraftingRecipeComponentWidget*> RecipeInputWidgets;
 	
+	/**
+	 * @brief Active recipe that has been selected by the player in the UI
+	 */
 	UPROPERTY(BlueprintReadOnly, Category="Crafting")
 	FCraftingRecipe ActiveRecipe;
 
+	/**
+	 * @brief boolean for if an active recipe is selected.  Should mostly be true except when the menu is first opened
+	 * and before a recipe is selected. 
+	 */
 	UPROPERTY(BlueprintReadOnly, Category="Crafting")
 	bool bHasActiveRecipe = false;
 	
@@ -89,6 +102,9 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent,Category="Crafting",DisplayName="Setup Crafting Grid")
 	void BP_UpdateRecipeGrid();
 
+	/**
+	 * @brief Called after recipe inputs are refreshed to place the input widgets in the Recipe Details panel 
+	 */
 	UFUNCTION(BlueprintImplementableEvent,Category="Crafting",DisplayName="Setup Recipe Details")
 	void BP_UpdateActiveRecipeDetails();
 
@@ -98,6 +114,9 @@ protected:
 	 */
 	void RefreshRecipeWidgetReferences();
 
+	/**
+	 * @brief Empties crafting input widgets and creates new ones based on the current active recipe. 
+	 */
 	void RefreshRecipeInputWidgetReferences();
 	
 };
