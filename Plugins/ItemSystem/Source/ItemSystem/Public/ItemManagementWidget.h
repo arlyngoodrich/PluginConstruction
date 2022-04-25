@@ -19,9 +19,15 @@ class ITEMSYSTEM_API UItemManagementWidget : public UCustomUserWidget
 
 public:
 
+	/**
+	 * @brief Pointer to player inventories.  Should be set when widget is created.  
+	 */
 	UPROPERTY(BlueprintReadWrite,Category="Item Management",meta = (ExposeOnSpawn))
 	TArray<UInventoryComponent*> PlayerInventoryComponents;
 
+	/**
+	 * @brief Pointer to player crafting component.  Should be set when widget is created. 
+	 */
 	UPROPERTY(BlueprintReadWrite,Category="Item Management",meta = (ExposeOnSpawn))
 	UCraftingComponent* PlayerCraftingComponent;
 
