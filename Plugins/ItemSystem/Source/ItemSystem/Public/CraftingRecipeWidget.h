@@ -27,7 +27,7 @@ public:
 	FCraftingRecipe MyCraftingRecipe;
 
 	/**
-	 * @brief Pointer to the owning player's crafting component
+	 * @brief Pointer to the owning actor's crafting component
 	 */
 	UPROPERTY(BlueprintReadOnly, Category="Crafting")
 	UCraftingComponent* MyCraftingComponent;
