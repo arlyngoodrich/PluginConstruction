@@ -7,7 +7,7 @@
 #include "InteractionWidget.generated.h"
 
 /**
- * 
+ * @breif Native class for widget to be displayed when an object is in focus
  */
 UCLASS()
 class INTERACTIONSYSTEM_API UInteractionWidget : public UUserWidget
@@ -16,6 +16,9 @@ class INTERACTIONSYSTEM_API UInteractionWidget : public UUserWidget
 
 public:
 
+	/**
+	 * @brief Text for widget to display
+	 */
 	UPROPERTY(BlueprintReadOnly, Category="Interaction System")
 	FText InteractionText;
 	
