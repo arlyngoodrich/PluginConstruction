@@ -1347,11 +1347,14 @@ void UInventoryComponent::AddDebugItems()
 	
 	for (int i = 0; i < DebugItems.Num(); ++i)
 	{
-		FItemData DebugItem = DebugItems[i];
-		DebugItem.ItemGuid = FGuid::NewGuid();
-		AutoAddItem(DebugItem);
-		UE_LOG(LogItemSystem,Log,TEXT("%s added %s debug item"),
-			*GetOwner()->GetName(),*DebugItem.DisplayName.ToString())
+		if(const AItemBase* ItemBase = DebugItems[i].GetDefaultObject())
+		{
+			FItemData DebugItem = ItemBase->GetItemData();
+			DebugItem.ItemGuid = FGuid::NewGuid();
+			AutoAddItem(DebugItem);
+			UE_LOG(LogItemSystem,Log,TEXT("%s added %s debug item"),
+				*GetOwner()->GetName(),*DebugItem.DisplayName.ToString())
+		}
 	}
 }
 

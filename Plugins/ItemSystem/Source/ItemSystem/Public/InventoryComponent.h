@@ -519,7 +519,7 @@ protected:
 	 * @brief Array of debugging item data to be added at begin play
 	 */
 	UPROPERTY(EditDefaultsOnly,Category="Debugging", meta = (EditCondition = "bAddDebugItems"))
-	TArray<FItemData> DebugItems;
+	TArray<TSubclassOf<AItemBase>> DebugItems;
 
 	/**
 	 * @brief Function to add debugging items to inventory at begin play
