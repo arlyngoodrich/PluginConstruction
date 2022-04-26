@@ -248,9 +248,20 @@ public:
 	 * and drop operation. 
 	 * @param OriginatingStack Item stack instigating the combine operation
 	 * @param TargetStack  Item stack receiving the originating stack
-	 * @return True if OK to combine, false if not
+	 * @return True if OK to stack fully or partially, false if not
 	 */
 	bool CombineStacks_SameInventory_Checks(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack) const;
+
+
+	/**
+	* @brief Client friendly method that performs same checks as actual combining stacks method.  Helpful for UI drag
+	 * and drop operation.
+	 * @param OriginatingStack Item stack instigating the combine operation
+	 * @param TargetStack  Item stack receiving the originating stack
+	 * @param bOutWillFullyStack True if will fully stack into new item, false if not.  
+	 * @return True if OK to stack fully or partially, false if not
+	 */
+	bool CombineStacks_SameInventory_Checks(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack, bool& bOutWillFullyStack) const;
 	
 	/**
 	 * @brief Checks to see if Item is in Inventory.  Checks for matching Item GUIDs. Useful if position of item in

@@ -896,6 +896,21 @@ bool UInventoryComponent::CombineStacks_SameInventory_Checks(const FInventoryIte
 	
 }
 
+bool UInventoryComponent::CombineStacks_SameInventory_Checks(const FInventoryItemData OriginatingStack,
+                                                             const FInventoryItemData TargetStack, bool& bOutWillFullyStack) const
+{
+	if(CombineStacks_SameInventory_Checks(OriginatingStack,TargetStack))
+	{
+		bOutWillFullyStack = TargetStack.Item.MaxStackQuantity  >= OriginatingStack.Item.ItemQuantity + TargetStack.Item.ItemQuantity;
+		return true;
+	}
+	else
+	{
+		bOutWillFullyStack = false;
+		return false;
+	}
+}
+
 bool UInventoryComponent::IsItemInInventory(const FItemData Item)
 {
 	for (int i = 0; i < InventoryItems.Num(); ++i)

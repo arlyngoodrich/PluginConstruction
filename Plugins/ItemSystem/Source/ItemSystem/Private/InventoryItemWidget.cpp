@@ -114,19 +114,20 @@ bool UInventoryItemWidget::CombineStacks_SameInventory(FInventoryItemData const 
 {
 	if(OwningInventory == nullptr){return false;}
 
-	if(OwningInventory->CombineStacks_SameInventory_Checks(OriginatingStack,TargetStack) == false)
+	bool bWillFullyStack;
+	if(OwningInventory->CombineStacks_SameInventory_Checks(OriginatingStack,TargetStack,bWillFullyStack) == false)
 	{
 		return false;
 	}
-	
-	OwningInventory->CombineStacks_SameInventory(OriginatingStack,TargetStack);
 
-	if(OwningGridWidget)
+	//If not fully stack, cancel drag so item widget stays in place.  Keeps UI from flickering while waiting for update
+	if(OwningGridWidget && bWillFullyStack == false)
 	{
 		OwningGridWidget->OnItemDragCancel(this);
 	}
 	
+	OwningInventory->CombineStacks_SameInventory(OriginatingStack,TargetStack);
+	
 	return true;
-
 	
 }
