@@ -27,7 +27,7 @@ void UInventorySlotWidget::OnSlotDraggedOver(FItemData DraggedOverItem, const bo
 			DraggedOverItem.Rotate();
 		}
 		
-		OwningGridWidget->SetSlotsOnDragOver(MyInventorySlot.Position,DraggedOverItem);
+		OwningGridWidget->SetSlotsOnDragOver(MyInventorySlot.Position,DraggedOverItem,bRotateItem);
 	}
 }
 

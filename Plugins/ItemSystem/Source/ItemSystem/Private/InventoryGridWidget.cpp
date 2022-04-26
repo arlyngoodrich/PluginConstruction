@@ -15,7 +15,7 @@ UInventoryGridWidget::UInventoryGridWidget()
 	ItemWidgetClass = UInventoryItemWidget::StaticClass();
 }
 
-void UInventoryGridWidget::SetSlotsOnDragOver(const FInventory2D DragPosition, const FItemData DraggedItem)
+void UInventoryGridWidget::SetSlotsOnDragOver(const FInventory2D DragPosition, const FItemData DraggedItem, const bool bItemRotated)
 {
 
 	FInventoryItemData DraggedInventoryItemData;
@@ -24,8 +24,7 @@ void UInventoryGridWidget::SetSlotsOnDragOver(const FInventory2D DragPosition, c
 	//Check to see if item is from owning inventory
 	if(OwningInventoryComponent->IsItemInInventory(DraggedItem,DraggedInventoryItemData))
 	{
-		bOKToPlace = OwningInventoryComponent->CheckItemMove(DraggedInventoryItemData,DragPosition,DraggedItem.bIsRotated);
-		
+		bOKToPlace = OwningInventoryComponent->CheckItemMove(DraggedInventoryItemData,DragPosition,bItemRotated);
 	}
 	else
 	{
@@ -244,8 +243,8 @@ void UInventoryGridWidget::OnInventorySlotUpdate()
 {
 	TArray<FInventorySlot> NewSlotData = OwningInventoryComponent->GetInventorySlots();
 
-	UE_LOG(LogItemSystem,Log,TEXT("Update Inventory Slots called for %s"),
-		*OwningInventoryComponent->GetOwner()->GetName())
+	//UE_LOG(LogItemSystem,Log,TEXT("Update Inventory Slots called for %s"),
+		//*OwningInventoryComponent->GetOwner()->GetName())
 
 	//Update occupied slots for inventory widgets 
 	for (int i = 0; i < NewSlotData.Num(); ++i)
