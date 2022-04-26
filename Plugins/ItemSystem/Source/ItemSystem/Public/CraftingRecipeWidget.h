@@ -45,6 +45,11 @@ public:
 	void SetReferences(FCraftingRecipe SetMyCraftingRecipe, UCraftingComponent* SetMyCraftingComponent,
 	                   UCraftingWidget* SetMyCraftingWidget, APlayerController* OwningPlayer);
 
+	/**
+	 * @brief Set from crafting component when inventory is updated.  
+	 */
+	void SetIfRecipeCanBeCrafted(bool bCanBeCrafted);
+
 protected:
 	
 	/**
@@ -61,6 +66,12 @@ protected:
 
 
 	/**
+	 * @brief If enough inputs to craft
+	 */
+	UPROPERTY(BlueprintReadOnly,Category="Crafting")
+	bool bAbleToCraftRecipe;
+
+	/**
 	 * @brief Called when the recipe is clicked in the UI, sets the active recipe in the Crafting Widget
 	 */
 	UFUNCTION(BlueprintCallable,Category="Crafting")
@@ -72,5 +83,6 @@ protected:
 	 * @param CraftingRecipe Crafting Recipe to use to convert. 
 	 */
 	void SetItemDataReferences(FCraftingRecipe CraftingRecipe);
+	
 	
 };

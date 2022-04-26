@@ -17,6 +17,8 @@ void UCraftingRecipeWidget::SetReferences(FCraftingRecipe SetMyCraftingRecipe,
 	SetItemDataReferences(MyCraftingRecipe);
 }
 
+void UCraftingRecipeWidget::SetIfRecipeCanBeCrafted(const bool bCanBeCrafted) {bAbleToCraftRecipe = bCanBeCrafted;}
+
 
 void UCraftingRecipeWidget::SetActiveRecipe()
 {

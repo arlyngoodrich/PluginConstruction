@@ -63,6 +63,14 @@ public:
 	UFUNCTION(BlueprintCallable,Category="Crafting")
 	int32 GetAvailableQtyOfItem(FItemData ItemData) const;
 
+	/**
+	 * @brief Checks if enough of component in inventory
+	 * @param Recipe Recipe to check
+	 * @return True if enough, false if not 
+	 */
+	UFUNCTION(BlueprintCallable,Category="Crafting")
+	bool CanRecipeBeCrafted(FCraftingRecipe Recipe);
+
 
 protected:
 	// Called when the game starts

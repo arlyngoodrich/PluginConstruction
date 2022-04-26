@@ -23,6 +23,7 @@ void UCraftingRecipeComponentWidget::SetReferences(const FRecipeComponent SetMyR
 void UCraftingRecipeComponentWidget::SetInventoryQuantities(int32 SetItemQtyInInventories)
 {
 	ItemQtyInInventories = SetItemQtyInInventories;
+	bHasEnoughQuantity = ItemQtyInInventories >= ItemQtyNeeded;
 	UpdateAppearance();
 }
 

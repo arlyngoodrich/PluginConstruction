@@ -86,5 +86,11 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category="Crafting")
 	int32 ItemQtyNeeded;
 
+	/**
+	 * @brief If there is enough inputs in the inventory.  Updated when Item Quantity in Inventories is updated.  
+	 */
+	UPROPERTY(BlueprintReadOnly,Category="Crafting")
+	bool bHasEnoughQuantity;
+
 
 };

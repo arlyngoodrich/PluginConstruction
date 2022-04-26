@@ -50,6 +50,15 @@ public:
 	void SetReferences(UCraftingComponent* SetMyCraftingComponent,APlayerController* OwningPlayer);
 
 	/**
+	 * @brief called by binding to On Inventory Update from crafting component
+	 */
+	UFUNCTION()
+	void OnInventoryUpdate();
+
+	UFUNCTION(BlueprintCallable, Category="Crafting")
+	void UpdateIfRecipesCanBeCrafted();
+	
+	/**
 	 * @brief Updates Input widgets with the available quantity of their input from the parent crafting component
 	 */
 	UFUNCTION(BlueprintCallable,Category="Crafting")

@@ -176,6 +176,12 @@ int32 UCraftingComponent::GetAvailableQtyOfItem(const FItemData ItemData) const
 	return ItemQuantity;
 }
 
+bool UCraftingComponent::CanRecipeBeCrafted(const FCraftingRecipe Recipe)
+{
+	UpdateInventories();
+	return CraftRecipeChecks(Recipe);
+}
+
 
 bool UCraftingComponent::CraftRecipeChecks(const FCraftingRecipe Recipe) const
 {

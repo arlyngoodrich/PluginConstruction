@@ -18,8 +18,24 @@ UCraftingWidget::UCraftingWidget()
 void UCraftingWidget::SetReferences(UCraftingComponent* SetMyCraftingComponent, APlayerController* OwningPlayer)
 {
 	MyCraftingComponent = SetMyCraftingComponent;
-	MyCraftingComponent->CraftingUIUpdate.AddDynamic(this,&UCraftingWidget::UpdateCraftingInputComponentQuantities);
+	MyCraftingComponent->CraftingUIUpdate.AddDynamic(this,&UCraftingWidget::OnInventoryUpdate);
 	SetOwningPlayer(OwningPlayer);
+}
+
+void UCraftingWidget::OnInventoryUpdate()
+{
+	UpdateIfRecipesCanBeCrafted();
+	UpdateCraftingInputComponentQuantities();
+}
+
+void UCraftingWidget::UpdateIfRecipesCanBeCrafted()
+{
+	for (int i = 0; i < CraftingRecipeWidgets.Num(); ++i)
+	{
+		UCraftingRecipeWidget* TargetWidget = CraftingRecipeWidgets[i];
+		const bool bCanRecipeBeCrafted = MyCraftingComponent->CanRecipeBeCrafted(TargetWidget->MyCraftingRecipe);
+		TargetWidget->SetIfRecipeCanBeCrafted(bCanRecipeBeCrafted);
+	}
 }
 
 void UCraftingWidget::UpdateCraftingInputComponentQuantities()
@@ -79,6 +95,7 @@ void UCraftingWidget::RefreshRecipeWidgetReferences()
 		CraftingRecipeWidgets.Add(NewRecipeWidget);
 	}
 	
+	UpdateIfRecipesCanBeCrafted();
 }
 
 
