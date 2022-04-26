@@ -838,6 +838,12 @@ bool UInventoryComponent::CombineStacks_SameInventory(const FInventoryItemData O
 			int32 OriginatingStackIndex;
 			InventoryItems.Find(OriginatingStack,OriginatingStackIndex);
 
+			//Remove Weight
+			const int32 QtyRemoved = InventoryItems[OriginatingStackIndex].Item.ItemQuantity - RemainingItemData.ItemQuantity;
+			const float WeightRemoved = RemainingItemData.PerItemWeight * QtyRemoved;
+			RemoveWeight(WeightRemoved);
+			
+			//Remove Quantity
 			InventoryItems[OriginatingStackIndex].Item.ItemQuantity = RemainingItemData.ItemQuantity;
 
 			OnRep_InventoryItemsUpdated();
