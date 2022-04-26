@@ -3,6 +3,10 @@
 
 #include "CraftingRecipeComponentWidget.h"
 
+FRecipeComponent UCraftingRecipeComponentWidget::GetRecipeComponent() const { return MyRecipeComponent;}
+FItemData UCraftingRecipeComponentWidget::GetComponentItemData() const { return ComponentItemData;}
+
+
 void UCraftingRecipeComponentWidget::SetReferences(const FRecipeComponent SetMyRecipeComponent,
                                                    UCraftingComponent* SetMyCraftingComponent,APlayerController* OwningPlayer)
 {
@@ -12,4 +16,13 @@ void UCraftingRecipeComponentWidget::SetReferences(const FRecipeComponent SetMyR
 	
 	ComponentItemData = FRecipeComponent::ConvertComponentToItemData(MyRecipeComponent);
 	ItemQtyNeeded = MyRecipeComponent.Quantity;
+
+	UpdateAppearance();
 }
+
+void UCraftingRecipeComponentWidget::SetInventoryQuantities(int32 SetItemQtyInInventories)
+{
+	ItemQtyInInventories = SetItemQtyInInventories;
+	UpdateAppearance();
+}
+

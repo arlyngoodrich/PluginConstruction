@@ -18,6 +18,7 @@ UCraftingWidget::UCraftingWidget()
 void UCraftingWidget::SetReferences(UCraftingComponent* SetMyCraftingComponent, APlayerController* OwningPlayer)
 {
 	MyCraftingComponent = SetMyCraftingComponent;
+	MyCraftingComponent->CraftingUIUpdate.AddDynamic(this,&UCraftingWidget::UpdateCraftingInputComponentQuantities);
 	SetOwningPlayer(OwningPlayer);
 }
 
@@ -27,10 +28,12 @@ void UCraftingWidget::UpdateCraftingInputComponentQuantities()
 	
 	for (int i = 0; i < RecipeInputWidgets.Num(); ++i)
 	{
-		const int32 Qty = MyCraftingComponent->GetAvailableQtyOfItem(RecipeInputWidgets[i]->ComponentItemData);
-		RecipeInputWidgets[i]->ItemQtyInInventories = Qty;
+		const int32 Qty = MyCraftingComponent->GetAvailableQtyOfItem(RecipeInputWidgets[i]->GetComponentItemData());
+		RecipeInputWidgets[i]->SetInventoryQuantities(Qty);
 	}
 }
+
+FItemData UCraftingWidget::GetActiveRecipeAsItemData() const {return FRecipeComponent::ConvertComponentToItemData(ActiveRecipe.RecipeOutputs);}
 
 
 void UCraftingWidget::InitializeCraftingWidget()
@@ -54,6 +57,13 @@ void UCraftingWidget::SetActiveRecipe(const FCraftingRecipe NewActiveRecipe)
 	RefreshRecipeInputWidgetReferences();
 }
 
+void UCraftingWidget::ClearActiveRecipe()
+{
+	ActiveRecipe = FCraftingRecipe();
+	bHasActiveRecipe = false;
+	ClearRecipeInputs();
+}
+
 void UCraftingWidget::RefreshRecipeWidgetReferences()
 {
 	CraftingRecipeWidgets.Empty();
@@ -68,13 +78,12 @@ void UCraftingWidget::RefreshRecipeWidgetReferences()
 		NewRecipeWidget->SetReferences(CraftingRecipes[i],MyCraftingComponent,this,GetOwningPlayer());
 		CraftingRecipeWidgets.Add(NewRecipeWidget);
 	}
+	
 }
 
 
-void UCraftingWidget::RefreshRecipeInputWidgetReferences()
+void UCraftingWidget::ClearRecipeInputs()
 {
-	if(bHasActiveRecipe == false){return;}
-
 	//Remove current recipe inputs from parent
 	for (int i = 0; i < RecipeInputWidgets.Num(); ++i)
 	{
@@ -86,6 +95,13 @@ void UCraftingWidget::RefreshRecipeInputWidgetReferences()
 
 	//remove from array reference
 	RecipeInputWidgets.Empty();
+}
+
+void UCraftingWidget::RefreshRecipeInputWidgetReferences()
+{
+	if(bHasActiveRecipe == false){return;}
+
+	ClearRecipeInputs();
 
 	//create and add new ones
 	const TArray<FRecipeComponent> NewInputs = ActiveRecipe.RecipeInputs;
@@ -99,5 +115,6 @@ void UCraftingWidget::RefreshRecipeInputWidgetReferences()
 	}
 
 	UpdateCraftingInputComponentQuantities();
+	BP_UpdateActiveRecipeDetails();
 }
 

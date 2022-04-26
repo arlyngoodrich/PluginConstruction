@@ -7,9 +7,7 @@
 #include "CustomUserWidget.h"
 #include "CraftingWidget.generated.h"
 
-/**
- * 
- */
+
 
 class UCraftingComponent;
 class UCraftingRecipeWidget;
@@ -44,7 +42,7 @@ public:
 	 */
 	UPROPERTY(EditDefaultsOnly, Category="Crafting")
 	TSubclassOf<UCraftingRecipeComponentWidget> CraftingRecipeComponentWidgetClass;
-
+	
 	/**
 	 * @brief Sets references to variables for widget setup
 	 */
@@ -61,7 +59,21 @@ public:
 	 * @brief Used when a recipe in the grid is selected to show recipe details in crafting panel 
 	 * @param NewActiveRecipe Recipe to set as active
 	 */
+	UFUNCTION(BlueprintCallable,Category="Crafting")
 	void SetActiveRecipe(FCraftingRecipe NewActiveRecipe);
+
+	/**
+	 * @brief Clears active recipe reference
+	 */
+	UFUNCTION(BlueprintCallable,Category="Crafting")
+	void ClearActiveRecipe();
+	
+	/**
+	 * @brief Gets active recipe as item data.  May be invalid if there is not an active recipe.
+	 */
+	UFUNCTION(BlueprintPure,Category="Crafting")
+	FItemData GetActiveRecipeAsItemData() const;
+
 
 protected:
 
@@ -113,6 +125,7 @@ protected:
 	 * from owning crafting component
 	 */
 	void RefreshRecipeWidgetReferences();
+	void ClearRecipeInputs();
 
 	/**
 	 * @brief Empties crafting input widgets and creates new ones based on the current active recipe. 

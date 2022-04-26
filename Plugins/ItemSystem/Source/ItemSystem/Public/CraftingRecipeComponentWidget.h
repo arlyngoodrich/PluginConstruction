@@ -19,6 +19,42 @@ class ITEMSYSTEM_API UCraftingRecipeComponentWidget : public UCustomUserWidget
 
 public:
 
+
+	/**
+	 * @brief Set key parameters before widget construct
+	 */
+	UFUNCTION(BlueprintCallable,Category="Crafting")
+	void SetReferences(FRecipeComponent SetMyRecipeComponent,UCraftingComponent* SetMyCraftingComponent,APlayerController* OwningPlayer);
+
+	/**
+	 * @brief Called by Set References and Set Inventory Quantities method to update to icon appearance
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Crafting")
+	void UpdateAppearance();
+
+	/**
+	 * @brief Called by Crafting Component when the recipe input should update the qty of items in the associated
+	 * inventories
+	 * @param SetItemQtyInInventories New available quantities 
+	 */
+	UFUNCTION(BlueprintCallable,Category="Crafting")
+	void SetInventoryQuantities(int32 SetItemQtyInInventories);
+
+	/**
+	 * @brief Returns Recipe component reference
+	 */
+	UFUNCTION(BlueprintPure, Category="Crafting")
+	FRecipeComponent GetRecipeComponent() const;
+
+	/**
+	 * @brief Returns item data version of Recipe Component
+	 */
+	UFUNCTION(BlueprintPure, Category="Crafting")
+	FItemData GetComponentItemData() const;
+
+
+protected:
+
 	/**
 	 * @brief Assigned recipe component
 	 */
@@ -31,15 +67,10 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category="Crafting")
 	UCraftingComponent* MyCraftingComponent;
 
+	
 	/**
-	 * @brief Set key parameters before widget construct
-	 */
-	UFUNCTION(BlueprintCallable,Category="Crafting")
-	void SetReferences(FRecipeComponent SetMyRecipeComponent,UCraftingComponent* SetMyCraftingComponent,APlayerController* OwningPlayer);
-
-	/**
-	 * @brief Item data version of recipe component
-	 */
+	* @brief Item data version of recipe component
+	*/
 	UPROPERTY(BlueprintReadOnly,Category="Crafting")
 	FItemData ComponentItemData;
 
@@ -54,8 +85,6 @@ public:
 	 */
 	UPROPERTY(BlueprintReadOnly, Category="Crafting")
 	int32 ItemQtyNeeded;
-
-
 
 
 };
