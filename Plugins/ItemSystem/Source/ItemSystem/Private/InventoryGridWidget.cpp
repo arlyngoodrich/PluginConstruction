@@ -24,7 +24,7 @@ void UInventoryGridWidget::SetSlotsOnDragOver(const FInventory2D DragPosition, c
 	//Check to see if item is from owning inventory
 	if(OwningInventoryComponent->IsItemInInventory(DraggedItem,DraggedInventoryItemData))
 	{
-		bOKToPlace = OwningInventoryComponent->CheckItemMove(DraggedInventoryItemData,DragPosition,false);
+		bOKToPlace = OwningInventoryComponent->CheckItemMove(DraggedInventoryItemData,DragPosition,DraggedItem.bIsRotated);
 		
 	}
 	else
