@@ -120,5 +120,13 @@ bool UInventoryItemWidget::CombineStacks_SameInventory(FInventoryItemData const 
 	}
 	
 	OwningInventory->CombineStacks_SameInventory(OriginatingStack,TargetStack);
+
+	if(OwningGridWidget)
+	{
+		OwningGridWidget->OnItemDragCancel(this);
+	}
+	
 	return true;
+
+	
 }
