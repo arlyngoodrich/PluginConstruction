@@ -36,9 +36,16 @@ bool UInventorySlotWidget::OnItemDropped(UInventoryComponent* OriginatingInvento
 	if(OwningInventory != nullptr)
 	{
 
+		//Check to see if it's being dropped onto the same position
+		if(DroppedItemData.StartPosition == MyInventorySlot.Position && OriginatingInventory == OwningInventory)
+		{
+			return false;
+		}
+
 		//If Originating Inventory is null or it is the same as the owning inventory, attempt to do move.  
 		if(OriginatingInventory == nullptr || OriginatingInventory == OwningInventory)
 		{
+			
 			if(OwningInventory->CheckItemMove(DroppedItemData,MyInventorySlot.Position,bRotateItem))
 			{
 				OwningInventory->MoveItem(DroppedItemData,MyInventorySlot.Position,bRotateItem);
