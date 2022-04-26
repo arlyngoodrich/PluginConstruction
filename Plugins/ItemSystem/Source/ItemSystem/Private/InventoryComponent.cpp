@@ -1350,7 +1350,7 @@ void UInventoryComponent::AddDebugItems()
 		if(const AItemBase* ItemBase = DebugItems[i].GetDefaultObject())
 		{
 			FItemData DebugItem = ItemBase->GetItemData();
-			DebugItem.ItemGuid = FGuid::NewGuid();
+			DebugItem.SetFromDefaultObject(DebugItems[i]);
 			AutoAddItem(DebugItem);
 			UE_LOG(LogItemSystem,Log,TEXT("%s added %s debug item"),
 				*GetOwner()->GetName(),*DebugItem.DisplayName.ToString())

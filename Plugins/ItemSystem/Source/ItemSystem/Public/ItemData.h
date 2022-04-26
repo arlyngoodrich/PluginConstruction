@@ -252,6 +252,13 @@ struct FItemData
 		return ItemData;
 	}
 
+	void SetFromDefaultObject( const TSubclassOf<AItemBase> NewInWorldClass)
+	{
+		ItemGuid = FGuid::NewGuid();
+		InWorldClass = NewInWorldClass;
+		bIsValid = true;
+	}
+
 	
 	/**
 	 * @brief Rotates item's orientation 

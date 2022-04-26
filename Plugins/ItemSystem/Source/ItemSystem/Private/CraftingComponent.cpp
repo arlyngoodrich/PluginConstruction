@@ -273,10 +273,8 @@ void UCraftingComponent::DeliverRecipeOutput(const FRecipeComponent RecipeOutput
 {
 
 	//Create Item Data from Item Class Defaults
-	FItemData ItemData = FRecipeComponent::ConvertComponentToItemData(RecipeOutput);
-	ItemData.ItemGuid = FGuid::NewGuid();
-	ItemData.InWorldClass = RecipeOutput.ComponentClass;
-	ItemData.bIsValid = true;
+	FItemData ItemData = RecipeOutput.ComponentClass.GetDefaultObject()->GetItemData();
+	ItemData.SetFromDefaultObject(RecipeOutput.ComponentClass);
 
 	FItemData RemainingItemData = ItemData;
 	
