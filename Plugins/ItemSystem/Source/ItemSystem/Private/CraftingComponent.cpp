@@ -44,6 +44,8 @@ void UCraftingComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	InitializeRecipes();
+	UpdateInventories();
+	
 	
 }
 
@@ -52,6 +54,7 @@ void UCraftingComponent::OnRegister()
 
 	Super::OnRegister();
 	InitializeRecipes();
+	UpdateInventories();
 	
 }
 
@@ -94,6 +97,12 @@ void UCraftingComponent::InitializeRecipes()
 	bRecipesInitialized = true;
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
+void UCraftingComponent::OnInventoryUpdate()
+{
+	CraftingUIUpdate.Broadcast();
+}
+
 bool UCraftingComponent::IsComponentEligibleToCraftRecipe(const FCraftingRecipe RecipeToCheck) const
 {
 	const TArray<TSubclassOf<UCraftingComponent>> EligibleComponents = RecipeToCheck.EligibleCraftingComponentTypes;
@@ -109,8 +118,9 @@ bool UCraftingComponent::IsComponentEligibleToCraftRecipe(const FCraftingRecipe 
 	 return false;
 }
 
-bool UCraftingComponent::CraftRecipe(FCraftingRecipe Recipe)
+bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe)
 {
+	UpdateInventories();
 
 	//Check to see if able to craft recipe.  OK to perform on client so we're not doing an RPC if we can't 
 	if(CraftRecipeChecks(Recipe) == false)
@@ -121,12 +131,12 @@ bool UCraftingComponent::CraftRecipe(FCraftingRecipe Recipe)
 	//Ensure only crafting on the server
 	if(GetOwnerRole()!=ROLE_Authority)
 	{
+		Server_RequestCraftRecipe(Recipe);
 		return false;
 	}
 
 	//Make sure there are inventories to use for crafting
-	TArray<UInventoryComponent*> InventoryComponents;
-	if(GetInventories(InventoryComponents) == false)
+	if(UpdateInventories() == false)
 	{
 		 return false;
 	}
@@ -157,16 +167,15 @@ TArray<FCraftingRecipe> UCraftingComponent::GetEligibleCraftingRecipes() {return
 int32 UCraftingComponent::GetAvailableQtyOfItem(const FItemData ItemData) const
 {
 	int32 ItemQuantity = 0;
-	TArray<UInventoryComponent*> TargetInventories;
-	GetInventories(TargetInventories);
 
-	for (int i = 0; i < TargetInventories.Num(); ++i)
+	for (int i = 0; i < InventoryComponents.Num(); ++i)
 	{
-		ItemQuantity += TargetInventories[i]->GetTotalCountOfItemSubClass(ItemData.InWorldClass);
+		ItemQuantity += InventoryComponents[i]->GetTotalCountOfItemSubClass(ItemData.InWorldClass);
 	}
 
 	return ItemQuantity;
 }
+
 
 bool UCraftingComponent::CraftRecipeChecks(const FCraftingRecipe Recipe) const
 {
@@ -180,8 +189,7 @@ bool UCraftingComponent::CraftRecipeChecks(const FCraftingRecipe Recipe) const
 	}
 
 	//Get Eligible Inventory Components
-	TArray<UInventoryComponent*> InventoryComponents;
-	if(GetInventories(InventoryComponents) == false)
+	if(InventoryComponents.Num() == 0)
 	{
 		UE_LOG(LogItemSystem,Log,TEXT("%s attempted to craft %s recipe but there are no inventories"),
 		*GetOwner()->GetName(),*Recipe.RecipeName.ToString())
@@ -208,13 +216,13 @@ bool UCraftingComponent::CraftRecipeChecks(const FCraftingRecipe Recipe) const
 	
 }
 
-bool UCraftingComponent::InputComponentCheck(const FRecipeComponent Component,TArray<UInventoryComponent*> InventoryComponents)
+bool UCraftingComponent::InputComponentCheck(const FRecipeComponent Component,TArray<UInventoryComponent*> InventoryComponentsRef)
 {
 	int32 Quantity = 0;
 	
-	for (int i = 0; i < InventoryComponents.Num(); ++i)
+	for (int i = 0; i < InventoryComponentsRef.Num(); ++i)
 	{
-		UInventoryComponent* TargetInventory = InventoryComponents[i];
+		UInventoryComponent* TargetInventory = InventoryComponentsRef[i];
 		Quantity += TargetInventory->GetTotalCountOfItemSubClass(Component.ComponentClass);
 		UE_LOG(LogItemSystem,Log,TEXT("Total Input = %d"),Quantity)
 	}
@@ -224,11 +232,11 @@ bool UCraftingComponent::InputComponentCheck(const FRecipeComponent Component,TA
 
 // ReSharper disable once CppMemberFunctionMayBeConst -- calls non const method on Inventory Comp
 bool UCraftingComponent::ConsumeComponentInput(const FRecipeComponent RecipeComponent,
-                                               TArray<UInventoryComponent*> InventoryComponents)
+                                               TArray<UInventoryComponent*> InventoryComponentsRef)
 {
 
 	//Make sure enough inputs
-	if(InputComponentCheck(RecipeComponent,InventoryComponents) == false)
+	if(InputComponentCheck(RecipeComponent,InventoryComponentsRef) == false)
 	{
 		 return false;
 	}
@@ -237,9 +245,9 @@ bool UCraftingComponent::ConsumeComponentInput(const FRecipeComponent RecipeComp
 	int32 QtyRemainingToConsume;
 
 	//Cycle through inventories consuming input 
-	for (int i = 0; i < InventoryComponents.Num(); ++i)
+	for (int i = 0; i < InventoryComponentsRef.Num(); ++i)
 	{
-		UInventoryComponent* TargetInventoryComponent = InventoryComponents[i];
+		UInventoryComponent* TargetInventoryComponent = InventoryComponentsRef[i];
 		TargetInventoryComponent->ReduceQuantityOfItemByClassSubType(RecipeComponent.ComponentClass, QtyToConsume,
 		                                                             QtyRemainingToConsume);
 		//Set new Qty to consume to Qty remaining to consume 
@@ -261,7 +269,7 @@ bool UCraftingComponent::ConsumeComponentInput(const FRecipeComponent RecipeComp
 
 // ReSharper disable once CppMemberFunctionMayBeConst -- calls non const method on Inventory Comp
 void UCraftingComponent::DeliverRecipeOutput(const FRecipeComponent RecipeOutput,
-                                             TArray<UInventoryComponent*> InventoryComponents)
+                                             TArray<UInventoryComponent*> InventoryComponentsRef)
 {
 
 	//Create Item Data from Item Class Defaults
@@ -272,9 +280,9 @@ void UCraftingComponent::DeliverRecipeOutput(const FRecipeComponent RecipeOutput
 
 	FItemData RemainingItemData = ItemData;
 	
-	for (int i = 0; i < InventoryComponents.Num(); ++i)
+	for (int i = 0; i < InventoryComponentsRef.Num(); ++i)
 	{
-		UInventoryComponent* TargetInventory = InventoryComponents[i];
+		UInventoryComponent* TargetInventory = InventoryComponentsRef[i];
 		if(TargetInventory->AutoAddItem(ItemData,RemainingItemData))
 		{
 			UE_LOG(LogItemSystem,Log,TEXT("%s crafting component added %s to %s inventory"),
@@ -297,13 +305,55 @@ void UCraftingComponent::DeliverRecipeOutput(const FRecipeComponent RecipeOutput
 	
 }
 
-bool UCraftingComponent::GetInventories(TArray<UInventoryComponent*>& OutInventoryComponents) const
+bool UCraftingComponent::UpdateInventories()
 {
 	const AActor* Owner = GetOwner();
-	Owner->GetComponents<UInventoryComponent>(OutInventoryComponents);
+	TArray<UInventoryComponent*> NewInventoryComponents;
+	Owner->GetComponents<UInventoryComponent>(NewInventoryComponents);
+
+	//Updates bindings and sets New Inventory Components Ref
+	UpdateInventoryBindings(NewInventoryComponents);
 	
-	return (OutInventoryComponents.Num() > 0 );
+	return (NewInventoryComponents.Num() > 0 );
 }
 
+void UCraftingComponent::UpdateInventoryBindings(const TArray<UInventoryComponent*> NewInventoryComponents)
+{
+	
+	//Remove old dynamic bindings	
+	for (int i = 0; i < InventoryComponents.Num(); ++i)
+	{
+		if(UInventoryComponent* TargetInventory = InventoryComponents[i])
+		{
+			TargetInventory->OnInventoryUpdate.RemoveDynamic(this,&UCraftingComponent::OnInventoryUpdate);
+		}
+		
+	}
+
+	//I know.. empty isn't needed 
+	InventoryComponents.Empty();
+	InventoryComponents = NewInventoryComponents;
+
+	//Add new bindings
+	for (int i = 0; i < InventoryComponents.Num(); ++i)
+	{
+		if(UInventoryComponent* TargetInventory = InventoryComponents[i])
+		{
+			TargetInventory->OnInventoryUpdate.AddDynamic(this,&UCraftingComponent::OnInventoryUpdate);
+		}
+		
+	}
+	
+}
+
+bool UCraftingComponent::Server_RequestCraftRecipe_Validate(FCraftingRecipe Recipe)
+{
+	return true;
+}
+
+void UCraftingComponent::Server_RequestCraftRecipe_Implementation(FCraftingRecipe Recipe)
+{
+	CraftRecipe(Recipe);
+}
 
 
