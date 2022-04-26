@@ -44,6 +44,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category="Inventory")
 	bool bDraggedOver;
 
+	UPROPERTY(BlueprintReadOnly, Category="Inventory")
+	bool bOnDragOKToPlace;
+
 	/**
 	 * @brief When used as a component, parent widgets can call to set the references for this widget
 	 */

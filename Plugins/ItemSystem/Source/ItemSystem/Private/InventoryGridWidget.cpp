@@ -17,9 +17,24 @@ UInventoryGridWidget::UInventoryGridWidget()
 
 void UInventoryGridWidget::SetSlotsOnDragOver(const FInventory2D DragPosition, const FItemData DraggedItem)
 {
-	const FInventoryItemData DraggedInventoryItemData = FInventoryItemData(DragPosition,DraggedItem);
-	TArray<FInventory2D> CoveredSlots = DraggedInventoryItemData.GetCoveredSlots();
+
+	FInventoryItemData DraggedInventoryItemData;
+	bool bOKToPlace;
 	
+	//Check to see if item is from owning inventory
+	if(OwningInventoryComponent->IsItemInInventory(DraggedItem,DraggedInventoryItemData))
+	{
+		bOKToPlace = OwningInventoryComponent->CheckItemMove(DraggedInventoryItemData,DragPosition,false);
+		
+	}
+	else
+	{
+		bOKToPlace = OwningInventoryComponent->CheckIfItemFits(DraggedItem,DragPosition);
+	}
+
+	//Reused Dragged Inventory Item Data to generate covered slots
+	DraggedInventoryItemData = FInventoryItemData(DragPosition,DraggedItem);
+	TArray<FInventory2D> CoveredSlots = DraggedInventoryItemData.GetCoveredSlots();
 	
 	//Set All to false for drag over
 	for (int i = 0; i < SlotWidgets.Num(); ++i)
@@ -35,6 +50,7 @@ void UInventoryGridWidget::SetSlotsOnDragOver(const FInventory2D DragPosition, c
 		if(GetSlotWidgetFromPosition(TargetSlot,TargetSlotWidget))
 		{
 			TargetSlotWidget->bDraggedOver = true;
+			TargetSlotWidget->bOnDragOKToPlace = bOKToPlace;
 		}
 	}
 }
