@@ -52,7 +52,7 @@ int32 UInventoryComponent::GetTotalCountOfItemSubClass(const TSubclassOf<AItemBa
 	{
 		const FItemData  TargetItem = InventoryItems[i].Item;
 
-		if(ItemClass->IsChildOf(TargetItem.InWorldClass) || ItemClass == TargetItem.InWorldClass)
+		if(TargetItem.InWorldClass->IsChildOf(ItemClass)|| ItemClass == TargetItem.InWorldClass)
 		{
 			ItemQty += TargetItem.ItemQuantity;
 		}
@@ -117,7 +117,7 @@ void UInventoryComponent::InitializeSlots()
 	}
 
 	bHaveSlotsBeenInitialized = true;
-	UE_LOG(LogItemSystem,Log,TEXT("%s inventory slots initalized"),*GetOwner()->GetName());
+	UE_LOG(LogItemSystem,Verbose,TEXT("%s inventory slots initalized"),*GetOwner()->GetName());
 }
  
 
@@ -524,8 +524,8 @@ bool UInventoryComponent::ReduceQuantityOfItemByStaticClass(const TSubclassOf<AI
 	return (OutAmountNotRemoved > 0);
 }
 
-bool UInventoryComponent::ReduceQuantityOfItemByClassSubType(TSubclassOf<AItemBase> ItemClass, int32 QuantityToRemove,
-	int32& OutAmountNotRemoved)
+bool UInventoryComponent::ReduceQuantityOfItemByClassSubType(const TSubclassOf<AItemBase> ItemClass, int32 QuantityToRemove,
+                                                             int32& OutAmountNotRemoved)
 {
 	if(GetOwnerRole() != ROLE_Authority)
 	{
@@ -538,7 +538,7 @@ bool UInventoryComponent::ReduceQuantityOfItemByClassSubType(TSubclassOf<AItemBa
 		const FInventoryItemData TargetInventoryItemData = InventoryItems[i];
 
 		//Check to see if the class matches
-		if(ItemClass->IsChildOf(TargetInventoryItemData.Item.InWorldClass) || ItemClass == TargetInventoryItemData.Item.InWorldClass)
+		if(TargetInventoryItemData.Item.InWorldClass->IsChildOf(ItemClass) || ItemClass == TargetInventoryItemData.Item.InWorldClass)
 		{
 			
 			//If it does, attempt to remove items
@@ -1347,11 +1347,14 @@ void UInventoryComponent::AddDebugItems()
 	
 	for (int i = 0; i < DebugItems.Num(); ++i)
 	{
-		FItemData DebugItem = DebugItems[i];
-		DebugItem.ItemGuid = FGuid::NewGuid();
-		AutoAddItem(DebugItem);
-		UE_LOG(LogItemSystem,Log,TEXT("%s added %s debug item"),
-			*GetOwner()->GetName(),*DebugItem.DisplayName.ToString())
+		if(const AItemBase* ItemBase = DebugItems[i].GetDefaultObject())
+		{
+			FItemData DebugItem = ItemBase->GetItemData();
+			DebugItem.SetFromDefaultObject(DebugItems[i]);
+			AutoAddItem(DebugItem);
+			UE_LOG(LogItemSystem,Log,TEXT("%s added %s debug item"),
+				*GetOwner()->GetName(),*DebugItem.DisplayName.ToString())
+		}
 	}
 }
 

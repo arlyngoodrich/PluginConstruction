@@ -48,6 +48,13 @@ public:
 	UPROPERTY(BlueprintReadOnly,Category="Inventory")
 	UInventoryComponent* OwningInventory;
 
+	/**
+	 * @brief When used as a component, parent widgets can call to set the references for this widget
+	 */
+	UFUNCTION(BlueprintCallable,Category="Inventory")
+	void SetReferences(FInventoryItemData SetMyInventoryItemData, UInventoryGridWidget* SetOwningGridWidget,
+	                   UInventorySlotWidget* SetOwningSlot,UInventoryComponent* SetOwningInventory,APlayerController* OwningPlayer);
+
 	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
 
 	virtual void NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;

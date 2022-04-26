@@ -46,6 +46,7 @@ void AItemBase::InitializeItemData()
 	{
 		ItemData.ItemGuid = FGuid::NewGuid();
 		ItemData.InWorldClass = this->GetClass();
+		ItemData.bIsValid = true;
 
 		UE_LOG(LogItemSystem, Log, TEXT("%s item intialized.  GUID = %s"), *ItemData.DisplayName.ToString(),
 		       *ItemData.ItemGuid.ToString())

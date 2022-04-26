@@ -98,6 +98,13 @@ void UInventoryGridWidget::RequestTransfer(const FInventoryItemData TargetItem) 
 	
 }
 
+void UInventoryGridWidget::SetReferences(UInventoryComponent* SetOwningInventoryComponent, APlayerController* OwningPlayer)
+{
+	OwningInventoryComponent = SetOwningInventoryComponent;
+	SetOwningPlayer(OwningPlayer);
+	InitializeGrid();
+}
+
 void UInventoryGridWidget::RefreshGrid()
 {
 	OnInventorySlotUpdate();
@@ -118,8 +125,12 @@ void UInventoryGridWidget::NativeDestruct()
 	ClearItemWidgets();
 	SlotWidgets.Empty();
 
-	OwningInventoryComponent->OnInventorySlotUpdate.RemoveDynamic(this,&UInventoryGridWidget::OnInventorySlotUpdate);
-	OwningInventoryComponent->OnInventoryUpdate.RemoveDynamic(this,&UInventoryGridWidget::OnInventoryItemUpdates);
+	if(OwningInventoryComponent)
+	{
+		OwningInventoryComponent->OnInventorySlotUpdate.RemoveDynamic(this,&UInventoryGridWidget::OnInventorySlotUpdate);
+		OwningInventoryComponent->OnInventoryUpdate.RemoveDynamic(this,&UInventoryGridWidget::OnInventoryItemUpdates);
+	}
+
 	
 }
 
@@ -127,7 +138,12 @@ void UInventoryGridWidget::NativeDestruct()
 void UInventoryGridWidget::InitializeInventory()
 {
     
-    UE_LOG(LogItemSystem,Log,TEXT("Inventory Widget Initialized"))
+   if(OwningInventoryComponent==nullptr)
+   {
+		UE_LOG(LogItemSystem,Warning,TEXT("%s inventory grid widget attemped to initalize without an owning inventory"),
+			*GetOwningPlayer()->GetName())
+   		return;
+   }
 
 	InitializeGrid();
 	InitializeItems();
@@ -137,6 +153,8 @@ void UInventoryGridWidget::InitializeInventory()
 
 	BP_SetSlotWidgetsInGrid();
 	BP_SetItemWidgetsInGrid();
+
+	//UE_LOG(LogItemSystem,Log,TEXT("Inventory Widget Initialized"))
 }
 
 void UInventoryGridWidget::InitializeGrid()
@@ -160,10 +178,7 @@ void UInventoryGridWidget::InitializeGrid()
 
 		if(NewSlotWidget != nullptr)
 		{
-			NewSlotWidget->MyInventorySlot = InventorySlots[i];
-			NewSlotWidget->OwningGridWidget = this;
-			NewSlotWidget->OwningInventory = OwningInventoryComponent;
-			NewSlotWidget->SetOwningPlayer(GetOwningPlayer());
+			NewSlotWidget->SetReferences(InventorySlots[i],this,OwningInventoryComponent,GetOwningPlayer());
 			
 			UE_LOG(LogItemSystem,Verbose,TEXT("Inventoey Slot Added with Position: %s "),
 				*InventorySlots[i].Position.GetPositionAsString())
@@ -191,21 +206,16 @@ void UInventoryGridWidget::InitializeItems()
 		(CreateWidget(GetOwningPlayer(),ItemWidgetClass));
 		if(NewItemWidget != nullptr)
 		{
-			NewItemWidget->MyInventoryItemData = InventoryItemData[i];
-			NewItemWidget->OwningGridWidget = this;
-			NewItemWidget->OwningInventory = OwningInventoryComponent;
-			NewItemWidget->SetOwningPlayer(GetOwningPlayer());
-
-			UInventorySlotWidget* NewOwningSlot;
-			if(GetSlotWidgetFromPosition(InventoryItemData[i].StartPosition,NewOwningSlot))
-			{
-				NewItemWidget->OwningSlot = NewOwningSlot;
-			}
-			else
+		
+			UInventorySlotWidget* NewOwningSlot = nullptr;
+			if(GetSlotWidgetFromPosition(InventoryItemData[i].StartPosition,NewOwningSlot) == false)
 			{
 				UE_LOG(LogItemSystem,Error,TEXT("Could not add a owning slot to %s item in %s"),
 					*InventoryItemData[i].Item.DisplayName.ToString(),*GetName())
 			}
+
+			NewItemWidget->SetReferences(InventoryItemData[i],this,
+				NewOwningSlot,OwningInventoryComponent,GetOwningPlayer());
 
 			ItemWidgets.Add(NewItemWidget);
 
@@ -244,8 +254,7 @@ void UInventoryGridWidget::ClearItemWidgets()
 {
 	for (int i = 0; i < ItemWidgets.Num(); ++i)
 	{
-		UInventoryItemWidget* TargetWidget = ItemWidgets[i];
-		if(TargetWidget)
+		if(UInventoryItemWidget* TargetWidget = ItemWidgets[i])
 		{
 			TargetWidget->RemoveFromParent();
 		}
@@ -258,8 +267,7 @@ void UInventoryGridWidget::ClearSlotWidgets()
 {
 	for (int i = 0; i < SlotWidgets.Num(); ++i)
 	{
-		UInventorySlotWidget* TargetWidget = SlotWidgets[i];
-		if(TargetWidget)
+		if(UInventorySlotWidget* TargetWidget = SlotWidgets[i])
 		{
 			TargetWidget->RemoveFromParent();
 		}

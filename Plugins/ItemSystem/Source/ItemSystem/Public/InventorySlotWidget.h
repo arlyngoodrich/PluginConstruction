@@ -43,6 +43,13 @@ public:
 	 */
 	UPROPERTY(BlueprintReadOnly, Category="Inventory")
 	bool bDraggedOver;
+
+	/**
+	 * @brief When used as a component, parent widgets can call to set the references for this widget
+	 */
+	UFUNCTION(BlueprintCallable,Category="Inventory")
+	void SetReferences(FInventorySlot SetMyInventorySlot, UInventoryGridWidget* SetOwningGridWidget,
+	                   UInventoryComponent* SetOwningInventory,APlayerController* OwningPlayer);
 	
 	/**
 	 * @brief Called when a item widget is dragged over slots.  Used to trigger Inventory Grid drag over function

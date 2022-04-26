@@ -7,7 +7,6 @@
 #include "Engine/DataTable.h"
 #include "CraftingData.generated.h"
 
-class AItemBase;
 class UCraftingComponent;
 
 /**
@@ -48,6 +47,20 @@ struct FRecipeComponent
 		Quantity = SetQuantity;
 	}
 
+	static FItemData ConvertComponentToItemData(const FRecipeComponent Component)
+	{
+		{
+			if(const AItemBase* ItemBase = Cast<AItemBase>(Component.ComponentClass->GetDefaultObject()))
+			{
+				return ItemBase->GetItemData();
+			}
+			else
+			{
+				return FItemData();
+			}
+		}
+	}
+
 	bool operator==(const FRecipeComponent& RecipeComponent) const
 	{
 		return (ComponentClass == RecipeComponent.ComponentClass);
@@ -79,7 +92,7 @@ struct FCraftingRecipe : public FTableRowBase
 	 * @brief Array of items that are produced by the recipe 
 	 */	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Crafting Recipe")
-	TArray<FRecipeComponent> RecipeOutputs;
+	FRecipeComponent RecipeOutputs;
 
 	/**
 	 * @brief Array of Crafting Stations classes that can craft this recipe 
@@ -88,23 +101,30 @@ struct FCraftingRecipe : public FTableRowBase
 	TArray<TSubclassOf<UCraftingComponent>> EligibleCraftingComponentTypes;
 
 	/**
+	 * @brief If Recipe is valid recipe
+	 */
+	bool bIsValid;
+
+	/**
 	 * @brief Default Constructor for Crafting Recipe
 	 */
 	FCraftingRecipe()
 	{
 		RecipeName = FName();
+		bIsValid = false;
 	}
 
 	/**
 	 * @brief Valid Constructor for crafting Recipe 
 	 */
-	FCraftingRecipe(const FName SetRecipeName,const TArray<FRecipeComponent> SetRecipeInputs,const TArray<FRecipeComponent> SetRecipeOutputs,
+	FCraftingRecipe(const FName SetRecipeName,const TArray<FRecipeComponent> SetRecipeInputs,const FRecipeComponent SetRecipeOutputs,
 	                const TArray<TSubclassOf<UCraftingComponent>> SetEligibleCraftingComponentTypes)
 	{
 		RecipeName = SetRecipeName;
 		RecipeInputs = SetRecipeInputs;
 		RecipeOutputs = SetRecipeOutputs;
 		EligibleCraftingComponentTypes = SetEligibleCraftingComponentTypes;
+		bIsValid = true;
 	}
 
 	bool operator==(const FCraftingRecipe& Recipe) const
@@ -112,4 +132,7 @@ struct FCraftingRecipe : public FTableRowBase
 		return (RecipeName == Recipe.RecipeName);
 	}
 
+
+
 };
+

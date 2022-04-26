@@ -27,11 +27,10 @@ bool FAddRecipeTest::RunTest(const FString& Parameters)
 	//Create Craftable Recipe
 	const FRecipeComponent RecipeComponent = FRecipeComponent(AItemBase::StaticClass(),1);
 	TArray<FRecipeComponent> Inputs;
-	TArray<FRecipeComponent> Outputs;
+	const FRecipeComponent Outputs = RecipeComponent;
 	TArray<TSubclassOf<UCraftingComponent>> CraftingComponents;
 	
 	Inputs.Add(RecipeComponent);
-	Outputs.Add(RecipeComponent);
 	CraftingComponents.Add(UCraftingComponent::StaticClass());
 	const FCraftingRecipe Recipe1 = FCraftingRecipe("TestRecipe1",Inputs,Outputs,CraftingComponents);
 
@@ -82,11 +81,10 @@ bool FCraftRecipe::RunTest(const FString& Parameters)
 	const FRecipeComponent RecipeInput = FRecipeComponent(AItemBase::StaticClass(),2);
 	const FRecipeComponent RecipeOutput = FRecipeComponent(AItemBase::StaticClass(),1);
 	TArray<FRecipeComponent> Inputs;
-	TArray<FRecipeComponent> Outputs;
+	const FRecipeComponent Outputs = RecipeOutput;
 	TArray<TSubclassOf<UCraftingComponent>> CraftingComponents;
 	
 	Inputs.Add(RecipeInput);
-	Outputs.Add(RecipeOutput);
 	CraftingComponents.Add(UCraftingComponent::StaticClass());
 	const FCraftingRecipe Recipe = FCraftingRecipe("TestRecipe1",Inputs,Outputs,CraftingComponents);
 
@@ -101,7 +99,7 @@ bool FCraftRecipe::RunTest(const FString& Parameters)
 	InventoryComponent->AutoAddItem(InputItemData);
 
 	//Craft Item
-	bool bRecipeSuccess = CraftingComponent->CraftRecipe(Recipe);
+	const bool bRecipeSuccess = CraftingComponent->CraftRecipe(Recipe);
 
 	TestTrue(TEXT("Recipe Crafted Test"),bRecipeSuccess);
 	
