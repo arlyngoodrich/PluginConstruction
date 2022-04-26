@@ -15,11 +15,25 @@ UInventoryGridWidget::UInventoryGridWidget()
 	ItemWidgetClass = UInventoryItemWidget::StaticClass();
 }
 
-void UInventoryGridWidget::SetSlotsOnDragOver(const FInventory2D DragPosition, const FItemData DraggedItem)
+void UInventoryGridWidget::SetSlotsOnDragOver(const FInventory2D DragPosition, const FItemData DraggedItem, const bool bItemRotated)
 {
-	const FInventoryItemData DraggedInventoryItemData = FInventoryItemData(DragPosition,DraggedItem);
-	TArray<FInventory2D> CoveredSlots = DraggedInventoryItemData.GetCoveredSlots();
+
+	FInventoryItemData DraggedInventoryItemData;
+	bool bOKToPlace;
 	
+	//Check to see if item is from owning inventory
+	if(OwningInventoryComponent->IsItemInInventory(DraggedItem,DraggedInventoryItemData))
+	{
+		bOKToPlace = OwningInventoryComponent->CheckItemMove(DraggedInventoryItemData,DragPosition,bItemRotated);
+	}
+	else
+	{
+		bOKToPlace = OwningInventoryComponent->CheckIfItemFits(DraggedItem,DragPosition);
+	}
+
+	//Reused Dragged Inventory Item Data to generate covered slots
+	DraggedInventoryItemData = FInventoryItemData(DragPosition,DraggedItem);
+	TArray<FInventory2D> CoveredSlots = DraggedInventoryItemData.GetCoveredSlots();
 	
 	//Set All to false for drag over
 	for (int i = 0; i < SlotWidgets.Num(); ++i)
@@ -35,6 +49,7 @@ void UInventoryGridWidget::SetSlotsOnDragOver(const FInventory2D DragPosition, c
 		if(GetSlotWidgetFromPosition(TargetSlot,TargetSlotWidget))
 		{
 			TargetSlotWidget->bDraggedOver = true;
+			TargetSlotWidget->bOnDragOKToPlace = bOKToPlace;
 		}
 	}
 }
@@ -228,8 +243,8 @@ void UInventoryGridWidget::OnInventorySlotUpdate()
 {
 	TArray<FInventorySlot> NewSlotData = OwningInventoryComponent->GetInventorySlots();
 
-	UE_LOG(LogItemSystem,Log,TEXT("Update Inventory Slots called for %s"),
-		*OwningInventoryComponent->GetOwner()->GetName())
+	//UE_LOG(LogItemSystem,Log,TEXT("Update Inventory Slots called for %s"),
+		//*OwningInventoryComponent->GetOwner()->GetName())
 
 	//Update occupied slots for inventory widgets 
 	for (int i = 0; i < NewSlotData.Num(); ++i)

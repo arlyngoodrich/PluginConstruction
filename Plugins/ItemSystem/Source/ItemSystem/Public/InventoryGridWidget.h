@@ -38,7 +38,7 @@ public:
 	 * @param DragPosition Current Drag position in inventory
 	 * @param DraggedItem Item being dragged.  Used to set slots as hovered  
 	 */
-	void SetSlotsOnDragOver(FInventory2D DragPosition, FItemData DraggedItem);
+	void SetSlotsOnDragOver(FInventory2D DragPosition, FItemData DraggedItem, bool bItemRotated);
 
 	/**
 	 * @brief Called by Item widget when drag starts

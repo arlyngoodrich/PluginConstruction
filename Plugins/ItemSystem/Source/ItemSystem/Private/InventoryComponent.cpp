@@ -838,6 +838,12 @@ bool UInventoryComponent::CombineStacks_SameInventory(const FInventoryItemData O
 			int32 OriginatingStackIndex;
 			InventoryItems.Find(OriginatingStack,OriginatingStackIndex);
 
+			//Remove Weight
+			const int32 QtyRemoved = InventoryItems[OriginatingStackIndex].Item.ItemQuantity - RemainingItemData.ItemQuantity;
+			const float WeightRemoved = RemainingItemData.PerItemWeight * QtyRemoved;
+			RemoveWeight(WeightRemoved);
+			
+			//Remove Quantity
 			InventoryItems[OriginatingStackIndex].Item.ItemQuantity = RemainingItemData.ItemQuantity;
 
 			OnRep_InventoryItemsUpdated();
@@ -888,6 +894,21 @@ bool UInventoryComponent::CombineStacks_SameInventory_Checks(const FInventoryIte
 
 	return true;
 	
+}
+
+bool UInventoryComponent::CombineStacks_SameInventory_Checks(const FInventoryItemData OriginatingStack,
+                                                             const FInventoryItemData TargetStack, bool& bOutWillFullyStack) const
+{
+	if(CombineStacks_SameInventory_Checks(OriginatingStack,TargetStack))
+	{
+		bOutWillFullyStack = TargetStack.Item.MaxStackQuantity  >= OriginatingStack.Item.ItemQuantity + TargetStack.Item.ItemQuantity;
+		return true;
+	}
+	else
+	{
+		bOutWillFullyStack = false;
+		return false;
+	}
 }
 
 bool UInventoryComponent::IsItemInInventory(const FItemData Item)
