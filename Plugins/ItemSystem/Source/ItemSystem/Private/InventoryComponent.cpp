@@ -394,7 +394,7 @@ bool UInventoryComponent::AutoAddItem(const FItemData InItem)
 	}
 }
 
-bool UInventoryComponent::SplitItem(const FInventoryItemData TargetItemData, const int32 NewStackQuantity)
+bool UInventoryComponent::SplitItem(FInventoryItemData TargetItemData, const int32 NewStackQuantity)
 {
 	
 	if(GetOwnerRole() != ROLE_Authority)
@@ -409,7 +409,7 @@ bool UInventoryComponent::SplitItem(const FInventoryItemData TargetItemData, con
 		return false;
 	}
 
-	const FItemData TestItemData = TargetItemData.Item;
+	FItemData TestItemData = TargetItemData.Item;
 	FInventory2D TargetPosition = FInventory2D();
 	bool bSlotFound = false;
 
@@ -421,6 +421,18 @@ bool UInventoryComponent::SplitItem(const FInventoryItemData TargetItemData, con
 			TargetPosition = InventorySlots[i].Position;
 			bSlotFound = true;
 			break;
+		}
+		else
+		{
+			//If won't fit with current rotation, attempt to fit with rotation
+			TestItemData.Rotate();
+			if(CheckIfItemFits(TestItemData,InventorySlots[i].Position))
+			{
+				TargetPosition = InventorySlots[i].Position;
+				bSlotFound = true;
+				TargetItemData.Item.Rotate();
+				break;
+			}
 		}
 	}
 
