@@ -2,7 +2,6 @@
 
 #include "ItemSystem.h"
 
-#include "ItemBase.h"
 
 #define LOCTEXT_NAMESPACE "FItemSystemModule"
 
