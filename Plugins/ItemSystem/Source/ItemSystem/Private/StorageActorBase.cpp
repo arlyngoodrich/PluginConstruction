@@ -44,132 +44,120 @@ void AStorageActorBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+
+
 void AStorageActorBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AStorageActorBase, bIsInventoryOpen);
+	DOREPLIFETIME(AStorageActorBase, InteractingPlayer);
 }
 
-
-
-void AStorageActorBase::OpenInventory(APlayerController* InstigatingPlayer)
+void AStorageActorBase::OnPlayerInteraction(APlayerController* InstigatingPlayer)
 {
-	if(HasAuthority() == false)
-	{
-		return;
-	}
-
+	//Check to see if inventory is already open
 	if(bIsInventoryOpen)
 	{
-		UE_LOG(LogItemSystem,Log,TEXT("Cannot open %s becuase a player already has inventory open"),
-			*GetOwner()->GetName())
-		return;
-	}
-	
-	if(InstigatingPlayer != nullptr)
-	{
-		SetOwner(Cast<AActor>(InstigatingPlayer));
-		bIsInventoryOpen = true;
-		
-		UE_LOG(LogItemSystem,Log,TEXT("%s set as owner of %s"),
-			*InstigatingPlayer->GetName(),*GetOwner()->GetName())
-
-		//Check to see if player has inventory
-		const APawn* PlayerOwnedPawn = InstigatingPlayer->GetPawn();
-
-		if (UPlayerInventory* PlayerInventory = PlayerOwnedPawn->FindComponentByClass<UPlayerInventory>();
-			PlayerInventory != nullptr)
+		//If yes, then check to see if the same as the current interacting player
+		if(InstigatingPlayer==InteractingPlayer)
 		{
-			Client_AddTransferUI(PlayerInventory,InstigatingPlayer);
-		}
-	}
-	
-}
-
-void AStorageActorBase::CloseInventory(APlayerController* InstigatingPlayer)
-{
-
-	if(HasAuthority() == false)
-	{
-		RemoveTransferUI(InstigatingPlayer);
-		Server_CloseInventory(InstigatingPlayer);
-		return;
-	}
-
-	//Ensure same controller is closing inventory
-	if(GetOwner()->GetOwner() == InstigatingPlayer)
-	{
-		GetOwner()->SetOwner(nullptr);
-		bIsInventoryOpen = false;
-
-		UE_LOG(LogItemSystem,Log,TEXT("%s is not longer the owner of %s"),
-			*InstigatingPlayer->GetName(),*GetOwner()->GetName())
-		
-	}
-}
-
-
-void AStorageActorBase::AddTransferUI_Implementation(UPlayerInventory* PlayerInventory, APlayerController* OwningPlayer)
-{
-	if(OwningPlayer->GetClass()->ImplementsInterface(UUIPlayerInterface::StaticClass()))
-		{
-			if(CreateStorageWidget(OwningPlayer))
-			{
-				//StorageWidget->SetReferences(StorageInventory,PlayerInventory);
-				IUIPlayerInterface::Execute_OpenUI(OwningPlayer,StorageWidget);
-			}
-		}
-	else
-		{
-			UE_LOG(LogItemSystem,Warning,TEXT("%s Attempted to open inventory UI for %s but does not implement UI Player Interface"),
-				*GetName(),*OwningPlayer->GetName())
-		}
-}
-
-void AStorageActorBase::RemoveTransferUI_Implementation(APlayerController* InstigatingPlayer)
-{
-	if(StorageWidget->IsInViewport())
-	{
-		if(InstigatingPlayer->GetClass()->ImplementsInterface(UUIPlayerInterface::StaticClass()))
-		{
-			IUIPlayerInterface::Execute_CloseUI(InstigatingPlayer,StorageWidget);
+			//If the same, then close the inventory and set net owner to null
+			Client_CloseInventory(InstigatingPlayer);
+			SetOwner(nullptr);
+			bIsInventoryOpen = false;
+			InteractingPlayer = nullptr;
+			
 		}
 		else
 		{
-			UE_LOG(LogItemSystem,Warning,TEXT("%s Attempted to close inventory UI for %s but does not implement UI Player Interface"),
-				*GetName(),*InstigatingPlayer->GetName())
+			//If different, then don't open inventory
+			UE_LOG(LogItemSystem,Log,TEXT("Cannot open inventory %s inventory for %s.  %s alrady has it open"),
+				*GetName(),*InstigatingPlayer->GetName(),*InteractingPlayer->GetName())
 		}
 	}
+	else
+	{
+		//Open inventory for player and set net owner
+		InteractingPlayer = InstigatingPlayer;
+		SetOwner(InstigatingPlayer);
+		bIsInventoryOpen = true;
+		Client_OpenInventory(InteractingPlayer);
+	}
 }
 
-bool AStorageActorBase::CreateStorageWidget(APlayerController* OwningPlayer)
+void AStorageActorBase::OnInventoryForcedClosed()
 {
-	if(OwningPlayer == nullptr){return false;}
-	
-	
-	if(UStorageWidget* NewStorageWidget = Cast<UStorageWidget>(CreateWidget(OwningPlayer,StorageWidgetClass)))
+	StorageWidget->OnRemoveFromParent.RemoveDynamic(this,&AStorageActorBase::OnInventoryForcedClosed);
+	StorageWidget = nullptr;
+	Server_InventorForcedClosed();
+}
+
+void AStorageActorBase::Client_OpenInventory_Implementation(APlayerController* InstigatingPlayer)
+{
+	APawn* Pawn = InstigatingPlayer->GetPawn();
+	//Make sure player has inventory
+	if(UPlayerInventory* PlayerInventory = Pawn->FindComponentByClass<UPlayerInventory>())
 	{
-		StorageWidget = NewStorageWidget;
-		return true;
+		//Create Storage Widget
+		StorageWidget = Cast<UStorageWidget>(CreateWidget(InstigatingPlayer,StorageWidgetClass));
+		if(StorageWidget)
+		{
+			StorageWidget->SetReferences(StorageInventory,PlayerInventory,InstigatingPlayer);
+
+			//Tell player to open UI via interface
+			if(Pawn->GetClass()->ImplementsInterface(UUIPlayerInterface::StaticClass()))
+			{
+				IUIPlayerInterface::Execute_OpenUI(Pawn,StorageWidget);
+				StorageWidget->OnRemoveFromParent.AddDynamic(this,&AStorageActorBase::OnInventoryForcedClosed);
+			}
+		}
+		else
+		{
+			UE_LOG(LogItemSystem,Warning,TEXT("%s failed to make storage widget"),*GetName())
+		}
+	}
+	else
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("%s player does not have inventory to create transfer widget"))
+	}
+}
+
+void AStorageActorBase::Client_CloseInventory_Implementation(APlayerController* InstigatingPlayer)
+{
+	if(InstigatingPlayer == nullptr)
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("%s attempted to close inventory when InstigatingPlayer is null"),*GetName())
+		return;
 	}
 
-	UE_LOG(LogItemSystem,Warning,TEXT("%s failed to create storage widget"),*GetName())
-	return false;
+	if(StorageWidget == nullptr)
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("%s attempted to close inventory when storage widget is null"),*GetName())
+		return;
+	}
 
+	APawn* Pawn = InstigatingPlayer->GetPawn();
+	//Tell player to open UI via interface
+	if(Pawn->GetClass()->ImplementsInterface(UUIPlayerInterface::StaticClass()))
+	{
+		IUIPlayerInterface::Execute_CloseUI(Pawn,StorageWidget);
+		//On Inventory Forced close will call when widget is removed from parent
+	}
+	else
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("%s could not close inventory. Interacting player does not have UI Interface"),
+			*GetName())
+	}
 }
 
-bool AStorageActorBase::Server_CloseInventory_Validate(APlayerController* InstigatingPlayer)
+
+void AStorageActorBase::Server_InventorForcedClosed_Implementation()
 {
-	return InstigatingPlayer == GetOwner()->GetOwner();
+	SetOwner(nullptr);
+	bIsInventoryOpen = false;
+	InteractingPlayer = nullptr;
 }
 
-void AStorageActorBase::Server_CloseInventory_Implementation(APlayerController* InstigatingPlayer)
-{
-	CloseInventory(InstigatingPlayer);
-}
 
-void AStorageActorBase::Client_AddTransferUI_Implementation(UPlayerInventory* PlayerInventory,APlayerController* OwningPlayer)
-{
-	AddTransferUI(PlayerInventory,OwningPlayer);
-}
+
