@@ -38,7 +38,7 @@ public:
 	 * @param DragPosition Current Drag position in inventory
 	 * @param DraggedItem Item being dragged.  Used to set slots as hovered  
 	 */
-	void SetSlotsOnDragOver(FInventory2D DragPosition, FItemData DraggedItem);
+	void SetSlotsOnDragOver(FInventory2D DragPosition, FItemData DraggedItem, bool bItemRotated);
 
 	/**
 	 * @brief Called by Item widget when drag starts
@@ -74,7 +74,20 @@ public:
 	UFUNCTION(BlueprintCallable,Category = "Inventory")
 	void RequestTransfer(FInventoryItemData TargetItem) const;
 
+	/**
+	 * @brief When used as a component, parent widgets can call to set the references for this widget
+	 */
+	UFUNCTION(BlueprintCallable,Category="Inventory")
+	void SetReferences(UInventoryComponent* SetOwningInventoryComponent,APlayerController* OwningPlayer);
 
+	/**
+	 * @brief Refreshes slots and items in grid
+	 */
+	UFUNCTION(BlueprintCallable,Category = "Inventory")
+	void RefreshGrid();
+
+	
+	
 protected:
 	
 	/**

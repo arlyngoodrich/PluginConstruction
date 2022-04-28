@@ -2,9 +2,14 @@
 
 #include "ItemSystem.h"
 
+
 #define LOCTEXT_NAMESPACE "FItemSystemModule"
 
 DEFINE_LOG_CATEGORY(LogItemSystem)
+
+#undef LOCTEXT_NAMESPACE
+	
+IMPLEMENT_MODULE(FItemSystemModule, ItemSystem)
 
 void FItemSystemModule::StartupModule()
 {
@@ -17,6 +22,4 @@ void FItemSystemModule::ShutdownModule()
 	// we call this function before unloading the module.
 }
 
-#undef LOCTEXT_NAMESPACE
-	
-IMPLEMENT_MODULE(FItemSystemModule, ItemSystem)
+

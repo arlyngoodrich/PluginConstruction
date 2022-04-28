@@ -11,8 +11,9 @@ AItemBase::AItemBase()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 }
+
+FItemData AItemBase::GetItemData() const {return ItemData;}
 
 // Called when the game starts or when spawned
 void AItemBase::BeginPlay()
@@ -45,6 +46,7 @@ void AItemBase::InitializeItemData()
 	{
 		ItemData.ItemGuid = FGuid::NewGuid();
 		ItemData.InWorldClass = this->GetClass();
+		ItemData.bIsValid = true;
 
 		UE_LOG(LogItemSystem, Log, TEXT("%s item intialized.  GUID = %s"), *ItemData.DisplayName.ToString(),
 		       *ItemData.ItemGuid.ToString())

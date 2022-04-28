@@ -7,6 +7,17 @@
 #include "InventoryGridWidget.h"
 #include "ItemSystem.h"
 
+void UInventoryItemWidget::SetReferences(const FInventoryItemData SetMyInventoryItemData,
+                                         UInventoryGridWidget* SetOwningGridWidget, UInventorySlotWidget* SetOwningSlot,
+                                         UInventoryComponent* SetOwningInventory,APlayerController* OwningPlayer)
+{
+	MyInventoryItemData = SetMyInventoryItemData;
+	OwningGridWidget = SetOwningGridWidget;
+	OwningSlot = SetOwningSlot;
+	OwningInventory = SetOwningInventory;
+	SetOwningPlayer(OwningPlayer);
+}
+
 void UInventoryItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
                                                 UDragDropOperation*& OutOperation)
 {
@@ -95,4 +106,28 @@ void UInventoryItemWidget::SplitItem(const FInventoryItemData TargetItemData, co
 		UE_LOG(LogItemSystem,Warning,TEXT("UI for %s item is requesting split but has null inventory"),
 			*TargetItemData.Item.DisplayName.ToString())
 	}
+}
+
+// ReSharper disable once CppUE4BlueprintCallableFunctionMayBeConst
+bool UInventoryItemWidget::CombineStacks_SameInventory(FInventoryItemData const OriginatingStack,
+                                                       FInventoryItemData const TargetStack)
+{
+	if(OwningInventory == nullptr){return false;}
+
+	bool bWillFullyStack;
+	if(OwningInventory->CombineStacks_SameInventory_Checks(OriginatingStack,TargetStack,bWillFullyStack) == false)
+	{
+		return false;
+	}
+
+	//If not fully stack, cancel drag so item widget stays in place.  Keeps UI from flickering while waiting for update
+	if(OwningGridWidget && bWillFullyStack == false)
+	{
+		OwningGridWidget->OnItemDragCancel(this);
+	}
+	
+	OwningInventory->CombineStacks_SameInventory(OriginatingStack,TargetStack);
+	
+	return true;
+	
 }

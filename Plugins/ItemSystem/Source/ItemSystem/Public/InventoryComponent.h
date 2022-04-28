@@ -60,11 +60,18 @@ public:
 	TArray<FInventorySlot> GetInventorySlots() const;
 	
 	/**
-	 * @brief Returns the quantity of items per class
-	 * @param ItemClass Subclass of item to find quantity of
+	 * @brief Returns the quantity of items per exact class
+	 * @param ItemClass class of item to find quantity of
 	 * @return Summation of all item stacks that match the item class
 	 */
 	int32 GetTotalCountOfItemClass(TSubclassOf<AItemBase> ItemClass);
+
+	/**
+	 * @brief Returns the quantity of items of a class type and sub types
+	 * @param ItemClass class of item to find quantity of
+	 * @return Summation of all item stacks that match the item class
+	 */
+	int32 GetTotalCountOfItemSubClass(TSubclassOf<AItemBase> ItemClass);
 	
 
 	/**
@@ -158,12 +165,23 @@ public:
 	 * @param ItemClass Item class targeted for quantity removal
 	 * @param QuantityToRemove Amount of item that should be removed
 	 * @param OutAmountNotRemoved Quantity requested removed minus amount actually removed
-	 * @return Will return false if a matching item class could not be found in the inventory
+	 * @return Will return false if not authority or a matching item class could not be found in the inventory
 	 */
 	bool ReduceQuantityOfItemByStaticClass(TSubclassOf<AItemBase> ItemClass, int32 QuantityToRemove,
 	                                       int32& OutAmountNotRemoved);
 	
 
+	/**
+	* @brief Cycles through items in inventory that matches the item's class or sub type and will remove as much of the
+	* quantity to remove as possible.
+	 * @param ItemClass Item class targeted for quantity removal
+	 * @param QuantityToRemove Amount of item that should be removed
+	 * @param OutAmountNotRemoved Quantity requested removed minus amount actually removed
+	 * @return Will return false if not authority or a matching item class could not be found in the inventory
+	 */
+	bool ReduceQuantityOfItemByClassSubType(TSubclassOf<AItemBase> ItemClass, int32 QuantityToRemove,
+										   int32& OutAmountNotRemoved);
+	
 	/**
 	 * @brief Checks for Items by GUID and Position and reduces it's item quantity. Will fully remove item if the removal amount
 	 * is greater than or equal to the current amount.  Will return the amount that was not removed.
@@ -212,6 +230,38 @@ public:
 	 * @return Returns true if the item is moved, returns false if not.
 	 */
 	bool MoveItem(FInventoryItemData TargetItem, FInventory2D TargetPosition, bool bRotateITem);
+
+
+	/**
+	 * @brief Combines two items stacks into one.  If fully combined, will remove Originating stack. If partially combined,
+	 * will update originating stack. 
+	 * @param OriginatingStack Stack that is being combined into another stack
+	 * @param TargetStack Stack that is the originating stack is combining into
+	 * @return returns false if stacks are not of the same class or if target stack is already max.  True if at least 1 quantity
+	 * added to target stack.
+	 */
+	bool CombineStacks_SameInventory(FInventoryItemData OriginatingStack, FInventoryItemData TargetStack);
+
+
+	/**
+	 * @brief Client friendly method that performs same checks as actual combining stacks method.  Helpful for UI drag
+	 * and drop operation. 
+	 * @param OriginatingStack Item stack instigating the combine operation
+	 * @param TargetStack  Item stack receiving the originating stack
+	 * @return True if OK to stack fully or partially, false if not
+	 */
+	bool CombineStacks_SameInventory_Checks(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack) const;
+
+
+	/**
+	* @brief Client friendly method that performs same checks as actual combining stacks method.  Helpful for UI drag
+	 * and drop operation.
+	 * @param OriginatingStack Item stack instigating the combine operation
+	 * @param TargetStack  Item stack receiving the originating stack
+	 * @param bOutWillFullyStack True if will fully stack into new item, false if not.  
+	 * @return True if OK to stack fully or partially, false if not
+	 */
+	bool CombineStacks_SameInventory_Checks(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack, bool& bOutWillFullyStack) const;
 	
 	/**
 	 * @brief Checks to see if Item is in Inventory.  Checks for matching Item GUIDs. Useful if position of item in
@@ -222,7 +272,7 @@ public:
 	bool IsItemInInventory(FItemData Item);
 	
 	/**
-	 * @brief Checks to see if Item is in Inventory by checking for matching Item GUIDs. 
+	 * @brief Checks to see if Item is in Inventory by checking for matching Item GUIDs. UI accessible function. 
 	 * @param Item Item to look for 
 	 * @param OutItemPosition Position of item in inventory
 	 * @return Returns true if found and the position of the item in the inventory.
@@ -236,6 +286,14 @@ public:
 	 * @return Returns true if found and the InventoryItemData of the item in the inventory.
 	 */
 	bool IsItemInInventory(FItemData Item, FInventoryItemData& OutInventoryItemData);
+
+
+	/**
+	 * @brief Checks to see if inventory item is in inventory.  
+	 * @param InventoryItemData Inventory Item to check 
+	 * @return True if in inventory, false if not
+	 */
+	bool IsInventoryItemInInventory(FInventoryItemData InventoryItemData) const;
 	
 	/**
 	 * @brief Given a position, will return the item in that position. 
@@ -472,7 +530,7 @@ protected:
 	 * @brief Array of debugging item data to be added at begin play
 	 */
 	UPROPERTY(EditDefaultsOnly,Category="Debugging", meta = (EditCondition = "bAddDebugItems"))
-	TArray<FItemData> DebugItems;
+	TArray<TSubclassOf<AItemBase>> DebugItems;
 
 	/**
 	 * @brief Function to add debugging items to inventory at begin play
@@ -503,5 +561,10 @@ protected:
 								FInventoryItemData TargetItem, bool bRotateItem);
 	void Server_TransferItemToPosition_Implementation(UInventoryComponent* TargetInventory, FInventory2D TargetPosition,
 								FInventoryItemData TargetItem, bool bRotateItem);
+
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_CombineStackSameInventory(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack);
+	bool Server_CombineStackSameInventory_Validate(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack);
+	void Server_CombineStackSameInventory_Implementation(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack);
 	
 };

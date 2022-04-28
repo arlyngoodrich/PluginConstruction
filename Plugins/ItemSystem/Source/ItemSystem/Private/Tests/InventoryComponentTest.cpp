@@ -1,8 +1,8 @@
 ﻿#include "CoreMinimal.h"
-#include "Misc/AutomationTest.h"
-#include "Tests/AutomationEditorCommon.h"
 #include "InventoryComponent.h"
 #include "ItemBase.h"
+#include "Misc/AutomationTest.h"
+#include "Tests/AutomationEditorCommon.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FInventoryAddItemTest,"Inventory.AddItem",
                                  EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
