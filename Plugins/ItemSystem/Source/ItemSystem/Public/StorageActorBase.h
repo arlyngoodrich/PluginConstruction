@@ -8,7 +8,7 @@
 
 class UStorageInventory;
 class UPlayerInventory;
-class UCustomUserWidget;
+class UStorageWidget;
 
 
 /**
@@ -76,12 +76,12 @@ protected:
 	bool bIsInventoryOpen;
 
 	UPROPERTY(EditDefaultsOnly, Category="Inventory")
-	TSubclassOf<UCustomUserWidget> StorageWidgetClass;
+	TSubclassOf<UStorageWidget> StorageWidgetClass;
 
 	UPROPERTY(BlueprintReadOnly,Category="Inventory")
-	UCustomUserWidget* StorageWidget;
+	UStorageWidget* StorageWidget;
 
-	//void CreateStorageWidget
+	bool CreateStorageWidget(APlayerController* OwningPlayer);
 	
 	/**
 	 * @brief RPC for closing the inventory when called by the client.

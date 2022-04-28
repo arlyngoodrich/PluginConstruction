@@ -4,13 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "CustomUserWidget.h"
 #include "UIPlayerInterface.generated.h"
-
-class UUserWidget;
 
 // This class does not need to be modified.
 UINTERFACE(BlueprintType,Blueprintable)
-class UUIPlayerInterface : public UInterface
+class CUSTOMWIDGETTEMPLATES_API UUIPlayerInterface : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -26,10 +25,9 @@ class CUSTOMWIDGETTEMPLATES_API IUIPlayerInterface
 public:
 
 	UFUNCTION(BlueprintCallable,BlueprintImplementableEvent,Category="UI Interface")
-	void OpenUI(UUserWidget* Widget);
+	void OpenUI(UCustomUserWidget* Widget);
 
 	UFUNCTION(BlueprintCallable,BlueprintImplementableEvent,Category="UI Interface")
-	void CloseUI(UUserWidget* Widget);
-	
+	void CloseUI(UCustomUserWidget* Widget);
 	
 };

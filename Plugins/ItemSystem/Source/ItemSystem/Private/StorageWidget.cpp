@@ -2,3 +2,9 @@
 
 
 #include "StorageWidget.h"
+
+void UStorageWidget::SetReferences(UStorageInventory* SetOwningStorageInventory, UPlayerInventory* SetPlayerInventory)
+{
+	OwningStorageInventory = SetOwningStorageInventory;
+	PlayerInventory = SetPlayerInventory;
+}

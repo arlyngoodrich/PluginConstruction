@@ -8,7 +8,8 @@
 #include "Net/UnrealNetwork.h"
 #include "ItemSystem.h"
 #include "PlayerInventory.h"
-#include "UIPlayerInterface.h"
+#include "CustomWidgetTemplates/Public/UIPlayerInterface.h"
+#include "StorageWidget.h"
 
 
 // Sets default values
@@ -68,7 +69,7 @@ void AStorageActorBase::OpenInventory(APlayerController* InstigatingPlayer)
 	
 	if(InstigatingPlayer != nullptr)
 	{
-		GetOwner()->SetOwner(Cast<AActor>(InstigatingPlayer));
+		SetOwner(Cast<AActor>(InstigatingPlayer));
 		bIsInventoryOpen = true;
 		
 		UE_LOG(LogItemSystem,Log,TEXT("%s set as owner of %s"),
@@ -109,17 +110,32 @@ void AStorageActorBase::CloseInventory(APlayerController* InstigatingPlayer)
 
 void AStorageActorBase::AddTransferUI_Implementation(UPlayerInventory* PlayerInventory, APlayerController* OwningPlayer)
 {
-	if(OwningPlayer->Implements<UUIPlayerInterface>())
-	{
-		IUIPlayerInterface* UIPlayerInterface = Cast<IUIPlayerInterface>(OwningPlayer);
-		//UIPlayerInterface->OpenUI()
-		
-	}
+	if(PlayerInventory->GetClass()->ImplementsInterface(UUIPlayerInterface::StaticClass()))
+		{
+			if(CreateStorageWidget(OwningPlayer))
+			{
+				StorageWidget->SetReferences(StorageInventory,PlayerInventory);
+				IUIPlayerInterface::Execute_OpenUI(OwningPlayer,StorageWidget);
+			}
+		}
 	else
+		{
+			UE_LOG(LogItemSystem,Warning,TEXT("%s Attempted to open inventory UI for %s but does not implement UI Player Interface"),
+				*GetName(),*OwningPlayer->GetName())
+		}
+}
+
+bool AStorageActorBase::CreateStorageWidget(APlayerController* OwningPlayer)
+{
+	if(OwningPlayer == nullptr){return false;}
+	
+	if(UStorageWidget* NewStorageWidget = Cast<UStorageWidget>(CreateWidget(OwningPlayer,StorageWidgetClass)))
 	{
-		UE_LOG(LogItemSystem,Warning,TEXT("%s Attempted to open inventory UI for %s but does not implement UI Player Interface"),
-			*GetName(),*OwningPlayer->GetName())
+		StorageWidget = NewStorageWidget;
+		return true;
 	}
+	
+	return false;
 }
 
 bool AStorageActorBase::Server_CloseInventory_Validate(APlayerController* InstigatingPlayer)
