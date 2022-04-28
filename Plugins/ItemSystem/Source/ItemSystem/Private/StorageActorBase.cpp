@@ -112,12 +112,12 @@ void AStorageActorBase::CloseInventory(APlayerController* InstigatingPlayer)
 
 void AStorageActorBase::AddTransferUI_Implementation(UPlayerInventory* PlayerInventory, APlayerController* OwningPlayer)
 {
-	if(OwningPlayer->GetClass()->ImplementsInterface(UUIPlayerInterface::StaticClass()))
+	if(OwningPlayer->GetPawn()->GetClass()->ImplementsInterface(UUIPlayerInterface::StaticClass()))
 		{
 			if(CreateStorageWidget(OwningPlayer))
 			{
 				//StorageWidget->SetReferences(StorageInventory,PlayerInventory);
-				IUIPlayerInterface::Execute_OpenUI(OwningPlayer,StorageWidget);
+				IUIPlayerInterface::Execute_OpenUI(OwningPlayer->GetPawn(),StorageWidget);
 			}
 		}
 	else
@@ -131,9 +131,9 @@ void AStorageActorBase::RemoveTransferUI_Implementation(APlayerController* Insti
 {
 	if(StorageWidget->IsInViewport())
 	{
-		if(InstigatingPlayer->GetClass()->ImplementsInterface(UUIPlayerInterface::StaticClass()))
+		if(InstigatingPlayer->GetPawn()->GetClass()->ImplementsInterface(UUIPlayerInterface::StaticClass()))
 		{
-			IUIPlayerInterface::Execute_CloseUI(InstigatingPlayer,StorageWidget);
+			IUIPlayerInterface::Execute_CloseUI(InstigatingPlayer->GetPawn(),StorageWidget);
 		}
 		else
 		{
