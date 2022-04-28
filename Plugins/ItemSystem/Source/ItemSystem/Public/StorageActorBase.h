@@ -8,6 +8,7 @@
 
 class UStorageInventory;
 class UPlayerInventory;
+class UCustomUserWidget;
 
 
 /**
@@ -56,11 +57,12 @@ public:
 	void CloseInventory(APlayerController* InstigatingPlayer);
 	
 	/**
-	 * @brief Used to interface with blueprint to create the storage inventory UI
+	 * @brief Used to interface with blueprint to create the storage inventory UI. Called from server to owning client so
+	 * method is executed remotely.  
 	 * @param PlayerInventory Inventory of player opening the storage
 	 * @param OwningPlayer Owning player controller reference 
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Inventory")
+	UFUNCTION(BlueprintNativeEvent, Category="Inventory")
 	void AddTransferUI(UPlayerInventory* PlayerInventory, APlayerController* OwningPlayer);
 	
 
@@ -73,6 +75,14 @@ protected:
 	UPROPERTY(Replicated,BlueprintReadOnly,Category="Inventory")
 	bool bIsInventoryOpen;
 
+	UPROPERTY(EditDefaultsOnly, Category="Inventory")
+	TSubclassOf<UCustomUserWidget> StorageWidgetClass;
+
+	UPROPERTY(BlueprintReadOnly,Category="Inventory")
+	UCustomUserWidget* StorageWidget;
+
+	//void CreateStorageWidget
+	
 	/**
 	 * @brief RPC for closing the inventory when called by the client.
 	 */
@@ -87,6 +97,6 @@ protected:
 	 */
 	UFUNCTION(Client,Reliable)
 	void Client_AddTransferUI(UPlayerInventory* PlayerInventory,APlayerController* OwningPlayer);
-	void Client_AddTransferUI_Implementation(UPlayerInventory* PlayerInventory,APlayerController* OwningPlayer););
+	void Client_AddTransferUI_Implementation(UPlayerInventory* PlayerInventory,APlayerController* OwningPlayer);
 	
 };

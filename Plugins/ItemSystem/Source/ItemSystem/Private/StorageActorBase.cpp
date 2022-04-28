@@ -2,10 +2,13 @@
 
 
 #include "StorageActorBase.h"
+
+#include "CustomUserWidget.h"
 #include "StorageInventory.h"
 #include "Net/UnrealNetwork.h"
 #include "ItemSystem.h"
 #include "PlayerInventory.h"
+#include "UIPlayerInterface.h"
 
 
 // Sets default values
@@ -14,10 +17,15 @@ AStorageActorBase::AStorageActorBase()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	//Create Inventory Reference
 	StorageInventory = CreateDefaultSubobject<UStorageInventory>(TEXT("Storage Inventory"));
 	StorageInventory->SetIsReplicated(true);
 
+	//Ensure Actor Replicates
 	SetReplicates(true);
+
+	//Set Default Storage Widget Class
+	StorageWidgetClass = UCustomUserWidget::StaticClass();
 	
 }
 
@@ -96,6 +104,21 @@ void AStorageActorBase::CloseInventory(APlayerController* InstigatingPlayer)
 		UE_LOG(LogItemSystem,Log,TEXT("%s is not longer the owner of %s"),
 			*InstigatingPlayer->GetName(),*GetOwner()->GetName())
 		
+	}
+}
+
+void AStorageActorBase::AddTransferUI_Implementation(UPlayerInventory* PlayerInventory, APlayerController* OwningPlayer)
+{
+	if(OwningPlayer->Implements<UUIPlayerInterface>())
+	{
+		IUIPlayerInterface* UIPlayerInterface = Cast<IUIPlayerInterface>(OwningPlayer);
+		//UIPlayerInterface->OpenUI()
+		
+	}
+	else
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("%s Attempted to open inventory UI for %s but does not implement UI Player Interface"),
+			*GetName(),*OwningPlayer->GetName())
 	}
 }
 
