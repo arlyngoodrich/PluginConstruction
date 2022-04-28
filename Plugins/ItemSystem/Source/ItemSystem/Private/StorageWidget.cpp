@@ -3,3 +3,17 @@
 
 #include "StorageWidget.h"
 
+
+void UStorageWidget::SetReferences_Implementation(UStorageInventory* SetStorageInventory,
+	UPlayerInventory* SetPlayerInventory, APlayerController* OwningPlayer)
+{
+	StorageInventory = SetStorageInventory;
+	PlayerInventory = SetPlayerInventory;
+	SetOwningPlayer(OwningPlayer);
+}
+
+void UStorageWidget::RemoveFromParent()
+{
+	OnRemoveFromParent.Broadcast();
+	Super::RemoveFromParent();
+}
