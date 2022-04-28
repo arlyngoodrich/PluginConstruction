@@ -64,6 +64,9 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category="Inventory")
 	void AddTransferUI(UPlayerInventory* PlayerInventory, APlayerController* OwningPlayer);
+
+	UFUNCTION(BlueprintNativeEvent,Category="Inventory")
+	void RemoveTransferUI(APlayerController* InstigatingPlayer);
 	
 
 
@@ -74,12 +77,7 @@ protected:
 	 */
 	UPROPERTY(Replicated,BlueprintReadOnly,Category="Inventory")
 	bool bIsInventoryOpen;
-
-	UPROPERTY(EditDefaultsOnly, Category="Inventory")
-	TSubclassOf<UStorageWidget> StorageWidgetClass;
-
-	UPROPERTY(BlueprintReadOnly,Category="Inventory")
-	UStorageWidget* StorageWidget;
+	
 
 	bool CreateStorageWidget(APlayerController* OwningPlayer);
 	

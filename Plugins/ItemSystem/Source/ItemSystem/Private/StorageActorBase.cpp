@@ -9,7 +9,7 @@
 #include "ItemSystem.h"
 #include "PlayerInventory.h"
 #include "CustomWidgetTemplates/Public/UIPlayerInterface.h"
-#include "StorageWidget.h"
+//#include "StorageWidget.h"
 
 
 // Sets default values
@@ -25,8 +25,6 @@ AStorageActorBase::AStorageActorBase()
 	//Ensure Actor Replicates
 	SetReplicates(true);
 
-	//Set Default Storage Widget Class
-	StorageWidgetClass = UCustomUserWidget::StaticClass();
 	
 }
 
@@ -55,7 +53,7 @@ void AStorageActorBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& O
 
 void AStorageActorBase::OpenInventory(APlayerController* InstigatingPlayer)
 {
-	if(HasAuthority())
+	if(HasAuthority() == false)
 	{
 		return;
 	}
@@ -90,8 +88,9 @@ void AStorageActorBase::OpenInventory(APlayerController* InstigatingPlayer)
 void AStorageActorBase::CloseInventory(APlayerController* InstigatingPlayer)
 {
 
-	if(HasAuthority())
+	if(HasAuthority() == false)
 	{
+		RemoveTransferUI(InstigatingPlayer);
 		Server_CloseInventory(InstigatingPlayer);
 		return;
 	}
@@ -108,14 +107,15 @@ void AStorageActorBase::CloseInventory(APlayerController* InstigatingPlayer)
 	}
 }
 
+
 void AStorageActorBase::AddTransferUI_Implementation(UPlayerInventory* PlayerInventory, APlayerController* OwningPlayer)
 {
-	if(PlayerInventory->GetClass()->ImplementsInterface(UUIPlayerInterface::StaticClass()))
+	if(OwningPlayer->GetClass()->ImplementsInterface(UUIPlayerInterface::StaticClass()))
 		{
 			if(CreateStorageWidget(OwningPlayer))
 			{
-				StorageWidget->SetReferences(StorageInventory,PlayerInventory);
-				IUIPlayerInterface::Execute_OpenUI(OwningPlayer,StorageWidget);
+				//StorageWidget->SetReferences(StorageInventory,PlayerInventory);
+				//IUIPlayerInterface::Execute_OpenUI(OwningPlayer,StorageWidget);
 			}
 		}
 	else
@@ -125,16 +125,37 @@ void AStorageActorBase::AddTransferUI_Implementation(UPlayerInventory* PlayerInv
 		}
 }
 
+void AStorageActorBase::RemoveTransferUI_Implementation(APlayerController* InstigatingPlayer)
+{
+	if(true)//StorageWidget->IsInViewport())
+	{
+		if(InstigatingPlayer->GetClass()->ImplementsInterface(UUIPlayerInterface::StaticClass()))
+		{
+			//IUIPlayerInterface::Execute_CloseUI(InstigatingPlayer,StorageWidget);
+		}
+		else
+		{
+			UE_LOG(LogItemSystem,Warning,TEXT("%s Attempted to close inventory UI for %s but does not implement UI Player Interface"),
+				*GetName(),*InstigatingPlayer->GetName())
+		}
+	}
+}
+
 bool AStorageActorBase::CreateStorageWidget(APlayerController* OwningPlayer)
 {
 	if(OwningPlayer == nullptr){return false;}
 	
+	/*
 	if(UStorageWidget* NewStorageWidget = Cast<UStorageWidget>(CreateWidget(OwningPlayer,StorageWidgetClass)))
 	{
 		StorageWidget = NewStorageWidget;
 		return true;
 	}
-	
+
+	UE_LOG(LogItemSystem,Warning,TEXT("%s failed to create storage widget"),*GetName())
+	return false;
+	*/
+
 	return false;
 }
 
