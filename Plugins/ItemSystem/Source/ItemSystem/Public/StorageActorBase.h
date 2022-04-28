@@ -77,7 +77,12 @@ protected:
 	 */
 	UPROPERTY(Replicated,BlueprintReadOnly,Category="Inventory")
 	bool bIsInventoryOpen;
-	
+
+	UPROPERTY(EditDefaultsOnly, Category="Invetory")
+	TSubclassOf<UStorageWidget> StorageWidgetClass;
+
+	UPROPERTY(BlueprintReadOnly,Category="Inventory")
+	UStorageWidget* StorageWidget;
 
 	bool CreateStorageWidget(APlayerController* OwningPlayer);
 	

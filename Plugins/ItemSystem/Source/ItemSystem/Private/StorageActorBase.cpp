@@ -9,7 +9,7 @@
 #include "ItemSystem.h"
 #include "PlayerInventory.h"
 #include "CustomWidgetTemplates/Public/UIPlayerInterface.h"
-//#include "StorageWidget.h"
+#include "StorageWidget.h"
 
 
 // Sets default values
@@ -24,6 +24,8 @@ AStorageActorBase::AStorageActorBase()
 
 	//Ensure Actor Replicates
 	SetReplicates(true);
+
+	StorageWidgetClass = UStorageWidget::StaticClass();
 
 	
 }
@@ -115,7 +117,7 @@ void AStorageActorBase::AddTransferUI_Implementation(UPlayerInventory* PlayerInv
 			if(CreateStorageWidget(OwningPlayer))
 			{
 				//StorageWidget->SetReferences(StorageInventory,PlayerInventory);
-				//IUIPlayerInterface::Execute_OpenUI(OwningPlayer,StorageWidget);
+				IUIPlayerInterface::Execute_OpenUI(OwningPlayer,StorageWidget);
 			}
 		}
 	else
@@ -127,11 +129,11 @@ void AStorageActorBase::AddTransferUI_Implementation(UPlayerInventory* PlayerInv
 
 void AStorageActorBase::RemoveTransferUI_Implementation(APlayerController* InstigatingPlayer)
 {
-	if(true)//StorageWidget->IsInViewport())
+	if(StorageWidget->IsInViewport())
 	{
 		if(InstigatingPlayer->GetClass()->ImplementsInterface(UUIPlayerInterface::StaticClass()))
 		{
-			//IUIPlayerInterface::Execute_CloseUI(InstigatingPlayer,StorageWidget);
+			IUIPlayerInterface::Execute_CloseUI(InstigatingPlayer,StorageWidget);
 		}
 		else
 		{
@@ -145,7 +147,7 @@ bool AStorageActorBase::CreateStorageWidget(APlayerController* OwningPlayer)
 {
 	if(OwningPlayer == nullptr){return false;}
 	
-	/*
+	
 	if(UStorageWidget* NewStorageWidget = Cast<UStorageWidget>(CreateWidget(OwningPlayer,StorageWidgetClass)))
 	{
 		StorageWidget = NewStorageWidget;
@@ -154,9 +156,7 @@ bool AStorageActorBase::CreateStorageWidget(APlayerController* OwningPlayer)
 
 	UE_LOG(LogItemSystem,Warning,TEXT("%s failed to create storage widget"),*GetName())
 	return false;
-	*/
 
-	return false;
 }
 
 bool AStorageActorBase::Server_CloseInventory_Validate(APlayerController* InstigatingPlayer)
