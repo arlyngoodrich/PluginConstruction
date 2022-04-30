@@ -5,6 +5,7 @@
 
 #include "InventoryComponent.h"
 #include "InventoryGridWidget.h"
+#include "ItemSystem.h"
 
 
 void UInventorySlotWidget::SetReferences(const FInventorySlot SetMyInventorySlot, UInventoryGridWidget* SetOwningGridWidget,
@@ -33,17 +34,17 @@ void UInventorySlotWidget::OnSlotDraggedOver(FItemData DraggedOverItem, const bo
 
 bool UInventorySlotWidget::OnItemDropped(UInventoryComponent* OriginatingInventory,const FInventoryItemData DroppedItemData, const bool bRotateItem)
 {
-	if(OwningInventory != nullptr)
+	if(OwningInventory != nullptr || OriginatingInventory == nullptr)
 	{
 
 		//Check to see if it's being dropped onto the same position
 		if(DroppedItemData.StartPosition == MyInventorySlot.Position && OriginatingInventory == OwningInventory)
 		{
-			return false;
+			return false; 
 		}
 
-		//If Originating Inventory is null or it is the same as the owning inventory, attempt to do move.  
-		if(OriginatingInventory == nullptr || OriginatingInventory == OwningInventory)
+		//If Originating Inventory  is the same as the owning inventory, attempt to do move.  
+		if(OriginatingInventory == OwningInventory)
 		{
 			
 			if(OwningInventory->CheckItemMove(DroppedItemData,MyInventorySlot.Position,bRotateItem))
