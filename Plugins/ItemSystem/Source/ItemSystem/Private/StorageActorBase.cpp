@@ -114,14 +114,15 @@ void AStorageActorBase::Client_OpenInventory_Implementation(APlayerController* I
 	}
 }
 
-bool AStorageActorBase::CreateStorageWidget(APlayerController* InstigatingPlayer, UStorageWidget*& OutWidget)
+bool AStorageActorBase::CreateStorageWidget(APlayerController* InstigatingPlayer, UCustomUserWidget*& OutWidget)
 {
 	const APawn* Pawn = InstigatingPlayer->GetPawn();
 	
 	if(UPlayerInventory* PlayerInventory = Pawn->FindComponentByClass<UPlayerInventory>())
 	{
-		OutWidget = Cast<UStorageWidget>(CreateWidget(InstigatingPlayer,StorageWidgetClass));;
-		OutWidget->SetReferences(StorageInventory,PlayerInventory,InstigatingPlayer);
+		UStorageWidget* Widget = Cast<UStorageWidget>(CreateWidget(InstigatingPlayer,StorageWidgetClass));;
+		Widget->SetReferences(StorageInventory,PlayerInventory,InstigatingPlayer);
+		OutWidget =  Widget;
 		return true;
 	}
 	UE_LOG(LogItemSystem,Warning,TEXT("%s player does not have inventory to create transfer widget"))

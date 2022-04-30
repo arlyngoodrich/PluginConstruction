@@ -9,7 +9,6 @@
 class UStorageInventory;
 class UPlayerInventory;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRemoveFromParent);
 
 /**
  * 
@@ -20,9 +19,6 @@ class ITEMSYSTEM_API UStorageWidget : public UCustomUserWidget
 	GENERATED_BODY()
 
 public:
-
-	UPROPERTY(BlueprintAssignable,Category="Inventory")
-	FOnRemoveFromParent OnRemoveFromParent;
 	
 	UFUNCTION(BlueprintNativeEvent,Category="Inventory")
 	void SetReferences(UStorageInventory* SetStorageInventory,UPlayerInventory* SetPlayerInventory,APlayerController* OwningPlayer);
@@ -35,6 +31,6 @@ protected:
 	UPROPERTY(BlueprintReadOnly,Category="Inventory")
 	UPlayerInventory* PlayerInventory;
 
-	virtual void RemoveFromParent() override;
+
 	
 };

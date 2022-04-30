@@ -3,3 +3,8 @@
 
 #include "CustomUserWidget.h"
 
+void UCustomUserWidget::RemoveFromParent()
+{
+	OnRemoveFromParent.Broadcast();
+	Super::RemoveFromParent();
+}
