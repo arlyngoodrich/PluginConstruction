@@ -192,16 +192,16 @@ bool UCraftingComponent::CraftRecipeChecks(const FCraftingRecipe Recipe) const
 	//Ensure component can craft recipe
 	if(IsComponentEligibleToCraftRecipe(Recipe) == false)
 	{
-		UE_LOG(LogItemSystem,Log,TEXT("%s attempted to craft %s recipe but is not eligible to"),
-			*GetOwner()->GetName(),*Recipe.RecipeName.ToString())
+		//UE_LOG(LogItemSystem,Log,TEXT("%s attempted to craft %s recipe but is not eligible to"),
+		//	*GetOwner()->GetName(),*Recipe.RecipeName.ToString())
 		return false;
 	}
 
 	//Get Eligible Inventory Components
 	if(InventoryComponents.Num() == 0)
 	{
-		UE_LOG(LogItemSystem,Log,TEXT("%s attempted to craft %s recipe but there are no inventories"),
-		*GetOwner()->GetName(),*Recipe.RecipeName.ToString())
+		//UE_LOG(LogItemSystem,Log,TEXT("%s attempted to craft %s recipe but there are no inventories"),
+		//*GetOwner()->GetName(),*Recipe.RecipeName.ToString())
 		return false;
 	}
 	
@@ -216,8 +216,8 @@ bool UCraftingComponent::CraftRecipeChecks(const FCraftingRecipe Recipe) const
 
 	if(InputChecks.Contains(false))
 	{
-		UE_LOG(LogItemSystem,Log,TEXT("%s attempted to craft %s recipe but there are not enough inputs"),
-		*GetOwner()->GetName(),*Recipe.RecipeName.ToString())
+		//UE_LOG(LogItemSystem,Log,TEXT("%s attempted to craft %s recipe but there are not enough inputs"),
+		//*GetOwner()->GetName(),*Recipe.RecipeName.ToString())
 		return false;
 	}
 	
