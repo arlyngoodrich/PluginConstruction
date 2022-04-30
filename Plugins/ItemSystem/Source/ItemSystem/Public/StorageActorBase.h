@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CustomUserWidget.h"
 #include "GameFramework/Actor.h"
 #include "StorageActorBase.generated.h"
 
@@ -53,11 +54,13 @@ protected:
 	APlayerController* InteractingPlayer;
 
 	UPROPERTY(EditDefaultsOnly,Category="Inventory")
-	TSubclassOf<UStorageWidget> StorageWidgetClass;
+	TSubclassOf<UCustomUserWidget> StorageWidgetClass;
 
 	UPROPERTY(BlueprintReadOnly,Category="Inventory")
-	UStorageWidget* StorageWidget;
+	UCustomUserWidget* StorageWidget;
 
+	virtual bool CreateStorageWidget(APlayerController* InstigatingPlayer,UCustomUserWidget*& OutWidget);
+	
 	UFUNCTION()
 	void OnInventoryForcedClosed();
 	

@@ -66,12 +66,12 @@ void UCraftingComponent::SpawnExcessItem_Implementation(const FItemData ItemData
 
 void UCraftingComponent::InitializeRecipes()
 {
-
+	
 	//Only execute on authority
 	if(GetOwnerRole() != ROLE_Authority){return;}
 
 	if(bRecipesInitialized){return;}
-
+	
 	//Make sure crafting data table pointer is valid
 	if(CraftingRecipeTable == nullptr)
 	{
@@ -82,13 +82,16 @@ void UCraftingComponent::InitializeRecipes()
 
 	//Iterate through all rows
 	const TArray<FName> CraftingRows = CraftingRecipeTable->GetRowNames();
+
+	EligibleCraftingRecipes.Empty();
 	
 	for (int i = 0; i < CraftingRows.Num(); ++i)
 	{
 		const FCraftingRecipe TargetRecipe = *CraftingRecipeTable->FindRow<FCraftingRecipe>(
 			CraftingRows[i], "Crafting Recipe Initialization", true);
 
-		if(IsComponentEligibleToCraftRecipe(TargetRecipe))
+		//Make sure can craft recipe and not already in array
+		if(IsComponentEligibleToCraftRecipe(TargetRecipe) && !EligibleCraftingRecipes.Contains(TargetRecipe))
 		{
 			EligibleCraftingRecipes.Add(TargetRecipe);
 		}
@@ -230,7 +233,7 @@ bool UCraftingComponent::InputComponentCheck(const FRecipeComponent Component,TA
 	{
 		UInventoryComponent* TargetInventory = InventoryComponentsRef[i];
 		Quantity += TargetInventory->GetTotalCountOfItemSubClass(Component.ComponentClass);
-		UE_LOG(LogItemSystem,Log,TEXT("Total Input = %d"),Quantity)
+		UE_LOG(LogItemSystem,Verbose,TEXT("Total Input = %d"),Quantity)
 	}
 	
 	return Quantity >= Component.Quantity;

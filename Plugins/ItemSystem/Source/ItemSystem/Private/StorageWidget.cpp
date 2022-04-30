@@ -12,8 +12,3 @@ void UStorageWidget::SetReferences_Implementation(UStorageInventory* SetStorageI
 	SetOwningPlayer(OwningPlayer);
 }
 
-void UStorageWidget::RemoveFromParent()
-{
-	OnRemoveFromParent.Broadcast();
-	Super::RemoveFromParent();
-}
