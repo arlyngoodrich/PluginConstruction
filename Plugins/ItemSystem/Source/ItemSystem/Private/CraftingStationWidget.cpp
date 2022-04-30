@@ -3,7 +3,7 @@
 
 #include "CraftingStationWidget.h"
 
-void UCraftingStationWidget::SetReferences(UPlayerInventory* SetPlayerInventory, UStorageInventory* SetStorageInventory,
+void UCraftingStationWidget::SetReferences_Implementation(UPlayerInventory* SetPlayerInventory, UStorageInventory* SetStorageInventory,
 	UStationCraftingComponent* SetCraftingComponent, APlayerController* OwningPlayer)
 {
 	PlayerInventory = SetPlayerInventory;
