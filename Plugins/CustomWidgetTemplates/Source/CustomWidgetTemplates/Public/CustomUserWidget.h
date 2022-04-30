@@ -22,11 +22,6 @@ public:
 	FOnRemoveFromParent OnRemoveFromParent;
 
 	virtual void RemoveFromParent() override;
-
 	
-
-
-
-
 	
 };
