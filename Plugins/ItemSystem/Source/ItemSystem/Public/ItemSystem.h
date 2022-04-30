@@ -7,6 +7,7 @@
 #include "Modules/ModuleManager.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogItemSystem, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogTestItemSystem, Log, All);
 
 class FItemSystemModule : public IModuleInterface
 {

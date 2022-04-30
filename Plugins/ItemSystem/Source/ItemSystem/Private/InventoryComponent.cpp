@@ -263,7 +263,7 @@ bool UInventoryComponent::TransferItemToPosition(UInventoryComponent* TargetInve
                                                  const FInventoryItemData TargetItem)
 {
 
-	UE_LOG(LogItemSystem,Log,TEXT("Attempting to transfer %s item from %s to position %s in inventory %s"),
+	UE_LOG(LogItemSystem,Log,TEXT("Attempting to transfer %s item from %s to position %s in inventory %s"), 
 		*TargetItem.Item.DisplayName.ToString(),*GetOwner()->GetName(),*TargetInventory->GetOwner()->GetName(),
 		*TargetPosition.GetPositionAsString())
 
@@ -277,6 +277,7 @@ bool UInventoryComponent::TransferItemToPosition(UInventoryComponent* TargetInve
 	
 	if(TransferItemChecks(TargetItem,TargetInventory,TargetPosition) == false)
 	{
+		UE_LOG(LogTestItemSystem,Log,TEXT("Transfer failed checks"))
 		return false;
 	}
 
@@ -293,14 +294,14 @@ bool UInventoryComponent::TransferItemToPosition(UInventoryComponent* TargetInve
 	{
 		//Item Added to target inventory
 
-		UE_LOG(LogItemSystem,Log,TEXT("%s item was transferred to %s from %s"),
+		UE_LOG(LogItemSystem,Log,TEXT("%s item was transferred to %s from %s"), 
 			*TargetItem.Item.DisplayName.ToString(),*TargetInventory->GetOwner()->GetName(),*GetOwner()->GetName())
 		return true;
 		
 	}
 	else
 	{
-		UE_LOG(LogItemSystem,Log,TEXT("%s failed to transfer %s item to %s"),
+		UE_LOG(LogItemSystem,Log,TEXT("%s failed to transfer %s item to %s"), 
 			*GetOwner()->GetName(),*TargetItem.Item.DisplayName.ToString(),*TargetInventory->GetOwner()->GetName())
 		return false;
 	}
@@ -668,8 +669,8 @@ bool UInventoryComponent::FullyRemoveInventoryItem(const FInventoryItemData Targ
 	if(InventoryItems.Find(TargetInventoryItem,ItemIndex))
 	{
 
-		//Uncover Slots
-		if(SetSlotStatuses(TargetInventoryItem.GetCoveredSlots(),false))
+		//Uncover Slots --> get original item inventory item in case it was rotated during move/transfer process
+		if(SetSlotStatuses(InventoryItems[ItemIndex].GetCoveredSlots(),false))
 		{
 			InventoryItems.RemoveAt(ItemIndex);
 			OnRep_InventoryItemsUpdated();
