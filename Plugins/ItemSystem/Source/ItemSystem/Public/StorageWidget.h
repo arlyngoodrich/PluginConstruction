@@ -20,7 +20,7 @@ class ITEMSYSTEM_API UStorageWidget : public UCustomUserWidget
 
 public:
 	
-	UFUNCTION(BlueprintNativeEvent,Category="Inventory")
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent,Category="Inventory")
 	void SetReferences(UStorageInventory* SetStorageInventory,UPlayerInventory* SetPlayerInventory,APlayerController* OwningPlayer);
 
 protected:
