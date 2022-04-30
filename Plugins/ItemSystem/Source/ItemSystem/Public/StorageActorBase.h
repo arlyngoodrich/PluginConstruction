@@ -58,7 +58,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly,Category="Inventory")
 	UStorageWidget* StorageWidget;
 
-	virtual bool CreateStorageWidget(APlayerController* InstigatingPlayer,,UStorageWidget*& OutWidget);
+	virtual bool CreateStorageWidget(APlayerController* InstigatingPlayer,UStorageWidget*& OutWidget);
 	
 	UFUNCTION()
 	void OnInventoryForcedClosed();
