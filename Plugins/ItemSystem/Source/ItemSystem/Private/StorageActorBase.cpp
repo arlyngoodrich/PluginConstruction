@@ -86,6 +86,8 @@ void AStorageActorBase::OnPlayerInteraction(APlayerController* InstigatingPlayer
 	}
 }
 
+
+
 void AStorageActorBase::OnInventoryForcedClosed()
 {
 	StorageWidget->OnRemoveFromParent.RemoveDynamic(this,&AStorageActorBase::OnInventoryForcedClosed);
@@ -97,31 +99,35 @@ void AStorageActorBase::Client_OpenInventory_Implementation(APlayerController* I
 {
 	APawn* Pawn = InstigatingPlayer->GetPawn();
 	//Make sure player has inventory
-	if(UPlayerInventory* PlayerInventory = Pawn->FindComponentByClass<UPlayerInventory>())
+	if (CreateStorageWidget(InstigatingPlayer, StorageWidget))
 	{
-		//Create Storage Widget
-		StorageWidget = Cast<UStorageWidget>(CreateWidget(InstigatingPlayer,StorageWidgetClass));
-		if(StorageWidget)
+		//Tell player to open UI via interface
+		if (Pawn->GetClass()->ImplementsInterface(UUIPlayerInterface::StaticClass()))
 		{
-			StorageWidget->SetReferences(StorageInventory,PlayerInventory,InstigatingPlayer);
-
-			//Tell player to open UI via interface
-			if(Pawn->GetClass()->ImplementsInterface(UUIPlayerInterface::StaticClass()))
-			{
-				IUIPlayerInterface::Execute_OpenUI(Pawn,StorageWidget);
-				StorageWidget->OnRemoveFromParent.AddDynamic(this,&AStorageActorBase::OnInventoryForcedClosed);
-			}
-		}
-		else
-		{
-			UE_LOG(LogItemSystem,Warning,TEXT("%s failed to make storage widget"),*GetName())
+			IUIPlayerInterface::Execute_OpenUI(Pawn, StorageWidget);
+			StorageWidget->OnRemoveFromParent.AddDynamic(this, &AStorageActorBase::OnInventoryForcedClosed);
 		}
 	}
 	else
 	{
-		UE_LOG(LogItemSystem,Warning,TEXT("%s player does not have inventory to create transfer widget"))
+		UE_LOG(LogItemSystem,Warning,TEXT("%s failed to make storage widget"),*GetName())
 	}
 }
+
+bool AStorageActorBase::CreateStorageWidget(APlayerController* InstigatingPlayer, UStorageWidget*& OutWidget)
+{
+	const APawn* Pawn = InstigatingPlayer->GetPawn();
+	
+	if(UPlayerInventory* PlayerInventory = Pawn->FindComponentByClass<UPlayerInventory>())
+	{
+		OutWidget = Cast<UStorageWidget>(CreateWidget(InstigatingPlayer,StorageWidgetClass));;
+		OutWidget->SetReferences(StorageInventory,PlayerInventory,InstigatingPlayer);
+		return true;
+	}
+	UE_LOG(LogItemSystem,Warning,TEXT("%s player does not have inventory to create transfer widget"))
+	return false;
+}
+
 
 void AStorageActorBase::Client_CloseInventory_Implementation(APlayerController* InstigatingPlayer)
 {
