@@ -20,7 +20,7 @@ class ITEMSYSTEM_API UCraftingStationWidget : public UCustomUserWidget
 
 public:
 
-	UFUNCTION(BlueprintNativeEvent,Category="Inventory")
+	UFUNCTION(BlueprintCallable,BlueprintNativeEvent,Category="Inventory")
 	void SetReferences(UPlayerInventory* SetPlayerInventory, UStorageInventory* SetStorageInventory,
 		UStationCraftingComponent* SetCraftingComponent, APlayerController* OwningPlayer);
 

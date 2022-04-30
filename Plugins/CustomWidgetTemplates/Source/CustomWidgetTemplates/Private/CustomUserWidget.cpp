@@ -8,3 +8,5 @@ void UCustomUserWidget::RemoveFromParent()
 	OnRemoveFromParent.Broadcast();
 	Super::RemoveFromParent();
 }
+
+

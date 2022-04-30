@@ -82,6 +82,10 @@ void UCraftingWidget::ClearActiveRecipe()
 
 void UCraftingWidget::RefreshRecipeWidgetReferences()
 {
+	for (int i = 0; i < CraftingRecipeWidgets.Num(); ++i)
+	{
+		CraftingRecipeWidgets[i]->RemoveFromParent();
+	}
 	CraftingRecipeWidgets.Empty();
 	
 	const TArray<FCraftingRecipe> CraftingRecipes = MyCraftingComponent->GetEligibleCraftingRecipes();
