@@ -5,6 +5,7 @@
 
 #include "InventoryComponent.h"
 #include "InventoryGridWidget.h"
+#include "ItemSystem.h"
 
 
 void UInventorySlotWidget::SetReferences(const FInventorySlot SetMyInventorySlot, UInventoryGridWidget* SetOwningGridWidget,

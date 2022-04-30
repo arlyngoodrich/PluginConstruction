@@ -406,7 +406,7 @@ protected:
 	 * @param TargetItemData Item data to attempt to stack into
 	 * @param InItemData Item data to stack into target item data
 	 * @param OutRemainingItem Item data that could not be added to the stack
-	 * @return Will return true if fully stacked, will return false if not.
+	 * @return Will return true if fully stacked, will return false if partially or not stack and return remaining item.
 	 */
 	bool AttemptStack(FInventoryItemData TargetItemData, FItemData InItemData, FItemData& OutRemainingItem);
 	

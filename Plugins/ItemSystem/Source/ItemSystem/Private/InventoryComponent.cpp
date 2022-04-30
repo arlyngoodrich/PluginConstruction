@@ -348,9 +348,8 @@ bool UInventoryComponent::AutoAddItem(const FItemData InItem, FItemData& OutRema
 			//Check to see if they are the same class 
 			if(InItem.InWorldClass->StaticClass() == TargetInventoryItem.Item.InWorldClass->StaticClass())
 			{
-				if(AttemptStack(TargetInventoryItem,InItem,OutRemainingItem))
+				if(AttemptStack(TargetInventoryItem,OutRemainingItem,OutRemainingItem))
 				{
-					//Item Fully stacked
 					return true;
 				}
 			}
