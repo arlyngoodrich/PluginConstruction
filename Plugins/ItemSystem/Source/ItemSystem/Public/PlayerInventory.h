@@ -25,7 +25,7 @@ public:
 protected:
 
 	UPROPERTY(EditDefaultsOnly,Category="Inventory")
-	float SpawnLoopRate = 0.1f;
+	float SpawnLoopRate = 0.01f;
 	
 	UPROPERTY()
 	AItemBase* SpawningItem;
@@ -42,7 +42,16 @@ protected:
 	void SpawnItem(FItemData ItemData, AItemBase*& OutSpawnedItem) const;
 
 	void ItemSpawnLoop();
+	
+	void ClosePlayerUI() const;
 
+	void EndSpawnLoop();
+	
+	UFUNCTION()
+	void CancelPlacement();
+
+	UFUNCTION()
+	void ConfirmPlacement();
 	
 
 	

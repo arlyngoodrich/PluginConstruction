@@ -3,11 +3,12 @@
 
 #include "PlayerInventory.h"
 
+#include "CustomPlayerController.h"
 #include "ItemBase.h"
 #include "ItemSystem.h"
 #include "PlayerInteractionSensor.h"
-
-
+#include "UIPlayerInterface.h"
+#include "GameFramework/Character.h"
 
 
 void UPlayerInventory::BeginPlay()
@@ -15,13 +16,15 @@ void UPlayerInventory::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UPlayerInventory::PlaceItem(FItemData ItemData)
+void UPlayerInventory::PlaceItem(const FItemData ItemData)
 {
+	StartItemSpawnLoop(ItemData);
 }
 
 void UPlayerInventory::StartItemSpawnLoop(const FItemData SpawnItemData)
 {
 
+	//Make sure Spawn Item class is valid
 	if(SpawnItemData.InWorldClass == nullptr)
 	{
 		UE_LOG(LogItemSystem,Error,TEXT("Attempted to sapwn %s item from %s inventory without a valid in world class"),
@@ -29,6 +32,7 @@ void UPlayerInventory::StartItemSpawnLoop(const FItemData SpawnItemData)
 		return;
 	}
 
+	//Make sure have interaction sensor
 	InteractionSensor = GetOwner()->FindComponentByClass<UPlayerInteractionSensor>();
 	if(InteractionSensor == nullptr)
 	{
@@ -36,9 +40,20 @@ void UPlayerInventory::StartItemSpawnLoop(const FItemData SpawnItemData)
 	*SpawnItemData.DisplayName.ToString(),*GetOwner()->GetName())
 		return;
 	}
+
+	//Check if custom player controller
+	if (ACustomPlayerController* CustomPlayerController = Cast<ACustomPlayerController>(
+		Cast<ACharacter>(GetOwner())->GetController()))
+	{
+		CustomPlayerController->OnRMBPressed.AddDynamic(this,&UPlayerInventory::CancelPlacement);
+		CustomPlayerController->OnLMBPressed.AddDynamic(this,&UPlayerInventory::ConfirmPlacement);
+	}
+
+	ClosePlayerUI();
+
+	SpawnItem(SpawnItemData,SpawningItem);
 	
-	
-	GetWorld()->GetTimerManager().SetTimer(SpawnLoopTimer,this,&UPlayerInventory::ItemSpawnLoop,SpawnLoopRate,true);
+	GetWorld()->GetTimerManager().SetTimer(SpawnLoopTimer,this,&UPlayerInventory::ItemSpawnLoop,SpawnLoopRate,true,.1f);
 }
 
 void UPlayerInventory::SpawnItem(const FItemData ItemData, AItemBase*& OutSpawnedItem) const
@@ -46,14 +61,62 @@ void UPlayerInventory::SpawnItem(const FItemData ItemData, AItemBase*& OutSpawne
 	const FVector Location = InteractionSensor->GetLookLocation();
 	const FRotator Rotation(0.f,0.f,0.f);
 	const FActorSpawnParameters SpawnParameters;
+	
+	
+	OutSpawnedItem  = GetWorld()->SpawnActor<AItemBase>(ItemData.InWorldClass,Location,Rotation,SpawnParameters);
+	if(OutSpawnedItem == nullptr)
+	{
+		UE_LOG(LogItemSystem,Error,TEXT("%s could not spawn %s item from their inventory"), *GetOwner()->GetName(),
+	   *ItemData.DisplayName.ToString())
+	}
 
-	UClass* ItemClass = ItemData.InWorldClass->GetClass();
-	OutSpawnedItem  = GetWorld()->SpawnActor<AItemBase>(ItemClass,Location,Rotation,SpawnParameters);
+	OutSpawnedItem->SetActorEnableCollision(false);
+
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
 void UPlayerInventory::ItemSpawnLoop()
 {
+	if(SpawningItem==nullptr)
+	{
+		return;
+	}
 	
+	SpawningItem->SetActorLocation(InteractionSensor->GetLookLocation());
+}
+
+void UPlayerInventory::ClosePlayerUI() const
+{
+	
+	if(GetOwner()->Implements<UUIPlayerInterface>())
+	{
+		IUIPlayerInterface::Execute_CloseActiveUI(GetOwner());
+	}
+	
+}
+
+void UPlayerInventory::EndSpawnLoop()
+{
+	//Check if custom player controller
+	if (ACustomPlayerController* CustomPlayerController = Cast<ACustomPlayerController>(
+		Cast<ACharacter>(GetOwner())->GetController()))
+	{
+		CustomPlayerController->OnRMBPressed.RemoveDynamic(this,&UPlayerInventory::CancelPlacement);
+		CustomPlayerController->OnLMBPressed.RemoveDynamic(this,&UPlayerInventory::ConfirmPlacement);
+	}
+	
+	GetWorld()->GetTimerManager().ClearTimer(SpawnLoopTimer);
+}
+
+void UPlayerInventory::CancelPlacement()
+{
+	EndSpawnLoop();
+	SpawningItem->Destroy();
+}
+
+void UPlayerInventory::ConfirmPlacement()
+{
+	EndSpawnLoop();
 }
 
 

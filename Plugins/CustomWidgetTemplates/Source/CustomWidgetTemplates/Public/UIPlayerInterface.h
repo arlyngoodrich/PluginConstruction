@@ -29,5 +29,8 @@ public:
 
 	UFUNCTION(BlueprintCallable,BlueprintImplementableEvent,Category="UI Interface")
 	void CloseUI(UCustomUserWidget* Widget);
+
+	UFUNCTION(BlueprintCallable,BlueprintImplementableEvent,Category="UI Interface")
+	void CloseActiveUI();
 	
 };
