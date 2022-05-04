@@ -31,10 +31,6 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Interaction System")
 	FInteractionTriggeredDelegate OnInteractionTriggered;
 
-protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-	
 	//Boolean default property for if the base mesh components should outline if the object is in focus. 
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction System")
 	bool bShouldOutline;
@@ -55,6 +51,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction System", meta = (EditCondition = "bShouldShowWdiget"))
 	TSubclassOf<UInteractionWidget> InteractionWidgetClass;
 
+protected:
+	// Called when the game starts
+	virtual void BeginPlay() override;
+	
+
 	//Pointer to created interaction widget 
 	UPROPERTY()
 	UInteractionWidget* InteractionWidget;
@@ -74,6 +75,9 @@ protected:
 	//Boolean property for when the IOC's actor is in foucs.  
 	UPROPERTY(BlueprintReadOnly, Category = "Interaction System")
 	bool bIsInFocus;
+
+	UPROPERTY()
+	AActor* OwningActor;
 
 	void ToggleOutline(bool bStartOutline) const;
 

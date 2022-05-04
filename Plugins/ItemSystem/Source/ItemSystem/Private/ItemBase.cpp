@@ -3,6 +3,8 @@
 
 #include "ItemBase.h"
 
+#include "InteractableObjectComponent.h"
+#include "InventoryComponent.h"
 #include "ItemSystem.h"
 #include "Net/UnrealNetwork.h"
 
@@ -11,6 +13,12 @@ AItemBase::AItemBase()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
+
+	InteractableObjectComponent = CreateDefaultSubobject<UInteractableObjectComponent>(TEXT("Interactable Object Component"));
+	InteractableObjectComponent->bShouldOutline = true;
+	InteractableObjectComponent->bShouldShowWidget = true;
+	InteractableObjectComponent->InteractionText = FText::FromString("Pickup");
 }
 
 FItemData AItemBase::GetItemData() const {return ItemData;}
@@ -20,6 +28,7 @@ void AItemBase::BeginPlay()
 {
 	Super::BeginPlay();
 	InitializeItemData();
+	InteractableObjectComponent->OnInteractionTriggered.AddDynamic(this,&AItemBase::OnPlayerInteraction);
 	
 }
 
@@ -40,6 +49,11 @@ void AItemBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifeti
 	DOREPLIFETIME(AItemBase, ItemData);
 }
 
+void AItemBase::OnPlayerInteraction_Implementation(AActor* InstigatingActor)
+{
+	Native_OnPlayerInteraction(InstigatingActor);
+}
+
 void AItemBase::InitializeItemData()
 {
 	if(HasAuthority())
@@ -50,5 +64,24 @@ void AItemBase::InitializeItemData()
 
 		UE_LOG(LogItemSystem, Log, TEXT("%s item intialized.  GUID = %s"), *ItemData.DisplayName.ToString(),
 		       *ItemData.ItemGuid.ToString())
+	}
+}
+
+void AItemBase::Native_OnPlayerInteraction(AActor* InstigatingActor)
+{
+	if(HasAuthority() == false || InstigatingActor == nullptr){return;}
+	
+	if(UInventoryComponent* InventoryComponent = InstigatingActor->FindComponentByClass<UInventoryComponent>())
+	{
+		FItemData RemainingItemData;
+		if(InventoryComponent->AutoAddItem(ItemData,RemainingItemData))
+		{
+			//Fully Added
+			SetLifeSpan(.01);
+		}
+		else
+		{
+			ItemData = RemainingItemData;
+		}
 	}
 }
