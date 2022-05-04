@@ -25,6 +25,10 @@
 		{                                
 			"Name": "CustomWidgetTemplates",    
 			"Enabled": true                
-		}                                
+		},
+		{
+			"Name": "InteractionSystem",
+			"Enabled": true
+		}
 	]                                  
 }
