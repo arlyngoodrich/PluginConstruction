@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
+
+DECLARE_LOG_CATEGORY_EXTERN(LogUniverisalCoreAssets, Log, All);
+
 class FUniversalCoreAssetsModule : public IModuleInterface
 {
 public:
