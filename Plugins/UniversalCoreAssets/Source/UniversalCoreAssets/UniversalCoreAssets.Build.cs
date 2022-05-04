@@ -26,6 +26,7 @@ public class UniversalCoreAssets : ModuleRules
 			new string[]
 			{
 				"Core",
+				"InputCore"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

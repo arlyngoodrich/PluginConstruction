@@ -29,6 +29,11 @@
 		{
 			"Name": "InteractionSystem",
 			"Enabled": true
+		},
+		{
+			"Name": "UniversalCoreAssets",
+			"Enabled": true
 		}
+		
 	]
 }
