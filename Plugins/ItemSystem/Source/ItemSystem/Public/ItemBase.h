@@ -7,6 +7,8 @@
 #include "ItemData.h"
 #include "ItemBase.generated.h"
 
+class UInteractableObjectComponent;
+
 /**
  * @brief Base class for any item that can be in an inventory
  */
@@ -22,6 +24,10 @@ public:
 	AItemBase();
 
 	FItemData GetItemData() const;
+
+	UPROPERTY(VisibleAnywhere,Category="Item")
+	UInteractableObjectComponent* InteractableObjectComponent;
+	
 
 protected:
 	/**
@@ -43,10 +49,15 @@ protected:
 	 */
 	UPROPERTY(Replicated, EditAnywhere,BlueprintReadOnly,Category="Item Data")
 	FItemData ItemData;
+
+	UFUNCTION(BlueprintNativeEvent,BlueprintAuthorityOnly,Category="Item")
+	void OnPlayerInteraction(AActor* InstigatingActor);
 	
 	/**
 	 * @brief Adds GUID and Item in world class to Item Data struct
 	 */
 	void InitializeItemData();
+
+	virtual void Native_OnPlayerInteraction(AActor* InstigatingActor);
 
 };

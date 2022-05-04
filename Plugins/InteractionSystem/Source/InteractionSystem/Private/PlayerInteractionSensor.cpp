@@ -50,7 +50,7 @@ void UPlayerInteractionSensor::Initialize()
 {
 
 	//TODO Change to Owning Pawn.  Interaction sensor could be used on non-character actor.  
-	ACharacter* OwningCharacterCheck = Cast<ACharacter>(GetOwner());
+	const ACharacter* OwningCharacterCheck = Cast<ACharacter>(GetOwner());
 
 	if(!OwningCharacterCheck)
 	{
@@ -170,6 +170,14 @@ void UPlayerInteractionSensor::InteractionCheckLoop()
 		ActorInView = nullptr;
 		bInteractableObjectInView = false;
 	}
+	//If IOC in View is already null, clear references
+	else 
+	{
+		InteractableObjectComponentInView = nullptr;
+		ActorInView = nullptr;
+		bInteractableObjectInView = false;
+	}
+
 
 }
 

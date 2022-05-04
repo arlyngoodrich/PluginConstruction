@@ -21,13 +21,18 @@ UInteractableObjectComponent::UInteractableObjectComponent()
 	// ...
 }
 
+void UInteractableObjectComponent::OnOwnerDestroy(AActor* DestroyedActor)
+{
+	RemoveWidget();
+}
+
 // Called when the game starts
 void UInteractableObjectComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
+	OwningActor = GetOwner();
+	OwningActor->OnDestroyed.AddDynamic(this,&UInteractableObjectComponent::OnOwnerDestroy);
 	// ...
-	
 }
 
 void UInteractableObjectComponent::Interact(AActor* InstigatingActor)
@@ -39,7 +44,13 @@ void UInteractableObjectComponent::Interact(AActor* InstigatingActor)
 		return;
 	}
 
-	if (GetOwnerRole() == ROLE_Authority)
+	if(IsValid(OwningActor) ==false)
+	{
+		RemoveWidget();
+		return;
+	}
+
+	if (OwningActor->HasAuthority())
 	{
 		UE_LOG(LogInteractionSystem, Log, TEXT("Interaction called on %s"), *GetOwner()->GetName())
 
@@ -55,11 +66,18 @@ void UInteractableObjectComponent::Interact(AActor* InstigatingActor)
 
 void UInteractableObjectComponent::ToggleFocus(const bool bNewIsInFocus)
 {
-	bIsInFocus = bNewIsInFocus;
 
+	if(IsValid(OwningActor) ==false)
+	{
+		RemoveWidget();
+		return;
+	}
+	
+	bIsInFocus = bNewIsInFocus;
+	
 	if (bNewIsInFocus)
 	{
-		UE_LOG(LogInteractionSystem, Log, TEXT("%s is now in focus"), *GetOwner()->GetName())
+		UE_LOG(LogInteractionSystem, Log, TEXT("%s is now in focus"), *OwningActor->GetName())
 
 		BP_OnStartFocus();
 		
@@ -75,7 +93,7 @@ void UInteractableObjectComponent::ToggleFocus(const bool bNewIsInFocus)
 	}
 	else
 	{
-		UE_LOG(LogInteractionSystem, Log, TEXT("%s is no longer in focus"), *GetOwner()->GetName())
+		UE_LOG(LogInteractionSystem, Log, TEXT("%s is no longer in focus"), *OwningActor->GetName())
 
 		BP_OnEndFocus();
 
@@ -94,8 +112,11 @@ void UInteractableObjectComponent::ToggleFocus(const bool bNewIsInFocus)
 
 void UInteractableObjectComponent::ToggleOutline(bool bStartOutline) const
 {
+
+	if(IsValid(OwningActor) ==false){return;}
+	
 	TArray<UMeshComponent*> MeshComponents;
-	GetOwner()->GetComponents<UMeshComponent>(MeshComponents);
+	OwningActor->GetComponents<UMeshComponent>(MeshComponents);
 
 	for (int i = 0; i < MeshComponents.Num(); i++)
 	{
@@ -106,7 +127,8 @@ void UInteractableObjectComponent::ToggleOutline(bool bStartOutline) const
 
 void UInteractableObjectComponent::AddWidget()
 {
-
+	if(IsValid(OwningActor) ==false){return;}
+	
 	if(bShouldShowWidget == false) {return;}
 	
 	//Make sure interaction widget class is valid
@@ -130,6 +152,7 @@ void UInteractableObjectComponent::AddWidget()
 
 void UInteractableObjectComponent::RemoveWidget()
 {
+	
 	if(InteractionWidget)
 	{
 		InteractionWidget->RemoveFromParent();

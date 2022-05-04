@@ -26,7 +26,8 @@ public class ItemSystem : ModuleRules
 			new string[]
 			{
 				"Core",
-				"CustomWidgetTemplates"
+				"CustomWidgetTemplates",
+				"InteractionSystem"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
