@@ -51,6 +51,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction System", meta = (EditCondition = "bShouldShowWdiget"))
 	TSubclassOf<UInteractionWidget> InteractionWidgetClass;
 
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -71,6 +72,9 @@ protected:
 	//Called when the player triggers the interaction.  Will only be called on the server.  
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction System", DisplayName = "On Interaction Triggered")
 	void BP_OnInteractionTriggered(AActor* InstigatingActor);
+
+	UFUNCTION()
+	void OnOwnerDestroy(AActor* DestroyedActor);
 	
 	//Boolean property for when the IOC's actor is in foucs.  
 	UPROPERTY(BlueprintReadOnly, Category = "Interaction System")

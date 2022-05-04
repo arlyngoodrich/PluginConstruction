@@ -21,13 +21,18 @@ UInteractableObjectComponent::UInteractableObjectComponent()
 	// ...
 }
 
+void UInteractableObjectComponent::OnOwnerDestroy(AActor* DestroyedActor)
+{
+	RemoveWidget();
+}
+
 // Called when the game starts
 void UInteractableObjectComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	OwningActor = GetOwner();
+	OwningActor->OnDestroyed.AddDynamic(this,&UInteractableObjectComponent::OnOwnerDestroy);
 	// ...
-	
 }
 
 void UInteractableObjectComponent::Interact(AActor* InstigatingActor)
