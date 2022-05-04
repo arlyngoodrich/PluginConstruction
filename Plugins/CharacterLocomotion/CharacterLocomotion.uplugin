@@ -23,7 +23,7 @@
 	],
 	"Plugins": [
 		{
-			"Name": "CustomWidgetTemplates",
+			"Name": "UniversalCoreAssets",
 			"Enabled": true
 		}
 	]

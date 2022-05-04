@@ -27,7 +27,8 @@ public class ItemSystem : ModuleRules
 			{
 				"Core",
 				"CustomWidgetTemplates",
-				"InteractionSystem"
+				"InteractionSystem",
+				"UniversalCoreAssets"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
