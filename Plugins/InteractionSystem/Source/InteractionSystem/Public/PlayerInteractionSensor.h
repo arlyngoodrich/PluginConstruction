@@ -20,6 +20,16 @@ public:
 	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	FVector GetLookLocation() const;
+
+	//Function that can toggles look checks 
+	UFUNCTION(BlueprintCallable, Category = "Interaction System")
+	void ToggleLookChecks(bool bShouldPerformLookChecks);
+	
+	//Function that can toggles interaction 
+	UFUNCTION(BlueprintCallable, Category = "Interaction System")
+	void ToggleInteraction(bool bSetInteractionOK);
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -40,9 +50,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug")
 	bool bDrawDebug;
 
-	//Boolean that controls the interaction loop. Use case is to turn of interaction check if a UI menu is open.  Set by ToggleInteraciton function.  
-	UPROPERTY(BlueprintReadOnly,Category = "Debug")
-	bool bShouldCheckForInteractable;
+	//Boolean that controls the interaction loop. Use case is to turn of interaction loop if a UI menu is open.  Set by ToggleInteraction function.  
+	UPROPERTY(BlueprintReadOnly,Category = "Interaction System")
+	bool bShouldDoLookChecks;
+	
+	UPROPERTY(BlueprintReadOnly,Category = "Interaction System")
+	bool bInteractionOK;
 
 	//Owning player controller for pawn or character component is attached to. 
 	UPROPERTY(BlueprintReadOnly,Category="Interaction System")
@@ -52,6 +65,9 @@ protected:
 	//to determine focus.  Should use Owner of Interactable Object Component to get parent actor in view.  
 	UPROPERTY(BlueprintReadOnly,Category="Interaction System")
 	AActor* ActorInView;
+
+	UPROPERTY(BlueprintReadOnly,Category="Interaction System")
+	FVector LookLocation;
 
 	//Ensures component owner is a player controlled pawn and starts interaction loop.  
 	void Initialize();
@@ -68,10 +84,7 @@ protected:
 	void Server_TriggerInteraction(UInteractableObjectComponent* ComponentInView);
 	bool Server_TriggerInteraction_Validate(UInteractableObjectComponent* ComponentInView);
 	void Server_TriggerInteraction_Implementation(UInteractableObjectComponent* ComponentInView);
-
-	//Function that can toggles interaction 
-	UFUNCTION(BlueprintCallable, Category = "Interaction System")
-	void ToggleInteraction(bool bShouldCheckForInteraction);
+	
 
 	//Function loop that ticks every frame.  Checks for an interactable object in view.
 	UFUNCTION()
@@ -79,7 +92,7 @@ protected:
 
 	//Helper function to get the hit actor from the lince trace
 	UFUNCTION()
-	bool GetHitActorInView(AActor*& HitActor) const;
+	bool SetLookLocation(AActor*& HitActor);
 
 	//Helper function to retrieve interactoable object from an actor 
 	UFUNCTION()

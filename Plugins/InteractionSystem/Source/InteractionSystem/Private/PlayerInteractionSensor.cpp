@@ -39,11 +39,33 @@ void UPlayerInteractionSensor::TickComponent(float DeltaTime, ELevelTick TickTyp
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
-	if (bShouldCheckForInteractable)
+	if (bShouldDoLookChecks)
 	{
 		InteractionCheckLoop();
 	}
 
+}
+
+FVector UPlayerInteractionSensor::GetLookLocation() const {return LookLocation;}
+
+
+void UPlayerInteractionSensor::ToggleLookChecks(bool bShouldPerformLookChecks)
+{
+	bShouldDoLookChecks = bShouldPerformLookChecks;
+
+	if (bShouldPerformLookChecks)
+	{
+		UE_LOG(LogInteractionSystem,Log,TEXT("Interaction Started for %s"),*GetOwner()->GetName())
+	}
+	else
+	{
+		UE_LOG(LogInteractionSystem,Log,TEXT("Interaction Stopped for %s"),*GetOwner()->GetName())
+	}
+}
+
+void UPlayerInteractionSensor::ToggleInteraction(const bool bSetInteractionOK)
+{
+	bInteractionOK = bSetInteractionOK;
 }
 
 void UPlayerInteractionSensor::Initialize()
@@ -72,14 +94,14 @@ void UPlayerInteractionSensor::Initialize()
 			OwningController = OwningControllerCheck;
 			UE_LOG(LogInteractionSystem, Log, TEXT("Interaction Sensor Component successfully initialized on %s"), *GetOwner()->GetName())
 				
-			ToggleInteraction(true);
+			ToggleLookChecks(true);
 		}
 	}
 }
 
 void UPlayerInteractionSensor::Interact()
 {
-	if (bInteractableObjectInView)
+	if (bInteractableObjectInView && bInteractionOK)
 	{
 		if (GetOwnerRole() == ROLE_Authority)
 		{
@@ -111,26 +133,14 @@ void UPlayerInteractionSensor::Server_TriggerInteraction_Implementation(UInterac
 	TriggerInteraction(ComponentInView);
 }
 
-void UPlayerInteractionSensor::ToggleInteraction(bool bShouldCheckForInteraction)
-{
-	bShouldCheckForInteractable = bShouldCheckForInteraction;
 
-	if (bShouldCheckForInteraction)
-	{
-		UE_LOG(LogInteractionSystem,Log,TEXT("Interaction Started for %s"),*GetOwner()->GetName())
-	}
-	else
-	{
-		UE_LOG(LogInteractionSystem,Log,TEXT("Interaction Stopped for %s"),*GetOwner()->GetName())
-	}
-}
 
 void UPlayerInteractionSensor::InteractionCheckLoop()
 {
 	AActor* HitActorInView;
 
 	//Perform hit scan to get hit actor
-	if (GetHitActorInView(HitActorInView))
+	if (SetLookLocation(HitActorInView))
 	{
 		//If Actor in view is not the same as the new actor in view, set as new one.  
 		//Otherwise don't check for interactable component if it's the same
@@ -181,7 +191,7 @@ void UPlayerInteractionSensor::InteractionCheckLoop()
 
 }
 
-bool UPlayerInteractionSensor::GetHitActorInView(AActor*& HitActor) const
+bool UPlayerInteractionSensor::SetLookLocation(AActor*& HitActor)
 {
 
 	if (!OwningController) { return false; }
@@ -216,10 +226,12 @@ bool UPlayerInteractionSensor::GetHitActorInView(AActor*& HitActor) const
 			DrawDebugBox(GetWorld(), Hit.Location, FVector(10.f, 10.f, 10.f), FColor::Red, false, .1f);
 		}
 
+		LookLocation = Hit.Location;
 		return true;
 	}
 	else
 	{
+		LookLocation = EndLocation;
 		HitActor = nullptr;
 		return false;
 	}
