@@ -1,10 +1,8 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿using UnrealBuildTool; 
 
-using UnrealBuildTool;
-
-public class ItemSystem : ModuleRules
+public class ItemSystemTests : ModuleRules
 {
-	public ItemSystem(ReadOnlyTargetRules Target) : base(Target)
+	public ItemSystemTests(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
@@ -12,39 +10,36 @@ public class ItemSystem : ModuleRules
 			new string[] {
 				// ... add public include paths required here ...
 			}
-			);
+		);
 				
 		
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				// ... add other private include paths required here ...
 			}
-			);
+		);
 			
 		
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"Core",
-				"CustomWidgetTemplates",
-				"InteractionSystem",
-				"UniversalCoreAssets"
+				"ItemSystem"
 				// ... add other public dependencies that you statically link with here ...
 			}
-			);
+		);
 			
 		
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"CoreUObject",
+				"ItemSystem",
 				"Engine",
-				"Slate",
-				"SlateCore",
-				"UMG"
+				"UnrealEd",
 				// ... add private dependencies that you statically link with here ...	
 			}
-			);
+		);
 		
 		
 		DynamicallyLoadedModuleNames.AddRange(
@@ -52,6 +47,6 @@ public class ItemSystem : ModuleRules
 			{
 				// ... add any modules that your module loads dynamically here ...
 			}
-			);
+		);
 	}
 }
