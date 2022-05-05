@@ -8,6 +8,8 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLMBPressed);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRMBPressed);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMouseScrollUp);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMouseScrollDown);
 
 
 /**
@@ -28,11 +30,21 @@ public:
 	UPROPERTY()
 	FOnRMBPressed OnRMBPressed;
 
+	UPROPERTY()
+	FOnMouseScrollUp OnMouseScrollUp;
+
+	UPROPERTY()
+	FOnMouseScrollDown OnMouseScrollDown;
+
 
 protected:
 
 	virtual void LMBPressed();
 
 	virtual void RMBPressed();
+
+	virtual void MouseScrollUp();
+
+	virtual void MouseScrollDown();
 
 };
