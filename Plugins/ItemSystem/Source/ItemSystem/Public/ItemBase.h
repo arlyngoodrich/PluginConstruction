@@ -59,9 +59,6 @@ public:
 	void OnPlacementStart();
 
 protected:
-
-	UPROPERTY(ReplicatedUsing=OnRep_PlacementStarted)
-	bool bIsBeingPlaced;
 	
 	/**
 	 * @brief Item data struct for representing the item in an inventory
@@ -69,6 +66,8 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere,BlueprintReadOnly,Category="Item Data")
 	FItemData ItemData;
 
+	bool bSpawnedByPlayer;
+	
 	/**
 	 * @brief Called by Interaction Component from player interaction
 	 * @param InstigatingActor Actor instigating the interaction.... should always be a player character
@@ -87,13 +86,12 @@ protected:
 	 */
 	virtual void Native_OnPlayerInteraction(AActor* InstigatingActor);
 
-	/**
-	 * @brief Check if simulated proxy if placed by listen server 
-	 */
-	UFUNCTION()
-	void OnRep_PlacementStarted();
+	UFUNCTION(Client,Reliable)
+	void Multicast_DestroyClientVersion();
+	void Multicast_DestroyClientVersion_Implementation();
 
 
 
 	
 };
+

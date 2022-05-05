@@ -153,7 +153,7 @@ protected:
 	UFUNCTION()
 	void DecreaseSpawnYaw();
 
-	bool CheckIfSpawnOK(const AItemBase* ItemToCheck) const;
+	bool CheckIfSpawnOK(AItemBase* ItemToCheck) const;
 
 	/**
 	* @brief RPC for clients to place item in the role

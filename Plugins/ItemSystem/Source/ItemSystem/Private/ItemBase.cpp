@@ -54,9 +54,16 @@ void AItemBase::Tick(float DeltaTime)
 
 void AItemBase::OnPlacementStart()
 {
-	bIsBeingPlaced = true;
-}
+	if(HasAuthority())
+	{
+		SetReplicates(false);
+		if(GetLocalRole()==ROLE_AutonomousProxy)
+		{
+			Destroy();
+		}
+	}
 
+}
 
 void AItemBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifetimeProps) const
 {
@@ -64,7 +71,6 @@ void AItemBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifeti
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AItemBase, ItemData);
-	DOREPLIFETIME(AItemBase, bIsBeingPlaced);
 }
 
 void AItemBase::OnPlayerInteraction_Implementation(AActor* InstigatingActor)
@@ -104,10 +110,48 @@ void AItemBase::Native_OnPlayerInteraction(AActor* InstigatingActor)
 	}
 }
 
-void AItemBase::OnRep_PlacementStarted()
+void AItemBase::Multicast_DestroyClientVersion_Implementation()
 {
-	if(GetLocalRole()==ROLE_SimulatedProxy)
-	{
-		Destroy();
+	switch (GetRemoteRole())
+	{ case ROLE_None:
+		UE_LOG(LogTestItemSystem,Log,TEXT("Remoted Role = ROLE_None"))
+		break;
+	case ROLE_SimulatedProxy:
+		UE_LOG(LogTestItemSystem,Log,TEXT("Remoted Role = ROLE_SimulatedProxy"))
+		break;
+	case ROLE_AutonomousProxy:
+		UE_LOG(LogTestItemSystem,Log,TEXT("Remoted Role = ROLE_AutonomousProxy"))
+		break;
+	case ROLE_Authority:
+		UE_LOG(LogTestItemSystem,Log,TEXT("Remoted Role = ROLE_Authority"))
+		break;
+	case ROLE_MAX:
+		UE_LOG(LogTestItemSystem,Log,TEXT("Remoted Role = ROLE_MAX"))
+		break;
+	default: ;
 	}
+
+	switch (GetLocalRole())
+	{ case ROLE_None:
+		UE_LOG(LogTestItemSystem,Log,TEXT("Local Role = ROLE_None"))
+		break;
+	case ROLE_SimulatedProxy:
+		UE_LOG(LogTestItemSystem,Log,TEXT("Local Role = ROLE_SimulatedProxy"))
+		break;
+	case ROLE_AutonomousProxy:
+		UE_LOG(LogTestItemSystem,Log,TEXT("Local Role = ROLE_AutonomousProxy"))
+		break;
+	case ROLE_Authority:
+		UE_LOG(LogTestItemSystem,Log,TEXT("Local Role = ROLE_Authority"))
+		break;
+	case ROLE_MAX:
+		UE_LOG(LogTestItemSystem,Log,TEXT("Local Role = ROLE_MAX"))
+		break;
+	default: ;
+	}
+
+	UE_LOG(LogTestItemSystem,Log,TEXT("Spawned by player = %s"),bSpawnedByPlayer? TEXT("True") : TEXT("False") )
 }
+
+
+

@@ -76,21 +76,32 @@ void UPlayerInventory::StartItemSpawnLoop(const FInventoryItemData ItemData)
 		return;
 	}
 
+
+	
+	
 	//Check if custom player controller
 	if (ACustomPlayerController* CustomPlayerController = Cast<ACustomPlayerController>(
 		Cast<ACharacter>(GetOwner())->GetController()))
 	{
-		CustomPlayerController->OnRMBPressed.AddDynamic(this,&UPlayerInventory::CancelPlacement);
-		CustomPlayerController->OnLMBPressed.AddDynamic(this,&UPlayerInventory::ConfirmPlacement);
-		CustomPlayerController->OnMouseScrollUp.AddDynamic(this,&UPlayerInventory::IncreaseSpawnYaw);
-		CustomPlayerController->OnMouseScrollDown.AddDynamic(this,&UPlayerInventory::DecreaseSpawnYaw);
-	}
+		if(CustomPlayerController->IsLocalController())
+		{
+			CustomPlayerController->OnRMBPressed.AddDynamic(this,&UPlayerInventory::CancelPlacement);
+			CustomPlayerController->OnLMBPressed.AddDynamic(this,&UPlayerInventory::ConfirmPlacement);
+			CustomPlayerController->OnMouseScrollUp.AddDynamic(this,&UPlayerInventory::IncreaseSpawnYaw);
+			CustomPlayerController->OnMouseScrollDown.AddDynamic(this,&UPlayerInventory::DecreaseSpawnYaw);
+		}
+		else
+		{
+			return;
+		}
 
+	}
+	
 	ClosePlayerUI();
 
 	SpawnGhostItem(ItemData.Item,SpawningItem);
 	SpawningItemData = ItemData;
-
+	SpawningItem->OnPlacementStart();
 	InteractionSensor->ToggleInteraction(false);
 	
 	GetWorld()->GetTimerManager().SetTimer(SpawnLoopTimer,this,&UPlayerInventory::ItemSpawnLoop,SpawnLoopRate,true,.1f);
@@ -100,17 +111,17 @@ void UPlayerInventory::SpawnGhostItem(const FItemData ItemData, AItemBase*& OutS
 {
 	const FVector Location = InteractionSensor->GetLookLocation();
 	const FRotator Rotation(0.f,0.f,0.f);
-	const FActorSpawnParameters SpawnParameters;
-	
-	
-	OutSpawnedItem  = GetWorld()->SpawnActor<AItemBase>(ItemData.InWorldClass,Location,Rotation,SpawnParameters);
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.Owner = GetOwner();
+		
+		OutSpawnedItem  = GetWorld()->SpawnActor<AItemBase>(ItemData.InWorldClass,Location,Rotation,SpawnParameters);
 	if(OutSpawnedItem == nullptr)
 	{
 		UE_LOG(LogItemSystem,Error,TEXT("%s could not spawn %s item from their inventory"), *GetOwner()->GetName(),
 	   *ItemData.DisplayName.ToString())
 	}
 	
-	
+	OutSpawnedItem->SetActorEnableCollision(true);
 	//Set all mesh components to ignore visibility so it doesn't show up in trace
 	TArray<UMeshComponent*> MeshComponents;
 	OutSpawnedItem->GetComponents<UMeshComponent>(MeshComponents);
@@ -118,10 +129,20 @@ void UPlayerInventory::SpawnGhostItem(const FItemData ItemData, AItemBase*& OutS
 	{
 		MeshComponents[i]->SetCollisionResponseToAllChannels(ECR_Overlap);
 		MeshComponents[i]->SetCollisionResponseToChannel(ECC_Visibility,ECR_Ignore);
+
+		//Set Spawn OK material
+		if(SpawnOKMaterial)
+		{
+			const int32 NumMaterials = MeshComponents[i]->GetNumMaterials();
+
+			for (int n = 0; n < NumMaterials; ++n)
+			{
+				MeshComponents[i]->SetMaterial(n,SpawnOKMaterial);
+			}
+		}
 	}
 
-	OutSpawnedItem->OnPlacementStart();
-
+	OutSpawnedItem->SetOwner(GetOwner());
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
@@ -267,7 +288,7 @@ void UPlayerInventory::DecreaseSpawnYaw()
 	SpawnYaw.Yaw = CurrentYaw - PlacementRotationIncrements;
 }
 
-bool UPlayerInventory::CheckIfSpawnOK(const AItemBase* ItemToCheck) const
+bool UPlayerInventory::CheckIfSpawnOK(AItemBase* ItemToCheck) const
 {
 	//Check if Pitch or roll is greater than max placement angle
 	const FRotator Rotator = ItemToCheck->GetActorRotation();
@@ -277,6 +298,7 @@ bool UPlayerInventory::CheckIfSpawnOK(const AItemBase* ItemToCheck) const
 	}
 
 	//Check if there are more than one overlapping actors
+	ItemToCheck->UpdateOverlaps();
 	TArray<AActor*> Actors;
 	ItemToCheck->GetOverlappingActors(Actors);
 	if(Actors.Num()>1)
