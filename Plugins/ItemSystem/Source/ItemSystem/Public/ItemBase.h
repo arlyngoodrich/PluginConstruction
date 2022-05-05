@@ -23,8 +23,19 @@ public:
 	 */
 	AItemBase();
 
+	/**
+	 * @return Item Data
+	 */
 	FItemData GetItemData() const;
 
+	/**
+	 * @brief Sets item data if authority
+	 */
+	void SetItemData(FItemData SetItemData);
+
+	/**
+	 * @brief Facilitates picking up item and adding to inventory
+	 */
 	UPROPERTY(VisibleAnywhere,Category="Item")
 	UInteractableObjectComponent* InteractableObjectComponent;
 	
@@ -58,6 +69,10 @@ protected:
 	 */
 	void InitializeItemData();
 
+	/**
+	 * @brief Allows for native override of interaction method
+	 * @param InstigatingActor Actor instigating the interaction
+	 */
 	virtual void Native_OnPlayerInteraction(AActor* InstigatingActor);
 
 };

@@ -23,6 +23,19 @@ AItemBase::AItemBase()
 
 FItemData AItemBase::GetItemData() const {return ItemData;}
 
+void AItemBase::SetItemData(const FItemData SetItemData)
+{
+	if(HasAuthority())
+	{
+		ItemData = SetItemData;
+	}
+	else
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("%s attempted to set item data from non authority"),*GetName())
+	}
+	
+}
+
 // Called when the game starts or when spawned
 void AItemBase::BeginPlay()
 {
