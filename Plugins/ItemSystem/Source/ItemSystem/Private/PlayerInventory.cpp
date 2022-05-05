@@ -52,13 +52,13 @@ void UPlayerInventory::StartItemSpawnLoop(const FInventoryItemData ItemData)
 
 	ClosePlayerUI();
 
-	SpawnItem(ItemData.Item,SpawningItem);
+	SpawnGhostItem(ItemData.Item,SpawningItem);
 	SpawningItemData = ItemData;
 	
 	GetWorld()->GetTimerManager().SetTimer(SpawnLoopTimer,this,&UPlayerInventory::ItemSpawnLoop,SpawnLoopRate,true,.1f);
 }
 
-void UPlayerInventory::SpawnItem(const FItemData ItemData, AItemBase*& OutSpawnedItem) const
+void UPlayerInventory::SpawnGhostItem(const FItemData ItemData, AItemBase*& OutSpawnedItem) const
 {
 	const FVector Location = InteractionSensor->GetLookLocation();
 	const FRotator Rotation(0.f,0.f,0.f);
@@ -72,6 +72,8 @@ void UPlayerInventory::SpawnItem(const FItemData ItemData, AItemBase*& OutSpawne
 	   *ItemData.DisplayName.ToString())
 	}
 
+	OutSpawnedItem->SetActorEnableCollision(false);
+	
 	//Set all mesh components to ignore visibility so it doesn't show up in trace
 	TArray<UMeshComponent*> MeshComponents;
 	OutSpawnedItem->GetComponents<UMeshComponent>(MeshComponents);
@@ -150,14 +152,28 @@ void UPlayerInventory::ConfirmPlacement()
 	
 }
 
-void UPlayerInventory::PlaceItem(const FInventoryItemData ItemData, const FTransform Transform) const
+void UPlayerInventory::PlaceItem(const FInventoryItemData ItemData, const FTransform Transform)
 {
 
 	if(GetOwnerRole()!=ROLE_Authority){return;}
+
+
+	if(FullyRemoveInventoryItem(ItemData))
+	{
+		const FActorSpawnParameters SpawnParameters;
+		AItemBase* SpawnedItem = GetWorld()->SpawnActor<AItemBase>(ItemData.Item.InWorldClass, Transform, SpawnParameters);
+		SpawnedItem->SetItemData(ItemData.Item);
+
+		UE_LOG(LogItemSystem,Log,TEXT("%s placed %s item from inventory"),
+		*GetOwner()->GetName(),*ItemData.Item.DisplayName.ToString());
+	}
+	else
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("%s attempted to spawn %s item but it could not be removed from inventory"),
+			*GetOwner()->GetName(),*ItemData.Item.DisplayName.ToString());
+	}
+
 	
-	const FActorSpawnParameters SpawnParameters;
-	AItemBase* SpawnedItem = GetWorld()->SpawnActor<AItemBase>(ItemData.Item.InWorldClass, Transform, SpawnParameters);
-	SpawnedItem->SetItemData(ItemData.Item);
 }
 
 bool UPlayerInventory::Server_PlaceItem_Validate(FInventoryItemData ItemData, FTransform Transform)
