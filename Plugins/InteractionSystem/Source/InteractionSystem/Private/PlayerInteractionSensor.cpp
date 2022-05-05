@@ -48,6 +48,8 @@ void UPlayerInteractionSensor::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 FVector UPlayerInteractionSensor::GetLookLocation() const {return LookLocation;}
 
+FHitResult UPlayerInteractionSensor::GetLookHitResult() const {return LookHitResult;}
+
 
 void UPlayerInteractionSensor::ToggleLookChecks(bool bShouldPerformLookChecks)
 {
@@ -211,6 +213,7 @@ bool UPlayerInteractionSensor::SetLookLocation(AActor*& HitActor)
 	EndLocation = StartLocation + (ViewRotation.Vector() * InteractionDistance);
 
 	TraceResult = GetWorld()->LineTraceSingleByChannel(Hit, StartLocation, EndLocation, ECC_Visibility, TraceParams);
+	LookHitResult = Hit;
 
 	if (bDrawDebug)
 	{

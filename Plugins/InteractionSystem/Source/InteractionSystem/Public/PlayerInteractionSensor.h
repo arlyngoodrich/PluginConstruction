@@ -22,6 +22,8 @@ public:
 
 	FVector GetLookLocation() const;
 
+	FHitResult GetLookHitResult() const;
+
 	//Function that can toggles look checks 
 	UFUNCTION(BlueprintCallable, Category = "Interaction System")
 	void ToggleLookChecks(bool bShouldPerformLookChecks);
@@ -68,6 +70,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly,Category="Interaction System")
 	FVector LookLocation;
+
+	UPROPERTY(BlueprintReadOnly,Category="Interaction System")
+	FHitResult LookHitResult;
 
 	//Ensures component owner is a player controlled pawn and starts interaction loop.  
 	void Initialize();

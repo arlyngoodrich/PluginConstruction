@@ -9,6 +9,7 @@
 #include "PlayerInteractionSensor.h"
 #include "UIPlayerInterface.h"
 #include "GameFramework/Character.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 void UPlayerInventory::BeginPlay()
@@ -70,7 +71,13 @@ void UPlayerInventory::SpawnItem(const FItemData ItemData, AItemBase*& OutSpawne
 	   *ItemData.DisplayName.ToString())
 	}
 
-	OutSpawnedItem->SetActorEnableCollision(false);
+	//Set all mesh components to ignore visibility so it doesn't show up in trace
+	TArray<UMeshComponent*> MeshComponents;
+	OutSpawnedItem->GetComponents<UMeshComponent>(MeshComponents);
+	for (int i = 0; i < MeshComponents.Num(); ++i)
+	{
+		MeshComponents[i]->SetCollisionResponseToChannel(ECC_Visibility,ECR_Ignore);
+	}
 
 }
 
@@ -81,8 +88,18 @@ void UPlayerInventory::ItemSpawnLoop()
 	{
 		return;
 	}
-	
+
+	const FHitResult LookHit = InteractionSensor->GetLookHitResult();
+
 	SpawningItem->SetActorLocation(InteractionSensor->GetLookLocation());
+
+	if(LookHit.bBlockingHit)
+	{
+		SpawningItem->SetActorRotation(UKismetMathLibrary::MakeRotFromZ(LookHit.ImpactNormal));
+	}
+
+	
+	
 }
 
 void UPlayerInventory::ClosePlayerUI() const
