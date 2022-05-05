@@ -20,7 +20,7 @@ class ITEMSYSTEM_API UPlayerInventory : public UInventoryComponent
 public:
 		
 	UFUNCTION(BlueprintCallable,Category="Inventory")
-	void PlaceItem(FItemData ItemData);
+	void RequestPlaceItem(FInventoryItemData ItemData);
 
 protected:
 
@@ -31,13 +31,16 @@ protected:
 	AItemBase* SpawningItem;
 
 	UPROPERTY()
+	FInventoryItemData SpawningItemData;
+
+	UPROPERTY()
 	UPlayerInteractionSensor* InteractionSensor;
 	
 	FTimerHandle SpawnLoopTimer;
 
 	virtual void BeginPlay() override;
 	
-	void StartItemSpawnLoop(FItemData SpawnItemData);
+	void StartItemSpawnLoop(FInventoryItemData ItemData);
 
 	void SpawnItem(FItemData ItemData, AItemBase*& OutSpawnedItem) const;
 
@@ -52,8 +55,12 @@ protected:
 
 	UFUNCTION()
 	void ConfirmPlacement();
-	
 
+	void PlaceItem(FInventoryItemData ItemData,FTransform Transform) const;
 	
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_PlaceItem(FInventoryItemData ItemData,FTransform Transform);
+	bool Server_PlaceItem_Validate(FInventoryItemData ItemData,FTransform Transform);
+	void Server_PlaceItem_Implementation(FInventoryItemData ItemData,FTransform Transform);	
 	
 };

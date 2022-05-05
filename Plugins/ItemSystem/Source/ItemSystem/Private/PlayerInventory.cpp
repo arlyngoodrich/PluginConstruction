@@ -17,19 +17,19 @@ void UPlayerInventory::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UPlayerInventory::PlaceItem(const FItemData ItemData)
+void UPlayerInventory::RequestPlaceItem(const FInventoryItemData ItemData)
 {
 	StartItemSpawnLoop(ItemData);
 }
 
-void UPlayerInventory::StartItemSpawnLoop(const FItemData SpawnItemData)
+void UPlayerInventory::StartItemSpawnLoop(const FInventoryItemData ItemData)
 {
 
 	//Make sure Spawn Item class is valid
-	if(SpawnItemData.InWorldClass == nullptr)
+	if(ItemData.Item.InWorldClass == nullptr)
 	{
 		UE_LOG(LogItemSystem,Error,TEXT("Attempted to sapwn %s item from %s inventory without a valid in world class"),
-			*SpawnItemData.DisplayName.ToString(),*GetOwner()->GetName())
+			*ItemData.Item.DisplayName.ToString(),*GetOwner()->GetName())
 		return;
 	}
 
@@ -38,7 +38,7 @@ void UPlayerInventory::StartItemSpawnLoop(const FItemData SpawnItemData)
 	if(InteractionSensor == nullptr)
 	{
 		UE_LOG(LogItemSystem,Error,TEXT("Attempted to sapwn %s item from %s inventory but player does not have an Interaction Sensor"),
-	*SpawnItemData.DisplayName.ToString(),*GetOwner()->GetName())
+	*ItemData.Item.DisplayName.ToString(),*GetOwner()->GetName())
 		return;
 	}
 
@@ -52,7 +52,8 @@ void UPlayerInventory::StartItemSpawnLoop(const FItemData SpawnItemData)
 
 	ClosePlayerUI();
 
-	SpawnItem(SpawnItemData,SpawningItem);
+	SpawnItem(ItemData.Item,SpawningItem);
+	SpawningItemData = ItemData;
 	
 	GetWorld()->GetTimerManager().SetTimer(SpawnLoopTimer,this,&UPlayerInventory::ItemSpawnLoop,SpawnLoopRate,true,.1f);
 }
@@ -134,6 +135,39 @@ void UPlayerInventory::CancelPlacement()
 void UPlayerInventory::ConfirmPlacement()
 {
 	EndSpawnLoop();
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		Server_PlaceItem(SpawningItemData,SpawningItem->GetTransform());
+	}
+	else
+	{
+		PlaceItem(SpawningItemData,SpawningItem->GetTransform());
+	}
+
+	SpawningItem->Destroy();
+	SpawningItem = nullptr;
+	
+}
+
+void UPlayerInventory::PlaceItem(const FInventoryItemData ItemData, const FTransform Transform) const
+{
+
+	if(GetOwnerRole()!=ROLE_Authority){return;}
+	
+	const FActorSpawnParameters SpawnParameters;
+	AItemBase* SpawnedItem = GetWorld()->SpawnActor<AItemBase>(ItemData.Item.InWorldClass, Transform, SpawnParameters);
+	SpawnedItem->SetItemData(ItemData.Item);
+}
+
+bool UPlayerInventory::Server_PlaceItem_Validate(FInventoryItemData ItemData, FTransform Transform)
+{
+	return true;
+}
+
+void UPlayerInventory::Server_PlaceItem_Implementation(FInventoryItemData ItemData,FTransform Transform)
+{
+	PlaceItem(ItemData,Transform);
 }
 
 
