@@ -48,6 +48,8 @@ void UPlayerInventory::StartItemSpawnLoop(const FInventoryItemData ItemData)
 	{
 		CustomPlayerController->OnRMBPressed.AddDynamic(this,&UPlayerInventory::CancelPlacement);
 		CustomPlayerController->OnLMBPressed.AddDynamic(this,&UPlayerInventory::ConfirmPlacement);
+		CustomPlayerController->OnMouseScrollUp.AddDynamic(this,&UPlayerInventory::IncreaseSpawnYaw);
+		CustomPlayerController->OnMouseScrollDown.AddDynamic(this,&UPlayerInventory::DecreaseSpawnYaw);
 	}
 
 	ClosePlayerUI();
@@ -100,7 +102,10 @@ void UPlayerInventory::ItemSpawnLoop()
 
 	if(LookHit.bBlockingHit)
 	{
-		SpawningItem->SetActorRotation(UKismetMathLibrary::MakeRotFromZ(LookHit.ImpactNormal));
+		FRotator NewRotation = UKismetMathLibrary::MakeRotFromZ(LookHit.ImpactNormal);
+		NewRotation.Yaw = SpawnYaw.Yaw;
+		SpawningItem->SetActorRotation(NewRotation);
+		
 	}
 
 	
@@ -125,6 +130,8 @@ void UPlayerInventory::EndSpawnLoop()
 	{
 		CustomPlayerController->OnRMBPressed.RemoveDynamic(this,&UPlayerInventory::CancelPlacement);
 		CustomPlayerController->OnLMBPressed.RemoveDynamic(this,&UPlayerInventory::ConfirmPlacement);
+		CustomPlayerController->OnMouseScrollUp.RemoveDynamic(this,&UPlayerInventory::IncreaseSpawnYaw);
+		CustomPlayerController->OnMouseScrollDown.RemoveDynamic(this,&UPlayerInventory::DecreaseSpawnYaw);
 	}
 	
 	GetWorld()->GetTimerManager().ClearTimer(SpawnLoopTimer);
@@ -176,6 +183,18 @@ void UPlayerInventory::PlaceItem(const FInventoryItemData ItemData, const FTrans
 	}
 
 	
+}
+
+void UPlayerInventory::IncreaseSpawnYaw()
+{
+	const float CurrentYaw = SpawnYaw.Yaw;
+	SpawnYaw.Yaw =CurrentYaw + PlacementRotationIncrements;
+}
+
+void UPlayerInventory::DecreaseSpawnYaw()
+{
+	const float CurrentYaw = SpawnYaw.Yaw;
+	SpawnYaw.Yaw = CurrentYaw - PlacementRotationIncrements;
 }
 
 bool UPlayerInventory::Server_PlaceItem_Validate(FInventoryItemData ItemData, FTransform Transform)

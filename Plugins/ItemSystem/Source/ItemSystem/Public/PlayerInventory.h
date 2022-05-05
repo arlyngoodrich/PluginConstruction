@@ -33,6 +33,17 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly,Category="Inventory")
 	float SpawnLoopRate = 0.01f;
+
+	/**
+	 * @brief Increment to increase or decrease spawn yaw
+	 */
+	UPROPERTY(EditDefaultsOnly,Category="Inventory")
+	float PlacementRotationIncrements = 5.f;
+
+	/**
+	 * @brief Yaw for spawning actor
+	 */
+	FRotator SpawnYaw;
 	
 	/**
 	 * @brief Pointer to item that is currently being placed.  May be null. 
@@ -107,6 +118,18 @@ protected:
 	 * @param Transform Spawn Transform from ghost mesh
 	 */
 	void PlaceItem(FInventoryItemData ItemData,FTransform Transform);
+
+	/**
+	 * @brief Increases spawn yaw, bound to scroll wheel up
+	 */
+	UFUNCTION()
+	void IncreaseSpawnYaw();
+
+	/**
+	 * @brief Decreases spawn yaw bound to scroll wheel down.
+	 */
+	UFUNCTION()
+	void DecreaseSpawnYaw();
 
 	/**
 	* @brief RPC for clients to place item in the role
