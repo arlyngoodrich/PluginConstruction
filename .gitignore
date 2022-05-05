@@ -13,3 +13,5 @@ Documentation
 *.suo
 *.xcodeproj
 *.xcworkspace
+/Build/
+
