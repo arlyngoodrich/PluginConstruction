@@ -109,14 +109,14 @@ void UPlayerInventory::SpawnGhostItem(const FItemData ItemData, AItemBase*& OutS
 		UE_LOG(LogItemSystem,Error,TEXT("%s could not spawn %s item from their inventory"), *GetOwner()->GetName(),
 	   *ItemData.DisplayName.ToString())
 	}
-
-	OutSpawnedItem->SetActorEnableCollision(false);
+	
 	
 	//Set all mesh components to ignore visibility so it doesn't show up in trace
 	TArray<UMeshComponent*> MeshComponents;
 	OutSpawnedItem->GetComponents<UMeshComponent>(MeshComponents);
 	for (int i = 0; i < MeshComponents.Num(); ++i)
 	{
+		MeshComponents[i]->SetCollisionResponseToAllChannels(ECR_Overlap);
 		MeshComponents[i]->SetCollisionResponseToChannel(ECC_Visibility,ECR_Ignore);
 	}
 
