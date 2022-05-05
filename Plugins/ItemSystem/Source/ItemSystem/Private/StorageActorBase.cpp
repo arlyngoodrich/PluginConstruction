@@ -23,7 +23,7 @@ AStorageActorBase::AStorageActorBase()
 	StorageInventory->SetIsReplicated(true);
 
 	//Ensure Actor Replicates
-	SetReplicates(true);
+	bReplicates = true;
 
 	StorageWidgetClass = UStorageWidget::StaticClass();
 
