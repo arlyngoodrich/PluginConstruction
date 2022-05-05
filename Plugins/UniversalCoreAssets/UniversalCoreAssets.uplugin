@@ -2,8 +2,8 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "1.0",
-	"FriendlyName": "CustomWidgetTemplates",
-	"Description": "Code and content plugin for custom UI widgets ",
+	"FriendlyName": "UniversalCoreAssets",
+	"Description": "",
 	"Category": "Custom",
 	"CreatedBy": "Arlyn Goodrich",
 	"CreatedByURL": "",
@@ -11,12 +11,12 @@
 	"MarketplaceURL": "",
 	"SupportURL": "",
 	"CanContainContent": true,
-	"IsBetaVersion": true,
+	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "CustomWidgetTemplates",
+			"Name": "UniversalCoreAssets",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}

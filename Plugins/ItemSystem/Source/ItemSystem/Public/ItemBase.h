@@ -23,8 +23,19 @@ public:
 	 */
 	AItemBase();
 
+	/**
+	 * @return Item Data
+	 */
 	FItemData GetItemData() const;
 
+	/**
+	 * @brief Sets item data if authority
+	 */
+	void SetItemData(FItemData SetItemData);
+
+	/**
+	 * @brief Facilitates picking up item and adding to inventory
+	 */
 	UPROPERTY(VisibleAnywhere,Category="Item")
 	UInteractableObjectComponent* InteractableObjectComponent;
 	
@@ -42,14 +53,25 @@ public:
 	 */
 	virtual void Tick(float DeltaTime) override;
 
-protected:
+	/**
+	 * @brief Destroy simulated proxy version of item if spawning.  Only want to have this on the local machine
+	 */
+	void OnPlacementStart();
 
+protected:
+	
 	/**
 	 * @brief Item data struct for representing the item in an inventory
 	 */
 	UPROPERTY(Replicated, EditAnywhere,BlueprintReadOnly,Category="Item Data")
 	FItemData ItemData;
 
+	bool bSpawnedByPlayer;
+	
+	/**
+	 * @brief Called by Interaction Component from player interaction
+	 * @param InstigatingActor Actor instigating the interaction.... should always be a player character
+	 */
 	UFUNCTION(BlueprintNativeEvent,BlueprintAuthorityOnly,Category="Item")
 	void OnPlayerInteraction(AActor* InstigatingActor);
 	
@@ -58,6 +80,18 @@ protected:
 	 */
 	void InitializeItemData();
 
+	/**
+	 * @brief Allows for native override of interaction method
+	 * @param InstigatingActor Actor instigating the interaction
+	 */
 	virtual void Native_OnPlayerInteraction(AActor* InstigatingActor);
 
+	UFUNCTION(Client,Reliable)
+	void Multicast_DestroyClientVersion();
+	void Multicast_DestroyClientVersion_Implementation();
+
+
+
+	
 };
+
