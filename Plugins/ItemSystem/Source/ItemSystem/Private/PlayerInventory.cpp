@@ -111,23 +111,21 @@ void UPlayerInventory::SpawnGhostItem(const FItemData ItemData, AItemBase*& OutS
 {
 	const FVector Location = InteractionSensor->GetLookLocation();
 	const FRotator Rotation(0.f,0.f,0.f);
-	FActorSpawnParameters SpawnParameters;
-	SpawnParameters.Owner = GetOwner();
+	const FActorSpawnParameters SpawnParameters;
 		
-		OutSpawnedItem  = GetWorld()->SpawnActor<AItemBase>(ItemData.InWorldClass,Location,Rotation,SpawnParameters);
+	OutSpawnedItem  = GetWorld()->SpawnActor<AItemBase>(ItemData.InWorldClass,Location,Rotation,SpawnParameters);
 	if(OutSpawnedItem == nullptr)
 	{
 		UE_LOG(LogItemSystem,Error,TEXT("%s could not spawn %s item from their inventory"), *GetOwner()->GetName(),
 	   *ItemData.DisplayName.ToString())
 	}
 	
-	OutSpawnedItem->SetActorEnableCollision(true);
 	//Set all mesh components to ignore visibility so it doesn't show up in trace
 	TArray<UMeshComponent*> MeshComponents;
 	OutSpawnedItem->GetComponents<UMeshComponent>(MeshComponents);
 	for (int i = 0; i < MeshComponents.Num(); ++i)
 	{
-		MeshComponents[i]->SetCollisionResponseToAllChannels(ECR_Overlap);
+
 		MeshComponents[i]->SetCollisionResponseToChannel(ECC_Visibility,ECR_Ignore);
 
 		//Set Spawn OK material
@@ -301,6 +299,7 @@ bool UPlayerInventory::CheckIfSpawnOK(AItemBase* ItemToCheck) const
 	ItemToCheck->UpdateOverlaps();
 	TArray<AActor*> Actors;
 	ItemToCheck->GetOverlappingActors(Actors);
+	
 	if(Actors.Num()>1)
 	{
 		return false;
