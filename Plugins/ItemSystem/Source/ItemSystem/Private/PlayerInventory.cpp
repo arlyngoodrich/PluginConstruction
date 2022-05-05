@@ -10,7 +10,40 @@
 #include "UIPlayerInterface.h"
 #include "GameFramework/Character.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Materials/MaterialInstance.h"
+#include "UObject/ConstructorHelpers.h"
 
+
+UPlayerInventory::UPlayerInventory()
+{
+	//Get good spawn default material
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface>
+	GoodMaterial(TEXT("MaterialInstanceConstant'/ItemSystem/Materials/MI_GhostItemPlacement_OK.MI_GhostItemPlacement_OK'"));
+
+	if(GoodMaterial.Object)
+	{
+		SpawnOKMaterial = Cast<UMaterialInterface>(GoodMaterial.Object);
+	}
+	else
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("%s could not set default good spawn material"),*GetClass()->GetName())
+	}
+
+	//Get bad spawn default material
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface>
+	BadMaterial(TEXT("MaterialInstanceConstant'/ItemSystem/Materials/MI_GhostItemPlacement_Bad.MI_GhostItemPlacement_Bad'"));
+
+	if(BadMaterial.Object)
+	{
+		SpawnBadMaterial = Cast<UMaterialInterface>(BadMaterial.Object);
+	}
+	else
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("%s could not set default bad spawn material"),*GetClass()->GetName())
+	}
+
+
+}
 
 void UPlayerInventory::BeginPlay()
 {
@@ -21,6 +54,7 @@ void UPlayerInventory::RequestPlaceItem(const FInventoryItemData ItemData)
 {
 	StartItemSpawnLoop(ItemData);
 }
+
 
 void UPlayerInventory::StartItemSpawnLoop(const FInventoryItemData ItemData)
 {
@@ -56,6 +90,8 @@ void UPlayerInventory::StartItemSpawnLoop(const FInventoryItemData ItemData)
 
 	SpawnGhostItem(ItemData.Item,SpawningItem);
 	SpawningItemData = ItemData;
+
+	InteractionSensor->ToggleInteraction(false);
 	
 	GetWorld()->GetTimerManager().SetTimer(SpawnLoopTimer,this,&UPlayerInventory::ItemSpawnLoop,SpawnLoopRate,true,.1f);
 }
@@ -108,8 +144,36 @@ void UPlayerInventory::ItemSpawnLoop()
 		
 	}
 
+	bSpawnOk = CheckIfSpawnOK(SpawningItem);
+
+	UMaterialInterface* SpawnMaterial;
+	if(bSpawnOk)
+	{
+		SpawnMaterial = SpawnOKMaterial;
+	}
+	else
+	{
+		SpawnMaterial = SpawnBadMaterial;
+	}
+
+	if(SpawnMaterial)
+	{
+		TArray<UMeshComponent*> MeshComponents;
+		SpawningItem->GetComponents<UMeshComponent>(MeshComponents);
+		for (int i = 0; i < MeshComponents.Num(); ++i)
+		{
+			UMeshComponent* TargetMesh = MeshComponents[i];
+			const int32 NumMaterials = TargetMesh->GetNumMaterials();
+
+			for (int n = 0; n < NumMaterials; ++n)
+			{
+				TargetMesh->SetMaterial(n,SpawnMaterial);
+			}
+		}
+	}
+		
 	
-	
+
 }
 
 void UPlayerInventory::ClosePlayerUI() const
@@ -133,6 +197,8 @@ void UPlayerInventory::EndSpawnLoop()
 		CustomPlayerController->OnMouseScrollUp.RemoveDynamic(this,&UPlayerInventory::IncreaseSpawnYaw);
 		CustomPlayerController->OnMouseScrollDown.RemoveDynamic(this,&UPlayerInventory::DecreaseSpawnYaw);
 	}
+
+	InteractionSensor->ToggleInteraction(true);
 	
 	GetWorld()->GetTimerManager().ClearTimer(SpawnLoopTimer);
 }
@@ -145,19 +211,23 @@ void UPlayerInventory::CancelPlacement()
 
 void UPlayerInventory::ConfirmPlacement()
 {
-	EndSpawnLoop();
-
-	if(GetOwnerRole() != ROLE_Authority)
+	if(bSpawnOk == true)
 	{
-		Server_PlaceItem(SpawningItemData,SpawningItem->GetTransform());
-	}
-	else
-	{
-		PlaceItem(SpawningItemData,SpawningItem->GetTransform());
-	}
+		EndSpawnLoop();
+		
+		if(GetOwnerRole() != ROLE_Authority)
+		{
+			Server_PlaceItem(SpawningItemData,SpawningItem->GetTransform());
+		}
+		else
+		{
+			PlaceItem(SpawningItemData,SpawningItem->GetTransform());
+		}
 
-	SpawningItem->Destroy();
-	SpawningItem = nullptr;
+		
+		SpawningItem->Destroy();
+		SpawningItem = nullptr;
+	}
 	
 }
 
@@ -196,6 +266,29 @@ void UPlayerInventory::DecreaseSpawnYaw()
 	const float CurrentYaw = SpawnYaw.Yaw;
 	SpawnYaw.Yaw = CurrentYaw - PlacementRotationIncrements;
 }
+
+bool UPlayerInventory::CheckIfSpawnOK(const AItemBase* ItemToCheck) const
+{
+	//Check if Pitch or roll is greater than max placement angle
+	const FRotator Rotator = ItemToCheck->GetActorRotation();
+	if(abs(Rotator.Pitch) > MaxPlacementAngle || abs(Rotator.Roll) > MaxPlacementAngle)
+	{
+		return false;
+	}
+
+	//Check if there are more than one overlapping actors
+	TArray<AActor*> Actors;
+	ItemToCheck->GetOverlappingActors(Actors);
+	if(Actors.Num()>1)
+	{
+		return false;
+	}
+
+	return true;
+	
+}
+
+
 
 bool UPlayerInventory::Server_PlaceItem_Validate(FInventoryItemData ItemData, FTransform Transform)
 {

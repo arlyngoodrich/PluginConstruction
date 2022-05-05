@@ -26,6 +26,8 @@ public:
 	UFUNCTION(BlueprintCallable,Category="Inventory")
 	void RequestPlaceItem(FInventoryItemData ItemData);
 
+	UPlayerInventory();
+
 protected:
 
 	/**
@@ -39,6 +41,24 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly,Category="Inventory")
 	float PlacementRotationIncrements = 5.f;
+
+	/**
+	 * @brief Max Pitch and Roll allowed for object placement
+	 */
+	UPROPERTY(EditDefaultsOnly,Category="Inventory")
+	float MaxPlacementAngle = 10.f;
+
+	/**
+	 * @brief Material to use on ghost mesh if spawn is OK
+	 */
+	UPROPERTY(EditDefaultsOnly,Category="Inventory")
+	UMaterialInterface* SpawnOKMaterial;
+
+	/**
+	 * @brief Material to use on ghost mesh if spawn is bad
+	 */
+	UPROPERTY(EditDefaultsOnly,Category="Inventory")
+	UMaterialInterface* SpawnBadMaterial;
 
 	/**
 	 * @brief Yaw for spawning actor
@@ -67,6 +87,8 @@ protected:
 	 * @brief Handle for spawn loop timer
 	 */
 	FTimerHandle SpawnLoopTimer;
+
+	bool bSpawnOk;
 
 	/**
 	 * @brief Begin Play
@@ -130,6 +152,8 @@ protected:
 	 */
 	UFUNCTION()
 	void DecreaseSpawnYaw();
+
+	bool CheckIfSpawnOK(const AItemBase* ItemToCheck) const;
 
 	/**
 	* @brief RPC for clients to place item in the role
