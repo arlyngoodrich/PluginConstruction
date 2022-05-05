@@ -143,7 +143,7 @@ void UPlayerInteractionSensor::InteractionCheckLoop()
 	AActor* HitActorInView;
 
 	//Perform hit scan to get hit actor
-	if (SetLookLocation(HitActorInView))
+	if (SetLookLocationLoop(HitActorInView) && bInteractionOK)
 	{
 	
 		//If Actor in view is not the same as the new actor in view, set as new one.  
@@ -195,7 +195,7 @@ void UPlayerInteractionSensor::InteractionCheckLoop()
 	}
 }
 
-bool UPlayerInteractionSensor::SetLookLocation(AActor*& HitActor)
+bool UPlayerInteractionSensor::SetLookLocationLoop(AActor*& HitActor)
 {
 
 	if (!OwningController) { return false; }

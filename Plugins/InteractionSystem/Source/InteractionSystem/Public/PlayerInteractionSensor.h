@@ -95,11 +95,11 @@ protected:
 	UFUNCTION()
 	void InteractionCheckLoop();
 
-	//Helper function to get the hit actor from the lince trace
+	//Helper function to get the hit actor from the line trace
 	UFUNCTION()
-	bool SetLookLocation(AActor*& HitActor);
+	bool SetLookLocationLoop(AActor*& HitActor);
 
-	//Helper function to retrieve interactoable object from an actor 
+	//Helper function to retrieve interactable object from an actor 
 	UFUNCTION()
 	static bool GetInteractableComponent(const AActor* HitActor, UInteractableObjectComponent*& HitActorInteractableObjectComponent);
 		
