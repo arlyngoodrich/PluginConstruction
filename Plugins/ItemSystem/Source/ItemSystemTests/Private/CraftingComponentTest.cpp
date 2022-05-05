@@ -1,9 +1,12 @@
-﻿#include "CoreMinimal.h"
-#include "CraftingComponent.h"
-#include "InventoryComponent.h"
-#include "PlayerCraftingComponent.h"
+﻿
+#include "CoreMinimal.h"
+#include "ItemSystem/Public/CraftingComponent.h"
+#include "ItemSystem/Public/InventoryComponent.h"
+#include "ItemSystem/Public/PlayerCraftingComponent.h"
 #include "Misc/AutomationTest.h"
 #include "Tests/AutomationEditorCommon.h"
+
+
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAddRecipeTest, "CraftingComponent.AddRecipies",
                                  EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
@@ -106,3 +109,5 @@ bool FCraftRecipe::RunTest(const FString& Parameters)
 	// Make the test pass by returning true, or fail by returning false.
 	return true;
 }
+
+
