@@ -82,6 +82,8 @@ void UPlayerInventory::SpawnGhostItem(const FItemData ItemData, AItemBase*& OutS
 		MeshComponents[i]->SetCollisionResponseToChannel(ECC_Visibility,ECR_Ignore);
 	}
 
+	OutSpawnedItem->OnPlacementStart();
+
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst

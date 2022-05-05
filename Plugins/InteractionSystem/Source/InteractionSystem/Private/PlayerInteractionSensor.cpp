@@ -97,6 +97,7 @@ void UPlayerInteractionSensor::Initialize()
 			UE_LOG(LogInteractionSystem, Log, TEXT("Interaction Sensor Component successfully initialized on %s"), *GetOwner()->GetName())
 				
 			ToggleLookChecks(true);
+			ToggleInteraction(true);
 		}
 	}
 }
@@ -144,8 +145,8 @@ void UPlayerInteractionSensor::InteractionCheckLoop()
 	//Perform hit scan to get hit actor
 	if (SetLookLocation(HitActorInView))
 	{
+	
 		//If Actor in view is not the same as the new actor in view, set as new one.  
-		//Otherwise don't check for interactable component if it's the same
 		if (HitActorInView != ActorInView)
 		{
 
@@ -168,29 +169,30 @@ void UPlayerInteractionSensor::InteractionCheckLoop()
 				bInteractableObjectInView = true;
 				return;
 			}
+			//If new actor does not have an IOC but there is still a valid one
+			else if(InteractableObjectComponentInView)
+			{
+				InteractableObjectComponentInView->ToggleFocus(false);
+				InteractableObjectComponentInView = nullptr;
+				bInteractableObjectInView = false;
+				return;
+			}
 		}
-		else
-		{
-			//If the actor is the same, no need to make any changes
-			return;
-		}
-	} 	//If there was previously an interactable in view but is no longer
-	else if (InteractableObjectComponentInView)
+	}
+	//If there was previously an interactable in view but is no longer
+	else if (InteractableObjectComponentInView) 
 	{
 		InteractableObjectComponentInView->ToggleFocus(false);
 		InteractableObjectComponentInView = nullptr;
 		ActorInView = nullptr;
 		bInteractableObjectInView = false;
 	}
-	//If IOC in View is already null, clear references
-	else 
+	else //If IOC in View is already null, clear references
 	{
 		InteractableObjectComponentInView = nullptr;
 		ActorInView = nullptr;
 		bInteractableObjectInView = false;
 	}
-
-
 }
 
 bool UPlayerInteractionSensor::SetLookLocation(AActor*& HitActor)

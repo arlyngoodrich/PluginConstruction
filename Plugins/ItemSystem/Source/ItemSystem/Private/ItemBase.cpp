@@ -52,6 +52,10 @@ void AItemBase::Tick(float DeltaTime)
 
 }
 
+void AItemBase::OnPlacementStart()
+{
+	bIsBeingPlaced = true;
+}
 
 
 void AItemBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifetimeProps) const
@@ -60,6 +64,7 @@ void AItemBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifeti
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AItemBase, ItemData);
+	DOREPLIFETIME(AItemBase, bIsBeingPlaced);
 }
 
 void AItemBase::OnPlayerInteraction_Implementation(AActor* InstigatingActor)
@@ -96,5 +101,13 @@ void AItemBase::Native_OnPlayerInteraction(AActor* InstigatingActor)
 		{
 			ItemData = RemainingItemData;
 		}
+	}
+}
+
+void AItemBase::OnRep_PlacementStarted()
+{
+	if(GetLocalRole()==ROLE_SimulatedProxy)
+	{
+		Destroy();
 	}
 }

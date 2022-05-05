@@ -53,14 +53,26 @@ public:
 	 */
 	virtual void Tick(float DeltaTime) override;
 
+	/**
+	 * @brief Destroy simulated proxy version of item if spawning.  Only want to have this on the local machine
+	 */
+	void OnPlacementStart();
+
 protected:
 
+	UPROPERTY(ReplicatedUsing=OnRep_PlacementStarted)
+	bool bIsBeingPlaced;
+	
 	/**
 	 * @brief Item data struct for representing the item in an inventory
 	 */
 	UPROPERTY(Replicated, EditAnywhere,BlueprintReadOnly,Category="Item Data")
 	FItemData ItemData;
 
+	/**
+	 * @brief Called by Interaction Component from player interaction
+	 * @param InstigatingActor Actor instigating the interaction.... should always be a player character
+	 */
 	UFUNCTION(BlueprintNativeEvent,BlueprintAuthorityOnly,Category="Item")
 	void OnPlayerInteraction(AActor* InstigatingActor);
 	
@@ -75,4 +87,13 @@ protected:
 	 */
 	virtual void Native_OnPlayerInteraction(AActor* InstigatingActor);
 
+	/**
+	 * @brief Check if simulated proxy if placed by listen server 
+	 */
+	UFUNCTION()
+	void OnRep_PlacementStarted();
+
+
+
+	
 };
