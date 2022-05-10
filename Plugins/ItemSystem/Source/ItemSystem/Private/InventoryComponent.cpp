@@ -5,6 +5,7 @@
 
 #include "ItemBase.h"
 #include "ItemSystem.h"
+#include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
@@ -1115,16 +1116,44 @@ bool UInventoryComponent::FindInventoryItemAtPosition(const FInventory2D Positio
 	return false;
 }
 
-void UInventoryComponent::DropItem(FInventoryItemData ItemData)
+void UInventoryComponent::DropItem(const FInventoryItemData ItemData)
 {
-
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		//Do RPC
+		return;
+	}
+	
+	//Ensure item is in inventory
+	if(InventoryItems.Contains(ItemData) == false){return;}
+	
 	//Get point in front of owning actor
 	const FVector SpawnPointCenter = GetOwner()->GetActorForwardVector() * (DropPointMinDistance + DropPointRadius) + 
-		GetOwner()->GetActorLocation(); 
-	const FVector2D RandSpawnPoint = FMath::RandPointInCircle(DropPointRadius);
-	const FVector SpawnPoint = SpawnPointCenter + FVector(RandSpawnPoint.X,RandSpawnPoint.Y,0.f);
-	DrawDebugSphere(GetWorld(), SpawnPoint,10.f,8,FColor::Green,false,.4);
-	
+		GetOwner()->GetActorLocation();
+
+	for (int i = 1; i < SpawnAttempts; ++i)
+	{
+		const FVector2D RandSpawnPoint = FMath::RandPointInCircle(DropPointRadius);
+		const FVector SpawnPoint = SpawnPointCenter + FVector(RandSpawnPoint.X,RandSpawnPoint.Y,DropHeight);
+
+		if(CheckIfOKToSpawnAtPoint(SpawnPoint))
+		{
+			//DrawDebugSphere(GetWorld(), SpawnPoint,10.f,8,FColor::Green,false,10);
+			UE_LOG(LogItemSystem,Log,TEXT("%s item dropped by %s"),*ItemData.Item.DisplayName.ToString(),*GetOwner()->GetName())
+			
+			const FActorSpawnParameters SpawnParameters;
+			if(AItemBase* SpawnedItem = GetWorld()->SpawnActor<AItemBase>(ItemData.Item.InWorldClass, SpawnPoint,
+			                                                              GetOwner()->GetActorRotation(), SpawnParameters))
+			{
+				FullyRemoveInventoryItem(ItemData);
+			}
+			
+			break;
+		}
+	}
+
+	UE_LOG(LogItemSystem,Error,TEXT("Could not drop %s item from %s inventory.  Could not find valid spawn point"))
+
 }
 
 bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const bool NewIsOccupied,
@@ -1402,6 +1431,33 @@ void UInventoryComponent::AddDebugItems()
 		}
 	}
 }
+
+bool UInventoryComponent::CheckIfOKToSpawnAtPoint(const FVector SpawnPoint) const
+{
+	const FName Name("SphereCollision");
+	USphereComponent* SphereComponent = NewObject<USphereComponent>(GetOwner(),USphereComponent::StaticClass(),Name);
+
+	if(SphereComponent == nullptr)
+	{
+		UE_LOG(LogItemSystem,Error,TEXT("%s could not create drop item collision check component"),
+		*GetOwner()->GetName())
+		return false;
+	}
+
+	SphereComponent->RegisterComponent();
+	SphereComponent->SetWorldLocation(SpawnPoint);
+
+	TArray<AActor*> Actors;
+	SphereComponent->GetOverlappingActors(Actors);
+
+	const bool bSpawnOK = Actors.Num() == 0;
+
+	SphereComponent->DestroyComponent();
+	
+	return bSpawnOK;
+	
+}
+
 
 bool UInventoryComponent::Server_MoveItem_Validate(FInventoryItemData TargetItem, FInventory2D TargetPosition,
                                                    bool bRotateITem)

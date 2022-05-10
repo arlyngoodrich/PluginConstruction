@@ -309,6 +309,7 @@ public:
 	 * enable physics timer so item can drop. 
 	 * @param ItemData Inventory item to drop
 	 */
+	UFUNCTION(BlueprintCallable,Category="Inventory")
 	void DropItem(FInventoryItemData ItemData);
 	
 	/**
@@ -362,10 +363,17 @@ protected:
 	float MaxWeight;
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
-	float DropPointMinDistance = 200.f;
+	float DropPointMinDistance = 50.f;
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
 	float DropPointRadius = 50.f;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
+	float DropHeight = 50.f;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
+	int32 SpawnAttempts = 100;
+	
 	
 	/**
 	 * @brief Current weight of the inventory
@@ -532,6 +540,14 @@ protected:
 	void RemoveWeight(float RemoveWeight);
 
 
+	/**
+	 * @brief Spawns collision component at point and gets overlapping actors
+	 * @param SpawnPoint point to check
+	 * @return True if point has 0 overlapping actors, false 1 or more overlapping actors
+	 */
+	bool CheckIfOKToSpawnAtPoint(FVector SpawnPoint) const;
+	
+
 	/** ------ DEBUGGING ------**/
 	
 	/**
@@ -551,7 +567,8 @@ protected:
 	 * @brief Function to add debugging items to inventory at begin play
 	 */
 	void AddDebugItems();
-	
+
+
 	/** ------ RPCs ------ **/
 	
 	UFUNCTION(Server,Reliable,WithValidation)
