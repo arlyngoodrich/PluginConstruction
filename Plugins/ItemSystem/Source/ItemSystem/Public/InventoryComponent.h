@@ -302,6 +302,14 @@ public:
 	 * @return True if an item is found and false if no item is found.
 	 */
 	bool FindInventoryItemAtPosition(FInventory2D Position, FInventoryItemData& OutInventoryItemData);
+
+
+	/**
+	 * @brief Drops item into world.  Checks for free spot in a semi-circle in front of owner to spawn item.  Will then
+	 * enable physics timer so item can drop. 
+	 * @param ItemData Inventory item to drop
+	 */
+	void DropItem(FInventoryItemData ItemData);
 	
 	/**
 	 * @brief Checks if the item will fit into a given position by checking slots that would be covered by the item. 
@@ -352,6 +360,12 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
 	float MaxWeight;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
+	float DropPointMinDistance = 200.f;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
+	float DropPointRadius = 50.f;
 	
 	/**
 	 * @brief Current weight of the inventory
@@ -370,6 +384,7 @@ protected:
 	 */
 	UPROPERTY(ReplicatedUsing = OnRep_InventoryItemsUpdated, BlueprintReadOnly,Category="Inventory Data")
 	TArray<FInventoryItemData> InventoryItems;
+	
 	
 	/**
 	 * @brief Set to true when slots have been created. 

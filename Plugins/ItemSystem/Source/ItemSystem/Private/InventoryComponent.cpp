@@ -1115,6 +1115,18 @@ bool UInventoryComponent::FindInventoryItemAtPosition(const FInventory2D Positio
 	return false;
 }
 
+void UInventoryComponent::DropItem(FInventoryItemData ItemData)
+{
+
+	//Get point in front of owning actor
+	const FVector SpawnPointCenter = GetOwner()->GetActorForwardVector() * (DropPointMinDistance + DropPointRadius) + 
+		GetOwner()->GetActorLocation(); 
+	const FVector2D RandSpawnPoint = FMath::RandPointInCircle(DropPointRadius);
+	const FVector SpawnPoint = SpawnPointCenter + FVector(RandSpawnPoint.X,RandSpawnPoint.Y,0.f);
+	DrawDebugSphere(GetWorld(), SpawnPoint,10.f,8,FColor::Green,false,.4);
+	
+}
+
 bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const bool NewIsOccupied,
                                         const bool bShouldBroadCast)
 {
