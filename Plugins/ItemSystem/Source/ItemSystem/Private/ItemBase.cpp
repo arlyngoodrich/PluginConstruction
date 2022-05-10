@@ -65,6 +65,16 @@ void AItemBase::OnPlacementStart()
 
 }
 
+void AItemBase::StartPhysicsTimer()
+{
+	if(HasAuthority() == false){return;}
+	
+	StartPhysics();
+	
+	//Start timer to end physics
+	GetWorld()->GetTimerManager().SetTimer(PhysicsTimerHandle,this,&AItemBase::EndPhysics,PhysicsTimeDuration,false);
+}
+
 void AItemBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifetimeProps) const
 {
 
@@ -110,47 +120,29 @@ void AItemBase::Native_OnPlayerInteraction(AActor* InstigatingActor)
 	}
 }
 
-void AItemBase::Multicast_DestroyClientVersion_Implementation()
+void AItemBase::StartPhysics()
 {
-	switch (GetRemoteRole())
-	{ case ROLE_None:
-		UE_LOG(LogTestItemSystem,Log,TEXT("Remoted Role = ROLE_None"))
-		break;
-	case ROLE_SimulatedProxy:
-		UE_LOG(LogTestItemSystem,Log,TEXT("Remoted Role = ROLE_SimulatedProxy"))
-		break;
-	case ROLE_AutonomousProxy:
-		UE_LOG(LogTestItemSystem,Log,TEXT("Remoted Role = ROLE_AutonomousProxy"))
-		break;
-	case ROLE_Authority:
-		UE_LOG(LogTestItemSystem,Log,TEXT("Remoted Role = ROLE_Authority"))
-		break;
-	case ROLE_MAX:
-		UE_LOG(LogTestItemSystem,Log,TEXT("Remoted Role = ROLE_MAX"))
-		break;
-	default: ;
+	TArray<UMeshComponent*> MeshComponents;
+	GetComponents<UMeshComponent>(MeshComponents);
+	SetReplicatingMovement(true);
+
+	for (int i = 0; i < MeshComponents.Num(); ++i)
+	{
+		MeshComponents[i]->SetSimulatePhysics(true);
+	}
+}
+
+void AItemBase::EndPhysics()
+{
+	TArray<UMeshComponent*> MeshComponents;
+	GetComponents<UMeshComponent>(MeshComponents);
+
+	for (int i = 0; i < MeshComponents.Num(); ++i)
+	{
+		MeshComponents[i]->SetSimulatePhysics(false);
 	}
 
-	switch (GetLocalRole())
-	{ case ROLE_None:
-		UE_LOG(LogTestItemSystem,Log,TEXT("Local Role = ROLE_None"))
-		break;
-	case ROLE_SimulatedProxy:
-		UE_LOG(LogTestItemSystem,Log,TEXT("Local Role = ROLE_SimulatedProxy"))
-		break;
-	case ROLE_AutonomousProxy:
-		UE_LOG(LogTestItemSystem,Log,TEXT("Local Role = ROLE_AutonomousProxy"))
-		break;
-	case ROLE_Authority:
-		UE_LOG(LogTestItemSystem,Log,TEXT("Local Role = ROLE_Authority"))
-		break;
-	case ROLE_MAX:
-		UE_LOG(LogTestItemSystem,Log,TEXT("Local Role = ROLE_MAX"))
-		break;
-	default: ;
-	}
-
-	UE_LOG(LogTestItemSystem,Log,TEXT("Spawned by player = %s"),bSpawnedByPlayer? TEXT("True") : TEXT("False") )
+	SetReplicatingMovement(false);
 }
 
 

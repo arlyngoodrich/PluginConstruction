@@ -58,10 +58,13 @@ void UCraftingComponent::OnRegister()
 	
 }
 
-void UCraftingComponent::SpawnExcessItem_Implementation(const FItemData ItemData)
+void UCraftingComponent::SpawnExcessItem(const FItemData ItemData)
 {
-	UE_LOG(LogItemSystem,Log,TEXT("%s crafting compmonent called Spawn Excees Item for %s item"),
-		*GetOwner()->GetName(), *ItemData.DisplayName.ToString())
+	if(InventoryComponents[0]->DropItem(ItemData) == false)
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("%s crafting compmonent could not spawn excesss for %s item"),
+			*GetOwner()->GetName(), *ItemData.DisplayName.ToString())
+	}
 }
 
 void UCraftingComponent::InitializeRecipes()
@@ -238,6 +241,7 @@ bool UCraftingComponent::InputComponentCheck(const FRecipeComponent Component,TA
 	
 	return Quantity >= Component.Quantity;
 }
+
 
 // ReSharper disable once CppMemberFunctionMayBeConst -- calls non const method on Inventory Comp
 bool UCraftingComponent::ConsumeComponentInput(const FRecipeComponent RecipeComponent,
