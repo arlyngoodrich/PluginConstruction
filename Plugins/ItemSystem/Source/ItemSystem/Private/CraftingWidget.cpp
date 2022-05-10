@@ -52,6 +52,16 @@ void UCraftingWidget::UpdateCraftingInputComponentQuantities()
 FItemData UCraftingWidget::GetActiveRecipeAsItemData() const {return FRecipeComponent::ConvertComponentToItemData(ActiveRecipe.RecipeOutputs);}
 
 
+void UCraftingWidget::BeginDestroy()
+{
+	Super::BeginDestroy();
+
+	if(MyCraftingComponent)
+	{
+		MyCraftingComponent->OnActiveRecipeSet.RemoveDynamic(this,&UCraftingWidget::OnNewRecipeCraftStart);
+	}
+}
+
 void UCraftingWidget::InitializeCraftingWidget()
 {
 	if(MyCraftingComponent == nullptr)
@@ -63,6 +73,8 @@ void UCraftingWidget::InitializeCraftingWidget()
 	
 	RefreshRecipeWidgetReferences();
 	BP_UpdateRecipeGrid();
+
+	MyCraftingComponent->OnActiveRecipeSet.AddDynamic(this,&UCraftingWidget::OnNewRecipeCraftStart);
 }
 
 void UCraftingWidget::SetActiveRecipe(const FCraftingRecipe NewActiveRecipe)
@@ -78,6 +90,24 @@ void UCraftingWidget::ClearActiveRecipe()
 	ActiveRecipe = FCraftingRecipe();
 	bHasActiveRecipe = false;
 	ClearRecipeInputs();
+}
+
+void UCraftingWidget::OnNewRecipeCraftStart(const FCraftingRecipe Recipe)
+{
+
+	if(Recipe.bIsValid == false){return;} 
+	
+	CurrentlyCraftingRecipe = Recipe;
+	bIsRecipeBeingCrafted = true;
+
+	GetWorld()->GetTimerManager().SetTimer(CraftingTimer,this,&UCraftingWidget::OnRecipeCraftFinish,Recipe.CraftTime,false);
+}
+
+void UCraftingWidget::OnRecipeCraftFinish()
+{
+	bIsRecipeBeingCrafted = false;
+	CurrentlyCraftingRecipe = FCraftingRecipe();
+	GetWorld()->GetTimerManager().ClearTimer(CraftingTimer);
 }
 
 void UCraftingWidget::RefreshRecipeWidgetReferences()

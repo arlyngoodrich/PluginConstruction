@@ -12,6 +12,7 @@
 ACraftingActorBase::ACraftingActorBase()
 {
 	CraftingComponent = CreateDefaultSubobject<UStationCraftingComponent>(TEXT("Crafting Component"));
+	CraftingComponent->SetIsReplicated(true);
 }
 
 bool ACraftingActorBase::CreateStorageWidget(APlayerController* InstigatingPlayer, UCustomUserWidget*& OutWidget)

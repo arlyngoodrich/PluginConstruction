@@ -105,11 +105,31 @@ protected:
 	FCraftingRecipe ActiveRecipe;
 
 	/**
+	 * @brief Recipe currently being crafted
+	 */
+	UPROPERTY(BlueprintReadOnly,Category="Crafting")
+	FCraftingRecipe CurrentlyCraftingRecipe;
+
+	/**
+	 * @brief True if recipe is actively being crafted, false if not
+	 */
+	UPROPERTY(BlueprintReadOnly,Category="Crafting")
+	bool bIsRecipeBeingCrafted;
+
+	/**
+	 * @brief Timer handling crafting time
+	 */
+	UPROPERTY(BlueprintReadOnly,Category="Crafting")
+	FTimerHandle CraftingTimer;
+
+	/**
 	 * @brief boolean for if an active recipe is selected.  Should mostly be true except when the menu is first opened
 	 * and before a recipe is selected. 
 	 */
 	UPROPERTY(BlueprintReadOnly, Category="Crafting")
 	bool bHasActiveRecipe = false;
+
+	virtual void BeginDestroy() override;
 	
 	/**
 	 * @brief Creates Recipe Widget Objects for display in recipe grid
@@ -130,10 +150,28 @@ protected:
 	void BP_UpdateActiveRecipeDetails();
 
 	/**
+	 * @brief Called by binding to crafting component 
+	 * @param Recipe recipe that is currently being crafted
+	 */
+	UFUNCTION()
+	void OnNewRecipeCraftStart(FCraftingRecipe Recipe);
+
+	/**
+	 * @brief Called by the crafting timer after the craft duration is finished
+	 */
+	UFUNCTION()
+	void OnRecipeCraftFinish();
+
+	/**
 	 * @brief Empties Crafting recipe widgets array and creates new widget objects from eligible crafting recipes array
 	 * from owning crafting component
 	 */
 	void RefreshRecipeWidgetReferences();
+
+
+	/**
+	 * @brief Clears input widgets
+	 */
 	void ClearRecipeInputs();
 
 	/**

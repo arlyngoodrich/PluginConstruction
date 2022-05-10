@@ -37,6 +37,7 @@ void UCraftingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UCraftingComponent,EligibleCraftingRecipes);
+	DOREPLIFETIME(UCraftingComponent,ActiveRecipe);
 }
 
 
@@ -103,25 +104,38 @@ void UCraftingComponent::InitializeRecipes()
 	bRecipesInitialized = true;
 }
 
+
 // ReSharper disable once CppMemberFunctionMayBeConst
 void UCraftingComponent::OnInventoryUpdate()
 {
 	CraftingUIUpdate.Broadcast();
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
+void UCraftingComponent::OnRep_ActiveRecipeSet()
+{
+	OnActiveRecipeSet.Broadcast(ActiveRecipe);
+}
+
+
 void UCraftingComponent::StartCraftingTimer(const FCraftingRecipe Recipe)
 {
 	ActiveRecipe = Recipe;
 	bIsActivelyCrafting = true;
 
-	GetWorld()->GetTimerManager().SetTimer(CraftingTimerHandle,this,&UCraftingComponent::FinalizeCrafting,Recipe.CraftTime,false);
+	if(GetOwnerRole() ==ROLE_Authority)
+	{
+		OnRep_ActiveRecipeSet();
+	}
 	
+	GetWorld()->GetTimerManager().SetTimer(CraftingTimerHandle,this,&UCraftingComponent::FinalizeCrafting,Recipe.CraftTime,false);
 }
 
 void UCraftingComponent::FinalizeCrafting()
 {
 	DeliverRecipeOutput(ActiveRecipe.RecipeOutputs,InventoryComponents);
 	bIsActivelyCrafting = false;
+	ActiveRecipe = FCraftingRecipe();
 }
 
 bool UCraftingComponent::IsComponentEligibleToCraftRecipe(const FCraftingRecipe RecipeToCheck) const
@@ -153,7 +167,7 @@ bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe)
 	if(GetOwnerRole()!=ROLE_Authority)
 	{
 		Server_RequestCraftRecipe(Recipe);
-		return false;
+		return true;
 	}
 
 	//Make sure there are inventories to use for crafting
@@ -176,7 +190,6 @@ bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe)
 		return false;
 	}
 	
-	const FRecipeComponent Outputs = Recipe.RecipeOutputs;
 	StartCraftingTimer(Recipe);
 		
 	return true;
