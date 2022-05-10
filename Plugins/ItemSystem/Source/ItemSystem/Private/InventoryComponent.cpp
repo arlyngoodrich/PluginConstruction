@@ -1120,7 +1120,7 @@ void UInventoryComponent::DropItem(const FInventoryItemData ItemData)
 {
 	if(GetOwnerRole() != ROLE_Authority)
 	{
-		//Do RPC
+		Server_DropItem(ItemData);
 		return;
 	}
 	
@@ -1139,12 +1139,12 @@ void UInventoryComponent::DropItem(const FInventoryItemData ItemData)
 		if(CheckIfOKToSpawnAtPoint(SpawnPoint))
 		{
 			//DrawDebugSphere(GetWorld(), SpawnPoint,10.f,8,FColor::Green,false,10);
-			UE_LOG(LogItemSystem,Log,TEXT("%s item dropped by %s"),*ItemData.Item.DisplayName.ToString(),*GetOwner()->GetName())
 			
 			const FActorSpawnParameters SpawnParameters;
 			if(AItemBase* SpawnedItem = GetWorld()->SpawnActor<AItemBase>(ItemData.Item.InWorldClass, SpawnPoint,
 			                                                              GetOwner()->GetActorRotation(), SpawnParameters))
 			{
+				UE_LOG(LogItemSystem,Log,TEXT("%s item dropped by %s"),*ItemData.Item.DisplayName.ToString(),*GetOwner()->GetName())
 				FullyRemoveInventoryItem(ItemData);
 			}
 			
@@ -1152,7 +1152,8 @@ void UInventoryComponent::DropItem(const FInventoryItemData ItemData)
 		}
 	}
 
-	UE_LOG(LogItemSystem,Error,TEXT("Could not drop %s item from %s inventory.  Could not find valid spawn point"))
+	UE_LOG(LogItemSystem,Log,TEXT("Could not drop %s item from %s inventory.  Could not find valid spawn point"),
+		*ItemData.Item.DisplayName.ToString(),*GetOwner()->GetName())
 
 }
 
@@ -1520,6 +1521,16 @@ void UInventoryComponent::Server_CombineStackSameInventory_Implementation(FInven
 	FInventoryItemData TargetStack)
 {
 	CombineStacks_SameInventory(OriginatingStack,TargetStack);
+}
+
+bool UInventoryComponent::Server_DropItem_Validate(FInventoryItemData ItemData)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_DropItem_Implementation(FInventoryItemData ItemData)
+{
+	DropItem(ItemData);
 }
 
 

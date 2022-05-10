@@ -306,14 +306,15 @@ public:
 
 	/**
 	 * @brief Drops item into world.  Checks for free spot in a semi-circle in front of owner to spawn item.  Will then
-	 * enable physics timer so item can drop. 
+	 * enable physics timer so item can drop.  Safe for UI to call.  Will do RPC if not authority 
 	 * @param ItemData Inventory item to drop
 	 */
 	UFUNCTION(BlueprintCallable,Category="Inventory")
 	void DropItem(FInventoryItemData ItemData);
 	
 	/**
-	 * @brief Checks if the item will fit into a given position by checking slots that would be covered by the item. 
+	 * @brief Checks if the item will fit into a given position by checking slots that would be covered by the item.
+
 	 * @param ItemData Item to check
 	 * @param TargetPosition Target position to check
 	 * @return Returns false if it will not fit and true if it will. 
@@ -598,5 +599,10 @@ protected:
 	void Server_CombineStackSameInventory(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack);
 	bool Server_CombineStackSameInventory_Validate(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack);
 	void Server_CombineStackSameInventory_Implementation(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack);
+
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_DropItem(FInventoryItemData ItemData);
+	bool Server_DropItem_Validate(FInventoryItemData ItemData);
+	void Server_DropItem_Implementation(FInventoryItemData ItemData);
 	
 };
