@@ -106,6 +106,7 @@ struct FCraftingRecipe : public FTableRowBase
 	/**
 	 * @brief If Recipe is valid recipe
 	 */
+	UPROPERTY()
 	bool bIsValid;
 
 	/**
@@ -114,9 +115,17 @@ struct FCraftingRecipe : public FTableRowBase
 	FCraftingRecipe()
 	{
 		RecipeName = FName();
-		bIsValid = false;
+		bIsValid = true;
 		CraftTime = 0;
 	}
+
+
+	void Invalidate()
+	{
+		RecipeName = FName();
+		bIsValid = false;
+	}
+		
 
 	/**
 	 * @brief Valid Constructor for crafting Recipe 

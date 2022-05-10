@@ -58,7 +58,7 @@ void UCraftingWidget::BeginDestroy()
 
 	if(MyCraftingComponent)
 	{
-		MyCraftingComponent->OnActiveRecipeSet.RemoveDynamic(this,&UCraftingWidget::OnNewRecipeCraftStart);
+		//MyCraftingComponent->OnActiveRecipeSet.RemoveDynamic(this,&UCraftingWidget::OnNewRecipeCraftStart);
 	}
 }
 
@@ -94,13 +94,27 @@ void UCraftingWidget::ClearActiveRecipe()
 
 void UCraftingWidget::OnNewRecipeCraftStart(const FCraftingRecipe Recipe)
 {
-
-	if(Recipe.bIsValid == false){return;} 
+	
+	if(Recipe.bIsValid == false)
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("%s recipe is invalid for %s player crafting"),
+			*Recipe.RecipeName.ToString(),*GetOwningPlayer()->GetName()) 
+		return;
+	} 
 	
 	CurrentlyCraftingRecipe = Recipe;
 	bIsRecipeBeingCrafted = true;
 
-	GetWorld()->GetTimerManager().SetTimer(CraftingTimer,this,&UCraftingWidget::OnRecipeCraftFinish,Recipe.CraftTime,false);
+	if(Recipe.CraftTime > 0)
+	{
+		GetWorld()->GetTimerManager().SetTimer(CraftingTimer,this,&UCraftingWidget::OnRecipeCraftFinish,Recipe.CraftTime,false);
+	}
+	else
+	{
+		OnRecipeCraftFinish();
+	}
+	
+	
 }
 
 void UCraftingWidget::OnRecipeCraftFinish()
