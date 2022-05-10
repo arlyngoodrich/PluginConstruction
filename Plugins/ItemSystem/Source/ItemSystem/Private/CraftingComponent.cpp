@@ -18,10 +18,11 @@ UCraftingComponent::UCraftingComponent()
 	// ...
 }
 
-void UCraftingComponent::Debug_AddEligibleRecipe(const FCraftingRecipe NewRecipe)
+void UCraftingComponent::Debug_AddEligibleRecipe(FCraftingRecipe NewRecipe)
 {
 	if(IsComponentEligibleToCraftRecipe(NewRecipe))
 	{
+		
 		EligibleCraftingRecipes.Add(NewRecipe);
 		
 		UE_LOG(LogItemSystem,Log,TEXT("Added debug recipe %s to %s crafting component"),
@@ -37,6 +38,8 @@ void UCraftingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UCraftingComponent,EligibleCraftingRecipes);
+	DOREPLIFETIME(UCraftingComponent,ActiveRecipe);
+	//DOREPLIFETIME_CONDITION_NOTIFY(UCraftingComponent,ActiveRecipe,COND_None,REPNOTIFY_Always);
 }
 
 
@@ -90,12 +93,13 @@ void UCraftingComponent::InitializeRecipes()
 	
 	for (int i = 0; i < CraftingRows.Num(); ++i)
 	{
-		const FCraftingRecipe TargetRecipe = *CraftingRecipeTable->FindRow<FCraftingRecipe>(
+		FCraftingRecipe TargetRecipe = *CraftingRecipeTable->FindRow<FCraftingRecipe>(
 			CraftingRows[i], "Crafting Recipe Initialization", true);
 
 		//Make sure can craft recipe and not already in array
 		if(IsComponentEligibleToCraftRecipe(TargetRecipe) && !EligibleCraftingRecipes.Contains(TargetRecipe))
 		{
+			
 			EligibleCraftingRecipes.Add(TargetRecipe);
 		}
 	}
@@ -103,10 +107,45 @@ void UCraftingComponent::InitializeRecipes()
 	bRecipesInitialized = true;
 }
 
+
 // ReSharper disable once CppMemberFunctionMayBeConst
 void UCraftingComponent::OnInventoryUpdate()
 {
 	CraftingUIUpdate.Broadcast();
+}
+
+void UCraftingComponent::StartCraftingTimer(const FCraftingRecipe Recipe)
+{
+	ActiveRecipe = Recipe;
+	bIsActivelyCrafting = true;
+
+	if(GetOwnerRole() == ROLE_Authority)
+	{
+		OnRep_ActiveRecipeSet();
+	}
+
+	if(Recipe.CraftTime > 0)
+	{
+		GetWorld()->GetTimerManager().SetTimer(CraftingTimerHandle,this,&UCraftingComponent::FinalizeCrafting,Recipe.CraftTime,false);
+	}
+	else
+	{
+		FinalizeCrafting();
+	}
+	
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+void UCraftingComponent::OnRep_ActiveRecipeSet()
+{
+	OnActiveRecipeSet.Broadcast(ActiveRecipe);
+}
+
+void UCraftingComponent::FinalizeCrafting()
+{
+	DeliverRecipeOutput(ActiveRecipe.RecipeOutputs,InventoryComponents);
+	bIsActivelyCrafting = false;
+	ActiveRecipe.Invalidate();
 }
 
 bool UCraftingComponent::IsComponentEligibleToCraftRecipe(const FCraftingRecipe RecipeToCheck) const
@@ -138,7 +177,7 @@ bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe)
 	if(GetOwnerRole()!=ROLE_Authority)
 	{
 		Server_RequestCraftRecipe(Recipe);
-		return false;
+		return true;
 	}
 
 	//Make sure there are inventories to use for crafting
@@ -161,9 +200,8 @@ bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe)
 		return false;
 	}
 	
-	const FRecipeComponent Outputs = Recipe.RecipeOutputs;
-	DeliverRecipeOutput(Outputs,InventoryComponents);
-	
+	StartCraftingTimer(Recipe);
+		
 	return true;
 	
 }
