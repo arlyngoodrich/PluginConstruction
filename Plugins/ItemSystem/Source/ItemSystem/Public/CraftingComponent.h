@@ -121,6 +121,32 @@ protected:
 
 	
 	/**
+	 * @brief Timer handle for crafting duration 
+	 */
+	FTimerHandle CraftingTimerHandle;
+
+	/**
+	 * @brief true if there is currently an item that is being crafted
+	 */
+	UPROPERTY(BlueprintReadOnly,Category="Crafting")
+	bool bIsActivelyCrafting;
+
+	UPROPERTY(BlueprintReadOnly,Category="Crafting")
+	FCraftingRecipe ActiveRecipe;
+
+	/**
+	 * @brief Sets active recipe and starts timer to deliver to inventories
+	 * @param Recipe Recipe to set as active recipe
+	 */
+	void StartCraftingTimer(FCraftingRecipe Recipe);
+
+	/**
+	 * @brief Called after crafting timer has finished to deliver output to inventories
+	 */
+	void FinalizeCrafting();
+
+	
+	/**
 	 * @brief Checks a recipe to see if the crafting component is able to craft it
 	 * @return True if eligible, false if not
 	 */

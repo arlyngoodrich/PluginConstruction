@@ -109,6 +109,21 @@ void UCraftingComponent::OnInventoryUpdate()
 	CraftingUIUpdate.Broadcast();
 }
 
+void UCraftingComponent::StartCraftingTimer(const FCraftingRecipe Recipe)
+{
+	ActiveRecipe = Recipe;
+	bIsActivelyCrafting = true;
+
+	GetWorld()->GetTimerManager().SetTimer(CraftingTimerHandle,this,&UCraftingComponent::FinalizeCrafting,Recipe.CraftTime,false);
+	
+}
+
+void UCraftingComponent::FinalizeCrafting()
+{
+	DeliverRecipeOutput(ActiveRecipe.RecipeOutputs,InventoryComponents);
+	bIsActivelyCrafting = false;
+}
+
 bool UCraftingComponent::IsComponentEligibleToCraftRecipe(const FCraftingRecipe RecipeToCheck) const
 {
 	const TArray<TSubclassOf<UCraftingComponent>> EligibleComponents = RecipeToCheck.EligibleCraftingComponentTypes;
@@ -162,8 +177,8 @@ bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe)
 	}
 	
 	const FRecipeComponent Outputs = Recipe.RecipeOutputs;
-	DeliverRecipeOutput(Outputs,InventoryComponents);
-	
+	StartCraftingTimer(Recipe);
+		
 	return true;
 	
 }

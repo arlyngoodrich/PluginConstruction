@@ -100,6 +100,9 @@ struct FCraftingRecipe : public FTableRowBase
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Crafting Recipe")
 	TArray<TSubclassOf<UCraftingComponent>> EligibleCraftingComponentTypes;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Crafting Recipe")
+	float CraftTime;
+
 	/**
 	 * @brief If Recipe is valid recipe
 	 */
@@ -112,27 +115,41 @@ struct FCraftingRecipe : public FTableRowBase
 	{
 		RecipeName = FName();
 		bIsValid = false;
+		CraftTime = 0;
 	}
 
 	/**
 	 * @brief Valid Constructor for crafting Recipe 
 	 */
 	FCraftingRecipe(const FName SetRecipeName,const TArray<FRecipeComponent> SetRecipeInputs,const FRecipeComponent SetRecipeOutputs,
-	                const TArray<TSubclassOf<UCraftingComponent>> SetEligibleCraftingComponentTypes)
+	                const TArray<TSubclassOf<UCraftingComponent>> SetEligibleCraftingComponentTypes,const float SetCraftTime)
 	{
 		RecipeName = SetRecipeName;
 		RecipeInputs = SetRecipeInputs;
 		RecipeOutputs = SetRecipeOutputs;
 		EligibleCraftingComponentTypes = SetEligibleCraftingComponentTypes;
 		bIsValid = true;
+		CraftTime = SetCraftTime;
+	}
+
+	/**
+	* @brief Valid Constructor for crafting Recipe 
+	*/
+	FCraftingRecipe(const FName SetRecipeName,const TArray<FRecipeComponent> SetRecipeInputs,const FRecipeComponent SetRecipeOutputs,
+				const TArray<TSubclassOf<UCraftingComponent>> SetEligibleCraftingComponentTypes)
+	{
+		RecipeName = SetRecipeName;
+		RecipeInputs = SetRecipeInputs;
+		RecipeOutputs = SetRecipeOutputs;
+		EligibleCraftingComponentTypes = SetEligibleCraftingComponentTypes;
+		bIsValid = true;
+		CraftTime = 0;
 	}
 
 	bool operator==(const FCraftingRecipe& Recipe) const
 	{
 		return (RecipeName == Recipe.RecipeName);
 	}
-
-
 
 };
 
