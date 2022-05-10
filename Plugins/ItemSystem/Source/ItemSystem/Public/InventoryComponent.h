@@ -311,10 +311,16 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable,Category="Inventory")
 	void DropItem(FInventoryItemData ItemData);
+
+	/**
+	 * @brief Drops item into world. Internal version that only uses item data
+	 * @param ItemData Item data to drop
+	 * @return true if item could be dropped, false if not
+	 */
+	bool DropItem(FItemData ItemData) const;
 	
 	/**
 	 * @brief Checks if the item will fit into a given position by checking slots that would be covered by the item.
-
 	 * @param ItemData Item to check
 	 * @param TargetPosition Target position to check
 	 * @return Returns false if it will not fit and true if it will. 

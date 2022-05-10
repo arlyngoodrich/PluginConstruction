@@ -89,12 +89,12 @@ protected:
 	 */
 	UPROPERTY(BlueprintReadOnly,Replicated,Category="Crafting Data")
 	TArray<FCraftingRecipe> EligibleCraftingRecipes;
+	
 
 	/**
 	 * @brief Called when a crafted recipe output cannot be placed into an inventory.  
 	 * @param ItemData Item Data that needs to be spawned into the world
 	 */
-	UFUNCTION(BlueprintNativeEvent,Category="Crafting")
 	void SpawnExcessItem(FItemData ItemData);
 
 	/**
@@ -174,5 +174,6 @@ protected:
 	bool Server_RequestCraftRecipe_Validate(FCraftingRecipe Recipe);
 	void Server_RequestCraftRecipe_Implementation(FCraftingRecipe Recipe);
 };
+
 
 

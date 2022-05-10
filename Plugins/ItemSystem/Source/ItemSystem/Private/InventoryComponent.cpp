@@ -1127,6 +1127,20 @@ void UInventoryComponent::DropItem(const FInventoryItemData ItemData)
 	//Ensure item is in inventory
 	if(InventoryItems.Contains(ItemData) == false){return;}
 	
+	if(DropItem(ItemData.Item))
+	{
+		FullyRemoveInventoryItem(ItemData);
+	}
+}
+
+bool UInventoryComponent::DropItem(const FItemData ItemData) const
+{
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+	
 	//Get point in front of owning actor
 	const FVector SpawnPointCenter = GetOwner()->GetActorForwardVector() * (DropPointMinDistance + DropPointRadius) + 
 		GetOwner()->GetActorLocation();
@@ -1141,13 +1155,13 @@ void UInventoryComponent::DropItem(const FInventoryItemData ItemData)
 			//DrawDebugSphere(GetWorld(), SpawnPoint,10.f,8,FColor::Green,false,10);
 			
 			const FActorSpawnParameters SpawnParameters;
-			if(AItemBase* SpawnedItem = GetWorld()->SpawnActor<AItemBase>(ItemData.Item.InWorldClass, SpawnPoint,
-			                                                              GetOwner()->GetActorRotation(), SpawnParameters))
+			if(AItemBase* SpawnedItem = GetWorld()->SpawnActor<AItemBase>(ItemData.InWorldClass, SpawnPoint,
+																		  GetOwner()->GetActorRotation(), SpawnParameters))
 			{
-				UE_LOG(LogItemSystem,Log,TEXT("%s item dropped by %s"),*ItemData.Item.DisplayName.ToString(),*GetOwner()->GetName())
-				FullyRemoveInventoryItem(ItemData);
-				SpawnedItem->SetItemData(ItemData.Item);
+				UE_LOG(LogItemSystem,Log,TEXT("%s item dropped by %s"),*ItemData.DisplayName.ToString(),*GetOwner()->GetName())
+				SpawnedItem->SetItemData(ItemData);
 				SpawnedItem->StartPhysicsTimer();
+				return true;
 			}
 			
 			break;
@@ -1155,8 +1169,8 @@ void UInventoryComponent::DropItem(const FInventoryItemData ItemData)
 	}
 
 	UE_LOG(LogItemSystem,Log,TEXT("Could not drop %s item from %s inventory.  Could not find valid spawn point"),
-		*ItemData.Item.DisplayName.ToString(),*GetOwner()->GetName())
-
+		*ItemData.DisplayName.ToString(),*GetOwner()->GetName())
+	return false;
 }
 
 bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const bool NewIsOccupied,
