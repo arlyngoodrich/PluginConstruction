@@ -54,9 +54,15 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	/**
-	 * @brief Destroy simulated proxy version of item if spawning.  Only want to have this on the local machine
+	 * @brief Called by player inventory when placements of items starts in world.  Will destroy simulated proxy item on
+	 * client machine so the client does not see the ghost mesh. 
 	 */
 	void OnPlacementStart();
+
+	/**
+	 * @brief Starts physics and timer to end physics
+	 */
+	void StartPhysicsTimer();
 
 protected:
 	
@@ -66,7 +72,11 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere,BlueprintReadOnly,Category="Item Data")
 	FItemData ItemData;
 
-	bool bSpawnedByPlayer;
+	/**
+	 * @brief Timer for physics to be enabled on object.  
+	 */
+	UPROPERTY(Replicated, EditAnywhere,BlueprintReadOnly,Category="Item Data")
+	float PhysicsTimeDuration = 10.f;
 	
 	/**
 	 * @brief Called by Interaction Component from player interaction
@@ -74,6 +84,8 @@ protected:
 	 */
 	UFUNCTION(BlueprintNativeEvent,BlueprintAuthorityOnly,Category="Item")
 	void OnPlayerInteraction(AActor* InstigatingActor);
+
+	FTimerHandle PhysicsTimerHandle;
 	
 	/**
 	 * @brief Adds GUID and Item in world class to Item Data struct
@@ -86,11 +98,15 @@ protected:
 	 */
 	virtual void Native_OnPlayerInteraction(AActor* InstigatingActor);
 
-	UFUNCTION(Client,Reliable)
-	void Multicast_DestroyClientVersion();
-	void Multicast_DestroyClientVersion_Implementation();
+	/**
+	 * @brief Enables physics and replicates movement
+	 */
+	void StartPhysics();
 
-
+	/**
+	 * @brief Disables physics and stops movement replication 
+	 */
+	void EndPhysics();
 
 	
 };

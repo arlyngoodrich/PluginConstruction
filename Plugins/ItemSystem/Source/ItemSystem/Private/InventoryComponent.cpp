@@ -1146,6 +1146,8 @@ void UInventoryComponent::DropItem(const FInventoryItemData ItemData)
 			{
 				UE_LOG(LogItemSystem,Log,TEXT("%s item dropped by %s"),*ItemData.Item.DisplayName.ToString(),*GetOwner()->GetName())
 				FullyRemoveInventoryItem(ItemData);
+				SpawnedItem->SetItemData(ItemData.Item);
+				SpawnedItem->StartPhysicsTimer();
 			}
 			
 			break;

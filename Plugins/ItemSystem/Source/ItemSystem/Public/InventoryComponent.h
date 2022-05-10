@@ -363,15 +363,27 @@ protected:
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
 	float MaxWeight;
 
+	/**
+	 * @brief Min distance in front of actor that item will be dropped
+	 */
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
 	float DropPointMinDistance = 50.f;
 
+	/**
+	 * @brief Radius of random point that item could be dropped in 
+	 */
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
 	float DropPointRadius = 50.f;
 
+	/**
+	 * @brief Height that item should be dropped from
+	 */
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
 	float DropHeight = 50.f;
 
+	/**
+	 * @brief How many points should be attempted in random circle before quitting drop attempt
+	 */
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
 	int32 SpawnAttempts = 100;
 	
