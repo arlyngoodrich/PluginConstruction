@@ -15,8 +15,7 @@ void UCraftingRecipeComponentWidget::SetReferences(const FRecipeComponent SetMyR
 	SetOwningPlayer(OwningPlayer);
 	
 	ComponentItemData = FRecipeComponent::ConvertComponentToItemData(MyRecipeComponent);
-	ItemQtyNeeded = MyRecipeComponent.Quantity;
-
+	SetInputQuantityNeeded(1);
 	UpdateAppearance();
 }
 
@@ -25,5 +24,10 @@ void UCraftingRecipeComponentWidget::SetInventoryQuantities(int32 SetItemQtyInIn
 	ItemQtyInInventories = SetItemQtyInInventories;
 	bHasEnoughQuantity = ItemQtyInInventories >= ItemQtyNeeded;
 	UpdateAppearance();
+}
+
+void UCraftingRecipeComponentWidget::SetInputQuantityNeeded(const int32 CraftingQuantity)
+{
+	ItemQtyNeeded = MyRecipeComponent.Quantity * CraftingQuantity;
 }
 

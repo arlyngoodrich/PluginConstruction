@@ -71,13 +71,15 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable,Category="Crafting")
 	void ClearActiveRecipe();
+
+	UFUNCTION(BlueprintCallable,Category="Crafting")
+	void UpdateCraftingQuantity(int32 NewQuantity);
 	
 	/**
 	 * @brief Gets active recipe as item data.  May be invalid if there is not an active recipe.
 	 */
 	UFUNCTION(BlueprintPure,Category="Crafting")
 	FItemData GetActiveRecipeAsItemData() const;
-
 
 protected:
 
@@ -123,6 +125,9 @@ protected:
 	 */
 	UPROPERTY(BlueprintReadOnly, Category="Crafting")
 	bool bHasActiveRecipe = false;
+
+	UPROPERTY(BlueprintReadOnly,Category="Crafting")
+	int32 CraftingQuantity;
 
 	virtual void BeginDestroy() override;
 	

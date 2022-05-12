@@ -121,7 +121,7 @@ bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe, const int32 C
 	UpdateInventories();
 
 	//Check to see if able to craft recipe.  OK to perform on client so we're not doing an RPC if we can't 
-	if(CraftRecipeChecks(Recipe) == false)
+	if(CanQueueSlotBeCrafted(Recipe,CraftingAmount) == false)
 	{
 		return false;
 	}
