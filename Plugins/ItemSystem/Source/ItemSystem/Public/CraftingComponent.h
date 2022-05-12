@@ -9,9 +9,9 @@
 
 class UInventoryComponent;
 
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUpdateCraftingUI);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCraftingStarted, float, CraftingTime, FCraftingRecipe, Recipe);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCraftingQueueUpdated,TArray<FCraftingQueueSlot>, CraftingQueue);
 
 /**
  * @brief Base component for creating new items from other items
@@ -36,6 +36,9 @@ public:
 	 */
 	UPROPERTY(BlueprintAssignable,Category="Crafting")
 	FOnCraftingStarted OnCraftingStarted;
+
+	UPROPERTY(BlueprintAssignable,Category="Crafting")
+	FOnCraftingQueueUpdated OnCraftingQueueUpdated;
 
 	/**
 	 * @brief ONLY FOR TESTING. Do not use for gameplay.
@@ -101,12 +104,6 @@ protected:
 	 * @brief Set as true when Recipes are initialized
 	 */
 	bool bRecipesInitialized;
-
-	/**
-	 * @brief Broadcast to crafting UI to update
-	 */
-	UFUNCTION()
-	void OnInventoryUpdate();
 	
 	/**
 	 * @brief Pointers to inventory components
@@ -140,9 +137,18 @@ protected:
 	/**
 	 * @brief Array of Recipes waiting to be crafted
 	 */
-	UPROPERTY(BlueprintReadOnly,Replicated,Category="Crafting")
+	UPROPERTY(BlueprintReadOnly,ReplicatedUsing=OnRep_CraftingQueueUpdated,Category="Crafting")
 	TArray<FCraftingQueueSlot> CraftingQueue;
 
+	
+	/**
+	 * @brief Broadcast to crafting UI to update
+	 */
+	UFUNCTION()
+	void OnInventoryUpdate();
+
+	UFUNCTION()
+	void OnRep_CraftingQueueUpdated();
 
 	/**
 	* @brief Uses set Crafting Recipe Table reference to fill Eligible Crafting Recipe array

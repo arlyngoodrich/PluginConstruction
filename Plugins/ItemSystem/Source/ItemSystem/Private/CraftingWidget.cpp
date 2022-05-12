@@ -15,10 +15,40 @@ UCraftingWidget::UCraftingWidget()
 	ActiveRecipe = FCraftingRecipe();
 }
 
+FItemData UCraftingWidget::GetActiveRecipeAsItemData() const {return FRecipeComponent::ConvertComponentToItemData(ActiveRecipe.RecipeOutputs);}
+
+
+void UCraftingWidget::BeginDestroy()
+{
+	if(MyCraftingComponent)
+	{
+		MyCraftingComponent->OnCraftingStarted.RemoveDynamic(this,&UCraftingWidget::OnNewRecipeCraftStart);
+		MyCraftingComponent->OnCraftingQueueUpdated.RemoveDynamic(this,&UCraftingWidget::OnCraftingQueueUpdated);
+	}
+	
+	Super::BeginDestroy();
+}
+
+void UCraftingWidget::InitializeCraftingWidget()
+{
+	if(MyCraftingComponent == nullptr)
+	{
+		UE_LOG(LogItemSystem,Error,TEXT("%s crafting UI does not have crafting component set"),
+			*GetOwningPlayer()->GetName())
+		return;
+	}
+	
+	RefreshRecipeWidgetReferences();
+	BP_UpdateRecipeGrid();
+
+	MyCraftingComponent->OnCraftingStarted.AddDynamic(this,&UCraftingWidget::OnNewRecipeCraftStart);
+}
+
 void UCraftingWidget::SetReferences(UCraftingComponent* SetMyCraftingComponent, APlayerController* OwningPlayer)
 {
 	MyCraftingComponent = SetMyCraftingComponent;
 	MyCraftingComponent->CraftingUIUpdate.AddDynamic(this,&UCraftingWidget::OnInventoryUpdate);
+	MyCraftingComponent->OnCraftingQueueUpdated.AddDynamic(this,&UCraftingWidget::OnCraftingQueueUpdated);
 	SetOwningPlayer(OwningPlayer);
 }
 
@@ -26,6 +56,11 @@ void UCraftingWidget::OnInventoryUpdate()
 {
 	UpdateIfRecipesCanBeCrafted();
 	UpdateCraftingInputComponentQuantities();
+}
+
+void UCraftingWidget::OnCraftingQueueUpdated(TArray<FCraftingQueueSlot> UpdatedQueue)
+{
+	BP_UpdateCraftingQueue(UpdatedQueue);
 }
 
 void UCraftingWidget::UpdateIfRecipesCanBeCrafted()
@@ -49,33 +84,7 @@ void UCraftingWidget::UpdateCraftingInputComponentQuantities()
 	}
 }
 
-FItemData UCraftingWidget::GetActiveRecipeAsItemData() const {return FRecipeComponent::ConvertComponentToItemData(ActiveRecipe.RecipeOutputs);}
 
-
-void UCraftingWidget::BeginDestroy()
-{
-	Super::BeginDestroy();
-
-	if(MyCraftingComponent)
-	{
-		//MyCraftingComponent->OnActiveRecipeSet.RemoveDynamic(this,&UCraftingWidget::OnNewRecipeCraftStart);
-	}
-}
-
-void UCraftingWidget::InitializeCraftingWidget()
-{
-	if(MyCraftingComponent == nullptr)
-	{
-		UE_LOG(LogItemSystem,Error,TEXT("%s crafting UI does not have crafting component set"),
-			*GetOwningPlayer()->GetName())
-		return;
-	}
-	
-	RefreshRecipeWidgetReferences();
-	BP_UpdateRecipeGrid();
-
-	MyCraftingComponent->OnCraftingStarted.AddDynamic(this,&UCraftingWidget::OnNewRecipeCraftStart);
-}
 
 void UCraftingWidget::SetActiveRecipe(const FCraftingRecipe NewActiveRecipe)
 {

@@ -110,6 +110,12 @@ void UCraftingComponent::OnInventoryUpdate()
 	CraftingUIUpdate.Broadcast();
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
+void UCraftingComponent::OnRep_CraftingQueueUpdated()
+{
+	OnCraftingQueueUpdated.Broadcast(CraftingQueue);
+}
+
 
 bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe)
 {
@@ -228,9 +234,9 @@ void UCraftingComponent::AddRecipeToQueue(const FCraftingRecipe Recipe, const in
 	}
 
 	const FCraftingQueueSlot NewSlot = FCraftingQueueSlot(Recipe,NewSlotPosition,RecipeQty);
-
-	//ON REP?
+	
 	CraftingQueue.Add(NewSlot);
+	OnRep_CraftingQueueUpdated();
 
 	UE_LOG(LogItemSystem,Log,TEXT("%s added %s to queue at position %d"),
 		*GetOwner()->GetName(),*Recipe.RecipeName.ToString(),NewSlotPosition)
@@ -266,7 +272,6 @@ void UCraftingComponent::CraftFromQueue()
 	}
 	
 	CraftRecipe(CraftingQueue[IndexSlot0].Recipe);
-	//OnRep?
 
 	CraftingQueue.RemoveAt(IndexSlot0);
 
@@ -275,6 +280,8 @@ void UCraftingComponent::CraftFromQueue()
 	{
 		CraftingQueue[i].SlotPosition -= 1;
 	}
+
+	OnRep_CraftingQueueUpdated();
 	
 }
 
