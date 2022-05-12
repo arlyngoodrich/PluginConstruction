@@ -117,7 +117,7 @@ void UCraftingComponent::OnRep_CraftingQueueUpdated()
 }
 
 
-bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe)
+bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe, const int32 CraftingAmount)
 {
 	UpdateInventories();
 
@@ -130,7 +130,7 @@ bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe)
 	//Ensure only crafting on the server
 	if(GetOwnerRole()!=ROLE_Authority)
 	{
-		Server_RequestCraftRecipe(Recipe);
+		Server_RequestCraftRecipe(Recipe,CraftingAmount);
 		return true;
 	}
 
@@ -140,7 +140,7 @@ bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe)
 		return false;
 	}
 
-	AddRecipeToQueue(Recipe,1);
+	AddRecipeToQueue(Recipe,CraftingAmount);
 
 	//If actively crafting, return
 	if(bIsActivelyCrafting)
@@ -286,9 +286,9 @@ void UCraftingComponent::UpdateCraftingQueue()
 
 	for (int i = TestQueue.Num() - 1; i >= 0; --i)
 	{
-		if(CanRecipeBeCrafted(TestQueue[i].Recipe) == false)
+		if(CanQueueSlotBeCrafted(TestQueue[i].Recipe,TestQueue[i].Quantity) == false)
 		{
-			TestQueue = DecrementSlotQuantityAtPosition(TestQueue[i].SlotPosition,TestQueue);
+			TestQueue = RemoveSlotFromCraftingQueue(TestQueue[i].SlotPosition,TestQueue);
 		}
 	}
 	
@@ -600,14 +600,14 @@ void UCraftingComponent::UpdateInventoryBindings(const TArray<UInventoryComponen
 	
 }
 
-bool UCraftingComponent::Server_RequestCraftRecipe_Validate(FCraftingRecipe Recipe)
+bool UCraftingComponent::Server_RequestCraftRecipe_Validate(FCraftingRecipe Recipe,int32 CraftingAmount)
 {
 	return true;
 }
 
-void UCraftingComponent::Server_RequestCraftRecipe_Implementation(FCraftingRecipe Recipe)
+void UCraftingComponent::Server_RequestCraftRecipe_Implementation(FCraftingRecipe Recipe,int32 CraftingAmount)
 {
-	CraftRecipe(Recipe);
+	CraftRecipe(Recipe,CraftingAmount);
 }
 
 void UCraftingComponent::Client_CraftingStarted_Implementation(const float CraftDuration,FCraftingRecipe Recipe)

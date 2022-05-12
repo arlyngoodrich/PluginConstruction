@@ -57,7 +57,7 @@ public:
 	 * @return Returns true if recipe was crafted, returns false if not
 	 */
 	UFUNCTION(BlueprintCallable,Category="Crafting")
-	bool CraftRecipe(FCraftingRecipe Recipe);
+	bool CraftRecipe(FCraftingRecipe Recipe, int32 CraftingAmount);
 
 	/**
 	 * @brief Gets Crafting Components' eligible crafting recipes
@@ -264,9 +264,9 @@ protected:
 	void UpdateInventoryBindings(TArray<UInventoryComponent*> NewInventoryComponents);
 
 	UFUNCTION(Server,WithValidation,Reliable)
-	void Server_RequestCraftRecipe(FCraftingRecipe Recipe);
-	bool Server_RequestCraftRecipe_Validate(FCraftingRecipe Recipe);
-	void Server_RequestCraftRecipe_Implementation(FCraftingRecipe Recipe);
+	void Server_RequestCraftRecipe(FCraftingRecipe Recipe,int32 CraftingAmount);
+	bool Server_RequestCraftRecipe_Validate(FCraftingRecipe Recipe,int32 CraftingAmount);
+	void Server_RequestCraftRecipe_Implementation(FCraftingRecipe Recipe,int32 CraftingAmount);
 
 	UFUNCTION(Client,Reliable)
 	void Client_CraftingStarted(float CraftDuration,FCraftingRecipe Recipe);
