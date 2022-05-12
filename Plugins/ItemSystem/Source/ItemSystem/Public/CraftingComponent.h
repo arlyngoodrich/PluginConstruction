@@ -96,18 +96,6 @@ protected:
 	 */
 	UPROPERTY(BlueprintReadOnly,Replicated,Category="Crafting Data")
 	TArray<FCraftingRecipe> EligibleCraftingRecipes;
-	
-
-	/**
-	 * @brief Called when a crafted recipe output cannot be placed into an inventory.  
-	 * @param ItemData Item Data that needs to be spawned into the world
-	 */
-	void SpawnExcessItem(FItemData ItemData);
-
-	/**
-	* @brief Uses set Crafting Recipe Table reference to fill Eligible Crafting Recipe array
-	*/
-	void InitializeRecipes();
 
 	/**
 	 * @brief Set as true when Recipes are initialized
@@ -135,12 +123,36 @@ protected:
 	/**
 	 * @brief true if there is currently an item that is being crafted
 	 */
-	UPROPERTY(BlueprintReadOnly,Category="Crafting")
+	UPROPERTY(BlueprintReadOnly,Replicated,Category="Crafting")
 	bool bIsActivelyCrafting;
 
+	/**
+	 * @brief Recipe that is actively being crafted by the component
+	 */
 	UPROPERTY(BlueprintReadOnly,ReplicatedUsing=OnRep_ActiveRecipeSet,Category="Crafting")
 	FCraftingRecipe ActiveRecipe;
 
+	/**
+	 * @brief Array of Recipes waiting to be crafted
+	 */
+	UPROPERTY(BlueprintReadOnly,Replicated,Category="Crafting")
+	TArray<FCraftingQueueSlot> CraftingQueue;
+
+
+	/**
+	* @brief Uses set Crafting Recipe Table reference to fill Eligible Crafting Recipe array
+	*/
+	void InitializeRecipes();
+
+	/**
+	 * @brief Called when a crafted recipe output cannot be placed into an inventory.  
+	 * @param ItemData Item Data that needs to be spawned into the world
+	 */
+	void SpawnExcessItem(FItemData ItemData);
+
+	/**
+	 * @brief Called when a new recipe is set
+	 */
 	UFUNCTION()
 	void OnRep_ActiveRecipeSet();
 	
@@ -154,6 +166,18 @@ protected:
 	 * @brief Called after crafting timer has finished to deliver output to inventories
 	 */
 	void FinalizeCrafting();
+	
+	/**
+	 * @brief Adds recipe to crafting queue
+	 * @param Recipe Recipe to add to crafting queue
+	 * @param RecipeQty Times recipe should be crafted
+	 */
+	void AddRecipeToQueue(FCraftingRecipe Recipe, int32 RecipeQty);
+
+	/**
+	* @brief Attempts to craft next item in queue
+	*/
+	void CraftFromQueue();
 
 	
 	/**

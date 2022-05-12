@@ -39,6 +39,9 @@ void UCraftingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& 
 
 	DOREPLIFETIME(UCraftingComponent,EligibleCraftingRecipes);
 	DOREPLIFETIME(UCraftingComponent,ActiveRecipe);
+	DOREPLIFETIME(UCraftingComponent,bIsActivelyCrafting);
+	DOREPLIFETIME(UCraftingComponent,CraftingQueue);
+	
 	//DOREPLIFETIME_CONDITION_NOTIFY(UCraftingComponent,ActiveRecipe,COND_None,REPNOTIFY_Always);
 }
 
@@ -146,6 +149,71 @@ void UCraftingComponent::FinalizeCrafting()
 	DeliverRecipeOutput(ActiveRecipe.RecipeOutputs,InventoryComponents);
 	bIsActivelyCrafting = false;
 	ActiveRecipe.Invalidate();
+
+	CraftFromQueue();
+}
+
+void UCraftingComponent::AddRecipeToQueue(const FCraftingRecipe Recipe, const int32 RecipeQty)
+{
+
+	if(GetOwnerRole()!=ROLE_Authority){return;}
+	
+	//Find the current max slot
+	int32 NewSlotPosition;
+	if(CraftingQueue.Num()>0)
+	{
+		TArray<int32> QueueSlots;
+		for (int i = 0; i < CraftingQueue.Num(); ++i)
+		{
+			QueueSlots.Add(CraftingQueue[i].SlotPosition);
+		}
+
+		NewSlotPosition = FMath::Max(QueueSlots)+1;
+	}
+	else
+	{
+		NewSlotPosition = 0;
+	}
+
+	const FCraftingQueueSlot NewSlot = FCraftingQueueSlot(Recipe,NewSlotPosition,RecipeQty);
+
+	//ON REP?
+	CraftingQueue.Add(NewSlot);
+
+	UE_LOG(LogItemSystem,Log,TEXT("%s added %s to queue at position %d"),
+		*GetOwner()->GetName(),*Recipe.RecipeName.ToString(),NewSlotPosition)
+}
+
+void UCraftingComponent::CraftFromQueue()
+{
+	if(GetOwnerRole()!=ROLE_Authority){return;}
+	
+	if(CraftingQueue.Num()==0){return;}
+
+	//Find the index for slot 0
+	int32 IndexSlot0 = 0;
+	bool bFoundSlot0 = false;
+	for (int i = 0; i < CraftingQueue.Num(); ++i)
+	{
+		if(CraftingQueue[i].SlotPosition == 0)
+		{
+			IndexSlot0 = i;
+			bFoundSlot0 = true;
+			break;
+		}
+	}
+
+	if(bFoundSlot0 == false)
+	{
+		UE_LOG(LogItemSystem,Error,TEXT("%s attempted to craft from queue but could not find queue slot 0"),
+			*GetOwner()->GetName())
+		return;
+	}
+	
+	CraftRecipe(CraftingQueue[IndexSlot0].Recipe);
+	//OnRep
+	CraftingQueue.RemoveAt(IndexSlot0);
+	
 }
 
 bool UCraftingComponent::IsComponentEligibleToCraftRecipe(const FCraftingRecipe RecipeToCheck) const
@@ -184,6 +252,12 @@ bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe)
 	if(UpdateInventories() == false)
 	{
 		 return false;
+	}
+
+	if(bIsActivelyCrafting)
+	{
+		AddRecipeToQueue(Recipe,1);
+		return true;
 	}
 
 	//Consume inputs from inventories

@@ -177,6 +177,12 @@ struct FCraftingQueueSlot
 	FCraftingRecipe Recipe;
 
 	/**
+	* @brief Recipe
+	*/
+	UPROPERTY(BlueprintReadOnly, Category = "Crafting Recipe")
+	int32 SlotPosition;
+
+	/**
 	 * @brief How many times the recipe should be crafted
 	 */
 	UPROPERTY( BlueprintReadOnly, Category = "Crafting Recipe")
@@ -189,6 +195,7 @@ struct FCraftingQueueSlot
 	FCraftingQueueSlot()
 	{
 		Recipe = FCraftingRecipe();
+		SlotPosition = 0;
 		Quantity = 0;
 	}
 	
@@ -196,15 +203,16 @@ struct FCraftingQueueSlot
 	/**
 	* @brief Full Constructor
 	*/
-	FCraftingQueueSlot(const FCraftingRecipe SetRecipe,const int32 SetQuantity)
+	FCraftingQueueSlot(const FCraftingRecipe SetRecipe,const int32 SetSlotPosition, const int32 SetQuantity)
 	{
 		Recipe = SetRecipe;
+		SlotPosition = SetSlotPosition;
 		Quantity = SetQuantity;
 	}
 
 	bool operator==(const FCraftingQueueSlot& RecipeSlot) const
 	{
-		return (Recipe.RecipeName == RecipeSlot.Recipe.RecipeName);
+		return (Recipe.RecipeName == RecipeSlot.Recipe.RecipeName && SlotPosition == RecipeSlot.SlotPosition);
 	}
 
 };
