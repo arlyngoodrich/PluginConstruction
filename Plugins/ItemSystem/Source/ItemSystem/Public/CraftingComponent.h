@@ -11,7 +11,7 @@ class UInventoryComponent;
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUpdateCraftingUI);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActiveRecipeSet, FCraftingRecipe, Recipe);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCraftingStarted, float, CraftingTime);
 
 /**
  * @brief Base component for creating new items from other items
@@ -35,7 +35,7 @@ public:
 	 * @brief Broadcast when an active recipe has been set
 	 */
 	UPROPERTY(BlueprintAssignable,Category="Crafting")
-	FOnActiveRecipeSet OnActiveRecipeSet;
+	FOnCraftingStarted OnCraftingStarted;
 
 	/**
 	 * @brief ONLY FOR TESTING. Do not use for gameplay.
@@ -129,7 +129,7 @@ protected:
 	/**
 	 * @brief Recipe that is actively being crafted by the component
 	 */
-	UPROPERTY(BlueprintReadOnly,ReplicatedUsing=OnRep_ActiveRecipeSet,Category="Crafting")
+	UPROPERTY(BlueprintReadOnly,Replicated,Category="Crafting")
 	FCraftingRecipe ActiveRecipe;
 
 	/**
@@ -233,6 +233,14 @@ protected:
 	void Server_RequestCraftRecipe(FCraftingRecipe Recipe);
 	bool Server_RequestCraftRecipe_Validate(FCraftingRecipe Recipe);
 	void Server_RequestCraftRecipe_Implementation(FCraftingRecipe Recipe);
+
+	UFUNCTION(Client,Reliable)
+	void Client_CraftingStarted(float CraftDuration);
+	void Client_CraftingStarted_Implementation(float CraftDuration);
+
+	UFUNCTION(Client,Reliable)
+	void Client_CraftingFinished();
+	void Client_CraftingFinished_Implementation();
 };
 
 

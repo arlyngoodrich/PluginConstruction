@@ -130,6 +130,9 @@ void UCraftingComponent::StartCraftingTimer(const FCraftingRecipe Recipe)
 	if(Recipe.CraftTime > 0)
 	{
 		GetWorld()->GetTimerManager().SetTimer(CraftingTimerHandle,this,&UCraftingComponent::FinalizeCrafting,Recipe.CraftTime,false);
+		Client_CraftingStarted(Recipe.CraftTime);
+		OnCraftingStarted.Broadcast(Recipe.CraftTime);
+		
 	}
 	else
 	{
@@ -138,18 +141,15 @@ void UCraftingComponent::StartCraftingTimer(const FCraftingRecipe Recipe)
 	
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst
-void UCraftingComponent::OnRep_ActiveRecipeSet()
-{
-	OnActiveRecipeSet.Broadcast(ActiveRecipe);
-}
 
 void UCraftingComponent::FinalizeCrafting()
 {
 	DeliverRecipeOutput(ActiveRecipe.RecipeOutputs,InventoryComponents);
+	GetWorld()->GetTimerManager().ClearTimer(CraftingTimerHandle);
 	bIsActivelyCrafting = false;
 	ActiveRecipe.Invalidate();
 
+	Client_CraftingFinished();
 	CraftFromQueue();
 }
 
@@ -477,6 +477,18 @@ bool UCraftingComponent::Server_RequestCraftRecipe_Validate(FCraftingRecipe Reci
 void UCraftingComponent::Server_RequestCraftRecipe_Implementation(FCraftingRecipe Recipe)
 {
 	CraftRecipe(Recipe);
+}
+
+void UCraftingComponent::Client_CraftingStarted_Implementation(const float CraftDuration)
+{
+	//Client proxy timer for when crafting should approximately finish
+	GetWorld()->GetTimerManager().SetTimer(CraftingTimerHandle,CraftDuration,false);
+	OnCraftingStarted.Broadcast(CraftDuration);
+}
+
+void UCraftingComponent::Client_CraftingFinished_Implementation()
+{
+	GetWorld()->GetTimerManager().ClearTimer(CraftingTimerHandle);
 }
 
 

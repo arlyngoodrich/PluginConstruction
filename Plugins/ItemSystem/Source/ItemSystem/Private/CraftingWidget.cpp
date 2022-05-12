@@ -74,7 +74,7 @@ void UCraftingWidget::InitializeCraftingWidget()
 	RefreshRecipeWidgetReferences();
 	BP_UpdateRecipeGrid();
 
-	MyCraftingComponent->OnActiveRecipeSet.AddDynamic(this,&UCraftingWidget::OnNewRecipeCraftStart);
+	MyCraftingComponent->OnCraftingStarted.AddDynamic(this,&UCraftingWidget::OnNewRecipeCraftStart);
 }
 
 void UCraftingWidget::SetActiveRecipe(const FCraftingRecipe NewActiveRecipe)
