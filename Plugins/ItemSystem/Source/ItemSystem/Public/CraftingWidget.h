@@ -72,6 +72,10 @@ public:
 	UFUNCTION(BlueprintCallable,Category="Crafting")
 	void ClearActiveRecipe();
 
+	/**
+	 * @brief Update's quantity of recipe to be added to crafting queue
+	 * @param NewQuantity 
+	 */
 	UFUNCTION(BlueprintCallable,Category="Crafting")
 	void UpdateCraftingQuantity(int32 NewQuantity);
 	

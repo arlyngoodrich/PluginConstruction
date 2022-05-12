@@ -29,5 +29,7 @@ void UCraftingRecipeComponentWidget::SetInventoryQuantities(int32 SetItemQtyInIn
 void UCraftingRecipeComponentWidget::SetInputQuantityNeeded(const int32 CraftingQuantity)
 {
 	ItemQtyNeeded = MyRecipeComponent.Quantity * CraftingQuantity;
+	bHasEnoughQuantity = ItemQtyInInventories >= ItemQtyNeeded;
+	UpdateAppearance();
 }
 
