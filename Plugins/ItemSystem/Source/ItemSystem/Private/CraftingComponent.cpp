@@ -116,7 +116,6 @@ void UCraftingComponent::OnRep_CraftingQueueUpdated()
 	OnCraftingQueueUpdated.Broadcast(CraftingQueue);
 }
 
-
 bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe, const int32 CraftingAmount)
 {
 	UpdateInventories();
@@ -157,7 +156,6 @@ bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe, const int32 C
 void UCraftingComponent::StartCraftingTimer(const FCraftingRecipe Recipe)
 {
 	
-
 	if(GetOwnerRole()!=ROLE_Authority)
 	{
 		return;

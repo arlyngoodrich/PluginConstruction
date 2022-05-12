@@ -102,7 +102,7 @@ bool FCraftRecipe::RunTest(const FString& Parameters)
 	InventoryComponent->AutoAddItem(InputItemData);
 
 	//Craft Item
-	const bool bRecipeSuccess = CraftingComponent->CraftRecipe(Recipe);
+	const bool bRecipeSuccess = CraftingComponent->CraftRecipe(Recipe,1);
 
 	TestTrue(TEXT("Recipe Crafted Test"),bRecipeSuccess);
 	
