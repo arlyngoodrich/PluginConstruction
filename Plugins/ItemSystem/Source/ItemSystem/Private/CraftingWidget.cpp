@@ -92,22 +92,15 @@ void UCraftingWidget::ClearActiveRecipe()
 	ClearRecipeInputs();
 }
 
-void UCraftingWidget::OnNewRecipeCraftStart(const FCraftingRecipe Recipe)
+void UCraftingWidget::OnNewRecipeCraftStart(const float CraftDuration,const FCraftingRecipe Recipe)
 {
 	
-	if(Recipe.bIsValid == false)
-	{
-		UE_LOG(LogItemSystem,Warning,TEXT("%s recipe is invalid for %s player crafting"),
-			*Recipe.RecipeName.ToString(),*GetOwningPlayer()->GetName()) 
-		return;
-	} 
-	
-	CurrentlyCraftingRecipe = Recipe;
 	bIsRecipeBeingCrafted = true;
+	CurrentlyCraftingRecipe = Recipe;
 
-	if(Recipe.CraftTime > 0)
+	if(CraftDuration > 0)
 	{
-		GetWorld()->GetTimerManager().SetTimer(CraftingTimer,this,&UCraftingWidget::OnRecipeCraftFinish,Recipe.CraftTime,false);
+		GetWorld()->GetTimerManager().SetTimer(CraftingTimer,this,&UCraftingWidget::OnRecipeCraftFinish,CraftDuration,false);
 	}
 	else
 	{

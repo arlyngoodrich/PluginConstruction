@@ -151,10 +151,11 @@ protected:
 
 	/**
 	 * @brief Called by binding to crafting component 
-	 * @param Recipe recipe that is currently being crafted
+	 * @param CraftDuration time duration of crafting that is currently being crafted
+	 * @param Recipe Recipe that is currently being crafted
 	 */
 	UFUNCTION()
-	void OnNewRecipeCraftStart(FCraftingRecipe Recipe);
+	void OnNewRecipeCraftStart(float CraftDuration,FCraftingRecipe Recipe);
 
 	/**
 	 * @brief Called by the crafting timer after the craft duration is finished

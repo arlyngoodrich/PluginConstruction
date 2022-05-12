@@ -11,7 +11,7 @@ class UInventoryComponent;
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUpdateCraftingUI);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCraftingStarted, float, CraftingTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCraftingStarted, float, CraftingTime, FCraftingRecipe, Recipe);
 
 /**
  * @brief Base component for creating new items from other items
@@ -121,6 +121,11 @@ protected:
 	FTimerHandle CraftingTimerHandle;
 
 	/**
+	 * @brief UI Friendly Timer handle for crafting duration 
+	 */
+	FTimerHandle UIFriendly_CraftingTimerHandle;
+
+	/**
 	 * @brief true if there is currently an item that is being crafted
 	 */
 	UPROPERTY(BlueprintReadOnly,Replicated,Category="Crafting")
@@ -149,12 +154,6 @@ protected:
 	 * @param ItemData Item Data that needs to be spawned into the world
 	 */
 	void SpawnExcessItem(FItemData ItemData);
-
-	/**
-	 * @brief Called when a new recipe is set
-	 */
-	UFUNCTION()
-	void OnRep_ActiveRecipeSet();
 	
 	/**
 	 * @brief Sets active recipe and starts timer to deliver to inventories
@@ -235,8 +234,8 @@ protected:
 	void Server_RequestCraftRecipe_Implementation(FCraftingRecipe Recipe);
 
 	UFUNCTION(Client,Reliable)
-	void Client_CraftingStarted(float CraftDuration);
-	void Client_CraftingStarted_Implementation(float CraftDuration);
+	void Client_CraftingStarted(float CraftDuration,FCraftingRecipe Recipe);
+	void Client_CraftingStarted_Implementation(float CraftDuration,FCraftingRecipe Recipe);
 
 	UFUNCTION(Client,Reliable)
 	void Client_CraftingFinished();
