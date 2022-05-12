@@ -39,7 +39,9 @@ void UCraftingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& 
 
 	DOREPLIFETIME(UCraftingComponent,EligibleCraftingRecipes);
 	DOREPLIFETIME(UCraftingComponent,ActiveRecipe);
-	//DOREPLIFETIME_CONDITION_NOTIFY(UCraftingComponent,ActiveRecipe,COND_None,REPNOTIFY_Always);
+	DOREPLIFETIME(UCraftingComponent,bIsActivelyCrafting);
+	DOREPLIFETIME(UCraftingComponent,CraftingQueue);
+	
 }
 
 
@@ -61,14 +63,8 @@ void UCraftingComponent::OnRegister()
 	
 }
 
-void UCraftingComponent::SpawnExcessItem(const FItemData ItemData)
-{
-	if(InventoryComponents[0]->DropItem(ItemData) == false)
-	{
-		UE_LOG(LogItemSystem,Log,TEXT("%s crafting compmonent could not spawn excesss for %s item"),
-			*GetOwner()->GetName(), *ItemData.DisplayName.ToString())
-	}
-}
+TArray<FCraftingRecipe> UCraftingComponent::GetEligibleCraftingRecipes() {return EligibleCraftingRecipes;}
+
 
 void UCraftingComponent::InitializeRecipes()
 {
@@ -114,54 +110,12 @@ void UCraftingComponent::OnInventoryUpdate()
 	CraftingUIUpdate.Broadcast();
 }
 
-void UCraftingComponent::StartCraftingTimer(const FCraftingRecipe Recipe)
-{
-	ActiveRecipe = Recipe;
-	bIsActivelyCrafting = true;
-
-	if(GetOwnerRole() == ROLE_Authority)
-	{
-		OnRep_ActiveRecipeSet();
-	}
-
-	if(Recipe.CraftTime > 0)
-	{
-		GetWorld()->GetTimerManager().SetTimer(CraftingTimerHandle,this,&UCraftingComponent::FinalizeCrafting,Recipe.CraftTime,false);
-	}
-	else
-	{
-		FinalizeCrafting();
-	}
-	
-}
-
 // ReSharper disable once CppMemberFunctionMayBeConst
-void UCraftingComponent::OnRep_ActiveRecipeSet()
+void UCraftingComponent::OnRep_CraftingQueueUpdated()
 {
-	OnActiveRecipeSet.Broadcast(ActiveRecipe);
+	OnCraftingQueueUpdated.Broadcast(CraftingQueue);
 }
 
-void UCraftingComponent::FinalizeCrafting()
-{
-	DeliverRecipeOutput(ActiveRecipe.RecipeOutputs,InventoryComponents);
-	bIsActivelyCrafting = false;
-	ActiveRecipe.Invalidate();
-}
-
-bool UCraftingComponent::IsComponentEligibleToCraftRecipe(const FCraftingRecipe RecipeToCheck) const
-{
-	const TArray<TSubclassOf<UCraftingComponent>> EligibleComponents = RecipeToCheck.EligibleCraftingComponentTypes;
-
-	for (int i = 0; i < EligibleComponents.Num(); ++i)
-	{
-		if(this->IsA(EligibleComponents[i]))
-		{
-			return true;
-		}
-	}
-	
-	 return false;
-}
 
 bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe)
 {
@@ -183,7 +137,30 @@ bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe)
 	//Make sure there are inventories to use for crafting
 	if(UpdateInventories() == false)
 	{
-		 return false;
+		return false;
+	}
+
+	AddRecipeToQueue(Recipe,1);
+
+	//If actively crafting, return
+	if(bIsActivelyCrafting)
+	{
+		return true;
+	}
+	
+	StartCraftingTimer(Recipe);
+		
+	return true;
+	
+}
+
+void UCraftingComponent::StartCraftingTimer(const FCraftingRecipe Recipe)
+{
+	
+
+	if(GetOwnerRole()!=ROLE_Authority)
+	{
+		return;
 	}
 
 	//Consume inputs from inventories
@@ -194,19 +171,220 @@ bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe)
 		bool ConsumeInputCheck = ConsumeComponentInput(Inputs[i],InventoryComponents);
 		ConsumeInputChecks.Add(ConsumeInputCheck);
 	}
-
-	if(ConsumeInputChecks.Contains(false))
-	{
-		return false;
-	}
 	
-	StartCraftingTimer(Recipe);
+	ActiveRecipe = Recipe;
+	bIsActivelyCrafting = true;
+	
+	if(Recipe.CraftTime > 0)
+	{
+		GetWorld()->GetTimerManager().SetTimer(CraftingTimerHandle,this,&UCraftingComponent::FinalizeCrafting,Recipe.CraftTime,false);
+		Client_CraftingStarted(Recipe.CraftTime,Recipe);
+		OnCraftingStarted.Broadcast(Recipe.CraftTime,Recipe);
 		
-	return true;
+	}
+	else
+	{
+		FinalizeCrafting();
+	}
 	
 }
 
-TArray<FCraftingRecipe> UCraftingComponent::GetEligibleCraftingRecipes() {return EligibleCraftingRecipes;}
+
+void UCraftingComponent::FinalizeCrafting()
+{
+	
+	
+	if(GetOwnerRole()!=ROLE_Authority)
+	{
+		return;
+	}
+	
+	DeliverRecipeOutput(ActiveRecipe.RecipeOutputs,InventoryComponents);
+	
+	bIsActivelyCrafting = false;
+	ActiveRecipe.Invalidate();
+	Client_CraftingFinished();
+
+	//Remove slot that was just crafted
+	const TArray<FCraftingQueueSlot> Queue = CraftingQueue;
+	CraftingQueue = RemoveSlotFromCraftingQueue(0,Queue);
+	OnRep_CraftingQueueUpdated();
+
+	//Remove items that can no longer be crafted
+	UpdateCraftingQueue();
+
+	//Attempt to craft next item in queue
+	CraftFromQueue();
+}
+
+void UCraftingComponent::AddRecipeToQueue(const FCraftingRecipe Recipe, const int32 RecipeQty)
+{
+
+	if(GetOwnerRole()!=ROLE_Authority){return;}
+	
+	//Find the current max slot
+	int32 NewSlotPosition;
+	if(CraftingQueue.Num()>0)
+	{
+		TArray<int32> QueueSlots;
+		for (int i = 0; i < CraftingQueue.Num(); ++i)
+		{
+			QueueSlots.Add(CraftingQueue[i].SlotPosition);
+		}
+
+		NewSlotPosition = FMath::Max(QueueSlots)+1;
+	}
+	else
+	{
+		NewSlotPosition = 0;
+	}
+
+	const FCraftingQueueSlot NewSlot = FCraftingQueueSlot(Recipe,NewSlotPosition,RecipeQty);
+	
+	CraftingQueue.Add(NewSlot);
+	OnRep_CraftingQueueUpdated();
+
+	UE_LOG(LogItemSystem,Log,TEXT("%s added %s to queue at position %d"),
+		*GetOwner()->GetName(),*Recipe.RecipeName.ToString(),NewSlotPosition)
+}
+
+void UCraftingComponent::CraftFromQueue()
+{
+	if(GetOwnerRole()!=ROLE_Authority){return;}
+	
+	if(CraftingQueue.Num()==0)
+	{
+		return;
+	}
+
+	//Find the index for slot 0
+	int32 IndexSlot0 = 0;
+	bool bFoundSlot0 = false;
+	for (int i = 0; i < CraftingQueue.Num(); ++i)
+	{
+		if(CraftingQueue[i].SlotPosition == 0)
+		{
+			IndexSlot0 = i;
+			bFoundSlot0 = true;
+			break;
+		}
+	}
+
+	if(bFoundSlot0 == false)
+	{
+		UE_LOG(LogItemSystem,Error,TEXT("%s attempted to craft from queue but could not find queue slot 0"),
+			*GetOwner()->GetName())
+		return;
+	}
+	
+	StartCraftingTimer(CraftingQueue[IndexSlot0].Recipe);
+}
+
+void UCraftingComponent::UpdateCraftingQueue()
+{
+	TArray<FCraftingQueueSlot> TestQueue = CraftingQueue;
+
+	for (int i = TestQueue.Num() - 1; i >= 0; --i)
+	{
+		if(CanRecipeBeCrafted(TestQueue[i].Recipe) == false)
+		{
+			TestQueue = RemoveSlotFromCraftingQueue(TestQueue[i].SlotPosition,TestQueue);
+		}
+	}
+	
+	CraftingQueue = TestQueue;
+	OnRep_CraftingQueueUpdated();
+}
+
+TArray<FCraftingQueueSlot> UCraftingComponent::RemoveSlotFromCraftingQueue(const int32 RemoveSlotPosition, TArray<FCraftingQueueSlot> Queue)
+{
+	
+	bool bIndexFound = false;
+	for (int i = 0; i < Queue.Num(); ++i)
+	{
+		if(Queue[i].SlotPosition == RemoveSlotPosition )
+		{
+			Queue.RemoveAt(i);
+			bIndexFound = true;
+			break;
+		}
+	}
+
+	if(bIndexFound)
+	{
+		for (int i = 0; i < Queue.Num(); ++i)
+		{
+			if(Queue[i].SlotPosition >= RemoveSlotPosition)
+			{
+				Queue[i].SlotPosition--;
+			}
+		}
+	}
+	
+	return Queue;
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst -- calls non const method on Inventory Comp
+void UCraftingComponent::DeliverRecipeOutput(const FRecipeComponent RecipeOutput,
+											 TArray<UInventoryComponent*> InventoryComponentsRef)
+{
+
+	//Create Item Data from Item Class Defaults
+	FItemData ItemData = RecipeOutput.ComponentClass.GetDefaultObject()->GetItemData();
+	ItemData.SetFromDefaultObject(RecipeOutput.ComponentClass);
+
+	FItemData RemainingItemData = ItemData;
+	
+	for (int i = 0; i < InventoryComponentsRef.Num(); ++i)
+	{
+		UInventoryComponent* TargetInventory = InventoryComponentsRef[i];
+		if(TargetInventory->AutoAddItem(ItemData,RemainingItemData))
+		{
+			UE_LOG(LogItemSystem,Log,TEXT("%s crafting component added %s to %s inventory"),
+				*GetOwner()->GetName(),*ItemData.DisplayName.ToString(),*TargetInventory->GetName())
+			break;
+		}
+		else
+		{
+			ItemData = RemainingItemData;
+		}
+	}
+
+	if(RemainingItemData.ItemQuantity > 0)
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("%s could not place %d of %s item in inventory"),
+			*GetOwner()->GetName(),RemainingItemData.ItemQuantity,*RemainingItemData.DisplayName.ToString())
+
+		SpawnExcessItem(RemainingItemData);
+	}
+	
+}
+
+void UCraftingComponent::SpawnExcessItem(const FItemData ItemData)
+{
+	if(InventoryComponents[0]->DropItem(ItemData) == false)
+	{
+		UE_LOG(LogItemSystem,Log,TEXT("%s crafting compmonent could not spawn excesss for %s item"),
+			*GetOwner()->GetName(), *ItemData.DisplayName.ToString())
+	}
+}
+
+
+bool UCraftingComponent::IsComponentEligibleToCraftRecipe(const FCraftingRecipe RecipeToCheck) const
+{
+	const TArray<TSubclassOf<UCraftingComponent>> EligibleComponents = RecipeToCheck.EligibleCraftingComponentTypes;
+
+	for (int i = 0; i < EligibleComponents.Num(); ++i)
+	{
+		if(this->IsA(EligibleComponents[i]))
+		{
+			return true;
+		}
+	}
+	
+	 return false;
+}
+
 
 int32 UCraftingComponent::GetAvailableQtyOfItem(const FItemData ItemData) const
 {
@@ -318,41 +496,7 @@ bool UCraftingComponent::ConsumeComponentInput(const FRecipeComponent RecipeComp
 	return false;
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst -- calls non const method on Inventory Comp
-void UCraftingComponent::DeliverRecipeOutput(const FRecipeComponent RecipeOutput,
-                                             TArray<UInventoryComponent*> InventoryComponentsRef)
-{
 
-	//Create Item Data from Item Class Defaults
-	FItemData ItemData = RecipeOutput.ComponentClass.GetDefaultObject()->GetItemData();
-	ItemData.SetFromDefaultObject(RecipeOutput.ComponentClass);
-
-	FItemData RemainingItemData = ItemData;
-	
-	for (int i = 0; i < InventoryComponentsRef.Num(); ++i)
-	{
-		UInventoryComponent* TargetInventory = InventoryComponentsRef[i];
-		if(TargetInventory->AutoAddItem(ItemData,RemainingItemData))
-		{
-			UE_LOG(LogItemSystem,Log,TEXT("%s crafting component added %s to %s inventory"),
-				*GetOwner()->GetName(),*ItemData.DisplayName.ToString(),*TargetInventory->GetName())
-			break;
-		}
-		else
-		{
-			ItemData = RemainingItemData;
-		}
-	}
-
-	if(RemainingItemData.ItemQuantity > 0)
-	{
-		UE_LOG(LogItemSystem,Log,TEXT("%s could not place %d of %s item in inventory"),
-			*GetOwner()->GetName(),RemainingItemData.ItemQuantity,*RemainingItemData.DisplayName.ToString())
-
-		SpawnExcessItem(RemainingItemData);
-	}
-	
-}
 
 bool UCraftingComponent::UpdateInventories()
 {
@@ -403,6 +547,18 @@ bool UCraftingComponent::Server_RequestCraftRecipe_Validate(FCraftingRecipe Reci
 void UCraftingComponent::Server_RequestCraftRecipe_Implementation(FCraftingRecipe Recipe)
 {
 	CraftRecipe(Recipe);
+}
+
+void UCraftingComponent::Client_CraftingStarted_Implementation(const float CraftDuration,FCraftingRecipe Recipe)
+{
+	//Client proxy timer for when crafting should approximately finish
+	GetWorld()->GetTimerManager().SetTimer(UIFriendly_CraftingTimerHandle,CraftDuration,false);
+	OnCraftingStarted.Broadcast(CraftDuration,Recipe);
+}
+
+void UCraftingComponent::Client_CraftingFinished_Implementation()
+{
+	GetWorld()->GetTimerManager().ClearTimer(UIFriendly_CraftingTimerHandle);
 }
 
 

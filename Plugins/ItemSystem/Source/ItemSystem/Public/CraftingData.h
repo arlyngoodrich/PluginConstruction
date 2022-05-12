@@ -162,3 +162,57 @@ struct FCraftingRecipe : public FTableRowBase
 
 };
 
+/**
+ * @brief Data struct for encapsulating recipes in the crafting queue
+ */
+USTRUCT(BlueprintType)
+struct FCraftingQueueSlot
+{
+	GENERATED_USTRUCT_BODY()
+
+	/**
+	 * @brief Recipe
+	 */
+	UPROPERTY(BlueprintReadOnly, Category = "Crafting Recipe")
+	FCraftingRecipe Recipe;
+
+	/**
+	* @brief Recipe
+	*/
+	UPROPERTY(BlueprintReadOnly, Category = "Crafting Recipe")
+	int32 SlotPosition;
+
+	/**
+	 * @brief How many times the recipe should be crafted
+	 */
+	UPROPERTY( BlueprintReadOnly, Category = "Crafting Recipe")
+	int32 Quantity;
+	
+
+	/**
+	 * @brief Default Constructor
+	 */
+	FCraftingQueueSlot()
+	{
+		Recipe = FCraftingRecipe();
+		SlotPosition = 0;
+		Quantity = 0;
+	}
+	
+
+	/**
+	* @brief Full Constructor
+	*/
+	FCraftingQueueSlot(const FCraftingRecipe SetRecipe,const int32 SetSlotPosition, const int32 SetQuantity)
+	{
+		Recipe = SetRecipe;
+		SlotPosition = SetSlotPosition;
+		Quantity = SetQuantity;
+	}
+
+	bool operator==(const FCraftingQueueSlot& RecipeSlot) const
+	{
+		return (Recipe.RecipeName == RecipeSlot.Recipe.RecipeName && SlotPosition == RecipeSlot.SlotPosition);
+	}
+
+};

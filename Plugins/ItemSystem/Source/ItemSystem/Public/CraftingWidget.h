@@ -48,12 +48,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable,Category="Crafting")
 	void SetReferences(UCraftingComponent* SetMyCraftingComponent,APlayerController* OwningPlayer);
-
-	/**
-	 * @brief called by binding to On Inventory Update from crafting component
-	 */
-	UFUNCTION()
-	void OnInventoryUpdate();
+	
 
 	UFUNCTION(BlueprintCallable, Category="Crafting")
 	void UpdateIfRecipesCanBeCrafted();
@@ -138,6 +133,19 @@ protected:
 	void InitializeCraftingWidget();
 
 	/**
+ * @brief called by binding to On Inventory Update from crafting component
+ */
+	UFUNCTION()
+	void OnInventoryUpdate();
+
+	/**
+	 * @brief Updates Crafting Queue Widgets
+	 * @param UpdatedQueue Updated queue coming from crafting component
+	 */
+	UFUNCTION()
+	void OnCraftingQueueUpdated(TArray<FCraftingQueueSlot> UpdatedQueue);
+
+	/**
 	 * @brief Called after Initialized Recipes methods created Crafting Recipes Widgets.  Should fill grid in BP
 	 */
 	UFUNCTION(BlueprintImplementableEvent,Category="Crafting",DisplayName="Setup Crafting Grid")
@@ -149,12 +157,16 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent,Category="Crafting",DisplayName="Setup Recipe Details")
 	void BP_UpdateActiveRecipeDetails();
 
+	UFUNCTION(BlueprintImplementableEvent,Category="Crafting",DisplayName="Update Crafting Queue")
+	void BP_UpdateCraftingQueue(const TArray<FCraftingQueueSlot>& UpdatedQueue);
+
 	/**
 	 * @brief Called by binding to crafting component 
-	 * @param Recipe recipe that is currently being crafted
+	 * @param CraftDuration time duration of crafting that is currently being crafted
+	 * @param Recipe Recipe that is currently being crafted
 	 */
 	UFUNCTION()
-	void OnNewRecipeCraftStart(FCraftingRecipe Recipe);
+	void OnNewRecipeCraftStart(float CraftDuration,FCraftingRecipe Recipe);
 
 	/**
 	 * @brief Called by the crafting timer after the craft duration is finished
