@@ -186,6 +186,13 @@ protected:
 
 	
 	/**
+	 * @brief Check items in queue to make sure they can still be crafted.  If not remove them from queue. 
+	 */
+	void UpdateCraftingQueue();
+
+	static TArray<FCraftingQueueSlot> RemoveSlotFromCraftingQueue(int32 RemoveSlotPosition,TArray<FCraftingQueueSlot> Queue);
+	
+	/**
 	 * @brief Checks a recipe to see if the crafting component is able to craft it
 	 * @return True if eligible, false if not
 	 */

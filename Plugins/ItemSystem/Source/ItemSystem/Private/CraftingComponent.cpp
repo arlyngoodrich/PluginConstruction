@@ -140,24 +140,12 @@ bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe)
 		return false;
 	}
 
+	AddRecipeToQueue(Recipe,1);
+
+	//If actively crafting, return
 	if(bIsActivelyCrafting)
 	{
-		AddRecipeToQueue(Recipe,1);
 		return true;
-	}
-
-	//Consume inputs from inventories
-	const TArray<FRecipeComponent> Inputs = Recipe.RecipeInputs;
-	TArray<bool> ConsumeInputChecks;
-	for (int i = 0; i < Inputs.Num(); ++i)
-	{
-		bool ConsumeInputCheck = ConsumeComponentInput(Inputs[i],InventoryComponents);
-		ConsumeInputChecks.Add(ConsumeInputCheck);
-	}
-
-	if(ConsumeInputChecks.Contains(false))
-	{
-		return false;
 	}
 	
 	StartCraftingTimer(Recipe);
@@ -173,6 +161,15 @@ void UCraftingComponent::StartCraftingTimer(const FCraftingRecipe Recipe)
 	if(GetOwnerRole()!=ROLE_Authority)
 	{
 		return;
+	}
+
+	//Consume inputs from inventories
+	const TArray<FRecipeComponent> Inputs = Recipe.RecipeInputs;
+	TArray<bool> ConsumeInputChecks;
+	for (int i = 0; i < Inputs.Num(); ++i)
+	{
+		bool ConsumeInputCheck = ConsumeComponentInput(Inputs[i],InventoryComponents);
+		ConsumeInputChecks.Add(ConsumeInputCheck);
 	}
 	
 	ActiveRecipe = Recipe;
@@ -206,8 +203,17 @@ void UCraftingComponent::FinalizeCrafting()
 	
 	bIsActivelyCrafting = false;
 	ActiveRecipe.Invalidate();
-
 	Client_CraftingFinished();
+
+	//Remove slot that was just crafted
+	const TArray<FCraftingQueueSlot> Queue = CraftingQueue;
+	CraftingQueue = RemoveSlotFromCraftingQueue(0,Queue);
+	OnRep_CraftingQueueUpdated();
+
+	//Remove items that can no longer be crafted
+	UpdateCraftingQueue();
+
+	//Attempt to craft next item in queue
 	CraftFromQueue();
 }
 
@@ -271,18 +277,51 @@ void UCraftingComponent::CraftFromQueue()
 		return;
 	}
 	
-	CraftRecipe(CraftingQueue[IndexSlot0].Recipe);
+	StartCraftingTimer(CraftingQueue[IndexSlot0].Recipe);
+}
 
-	CraftingQueue.RemoveAt(IndexSlot0);
+void UCraftingComponent::UpdateCraftingQueue()
+{
+	TArray<FCraftingQueueSlot> TestQueue = CraftingQueue;
 
-	//decrease all slots by 1
-	for (int i = 0; i < CraftingQueue.Num(); ++i)
+	for (int i = TestQueue.Num() - 1; i >= 0; --i)
 	{
-		CraftingQueue[i].SlotPosition -= 1;
+		if(CanRecipeBeCrafted(TestQueue[i].Recipe) == false)
+		{
+			TestQueue = RemoveSlotFromCraftingQueue(TestQueue[i].SlotPosition,TestQueue);
+		}
+	}
+	
+	CraftingQueue = TestQueue;
+	OnRep_CraftingQueueUpdated();
+}
+
+TArray<FCraftingQueueSlot> UCraftingComponent::RemoveSlotFromCraftingQueue(const int32 RemoveSlotPosition, TArray<FCraftingQueueSlot> Queue)
+{
+	
+	bool bIndexFound = false;
+	for (int i = 0; i < Queue.Num(); ++i)
+	{
+		if(Queue[i].SlotPosition == RemoveSlotPosition )
+		{
+			Queue.RemoveAt(i);
+			bIndexFound = true;
+			break;
+		}
 	}
 
-	OnRep_CraftingQueueUpdated();
+	if(bIndexFound)
+	{
+		for (int i = 0; i < Queue.Num(); ++i)
+		{
+			if(Queue[i].SlotPosition >= RemoveSlotPosition)
+			{
+				Queue[i].SlotPosition--;
+			}
+		}
+	}
 	
+	return Queue;
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst -- calls non const method on Inventory Comp
