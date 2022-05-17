@@ -1,6 +1,7 @@
-﻿#include "CoreMinimal.h"
-#include "InventoryComponent.h"
-#include "ItemBase.h"
+﻿
+#include "CoreMinimal.h"
+#include "ItemSystem/Public/InventoryComponent.h"
+#include "ItemSystem/Public/ItemBase.h"
 #include "Misc/AutomationTest.h"
 #include "Tests/AutomationEditorCommon.h"
 
@@ -809,3 +810,4 @@ bool FSplitStackTest::RunTest(const FString& Parameters)
 	return true;
 	
 }
+

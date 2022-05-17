@@ -32,6 +32,18 @@ public:
 	 */
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	FVector GetLookLocation() const;
+
+	FHitResult GetLookHitResult() const;
+
+	//Function that can toggles look checks 
+	UFUNCTION(BlueprintCallable, Category = "Interaction System")
+	void ToggleLookChecks(bool bShouldPerformLookChecks);
+	
+	//Function that can toggles interaction 
+	UFUNCTION(BlueprintCallable, Category = "Interaction System")
+	void ToggleInteraction(bool bSetInteractionOK);
+
 protected:
 	/**
 	 * @brief Called when the game starts
@@ -62,13 +74,14 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug")
 	bool bDrawDebug;
+
+	//Boolean that controls the interaction loop. Use case is to turn of interaction loop if a UI menu is open.  Set by ToggleInteraction function.  
+	UPROPERTY(BlueprintReadOnly,Category = "Interaction System")
+	bool bShouldDoLookChecks;
 	
-	/**
-	 * @brief Boolean that controls the interaction loop. Use case is to turn of interaction check if a UI menu is open.
-	 * Set by Toggle Interaction function.
-	 */
-	UPROPERTY(BlueprintReadOnly,Category = "Debug")
-	bool bShouldCheckForInteractable;
+	UPROPERTY(BlueprintReadOnly,Category = "Interaction System")
+	bool bInteractionOK;
+
 
 	
 	/**
@@ -85,6 +98,14 @@ protected:
 	 */
 	UPROPERTY(BlueprintReadOnly,Category="Interaction System")
 	AActor* ActorInView;
+
+
+	UPROPERTY(BlueprintReadOnly,Category="Interaction System")
+	FVector LookLocation;
+
+	UPROPERTY(BlueprintReadOnly,Category="Interaction System")
+	FHitResult LookHitResult;
+
 	
 	/**
 	 * @brief Ensures component owner is a player controlled pawn and starts interaction loop. 
@@ -114,6 +135,7 @@ protected:
 	bool Server_TriggerInteraction_Validate(UInteractableObjectComponent* ComponentInView);
 	void Server_TriggerInteraction_Implementation(UInteractableObjectComponent* ComponentInView);
 	
+
 	/**
 	 * @brief Function that can toggles interaction.  Useful for when a UI is open.  
 	 * @param bShouldCheckForInteraction Toggle for if interaction should occur. True to perform interaction checks, false
@@ -128,6 +150,8 @@ protected:
 	 */
 	UFUNCTION()
 	void InteractionCheckLoop();
+
+
 	
 	/**
 	 * @brief Helper function to get the hit actor from the line trace
@@ -135,7 +159,8 @@ protected:
 	 * @return True if an actor was hit, false if nothing was hit
 	 */
 	UFUNCTION()
-	bool GetHitActorInView(AActor*& HitActor) const;
+	bool SetLookLocationLoop(AActor*& HitActor);
+
 
 	
 	/**

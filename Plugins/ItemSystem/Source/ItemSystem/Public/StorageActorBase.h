@@ -3,11 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CustomUserWidget.h"
 #include "GameFramework/Actor.h"
 #include "StorageActorBase.generated.h"
 
 class UStorageInventory;
 class UPlayerInventory;
+class UStorageWidget;
 
 
 /**
@@ -40,53 +42,39 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	UStorageInventory* StorageInventory;
 
-	/**
-	 * @brief Validates player controller and set's owning actor ownership to the player controller.  This will facilitate RPC
-	 * calls for the player.  Should only occur on the server and then do an RPC to the client to open the Transfer UI. 
-	 * @param InstigatingPlayer Player that is opening the storage inventory
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly,Category="Inventory")
-	void OpenInventory(APlayerController* InstigatingPlayer);
-
-	/**
-	 * @brief Called when the storage inventory is closed.  Will reset the owner of the storage actor
-	 * @param InstigatingPlayer 
-	 */
-	UFUNCTION(BlueprintCallable,Category="Inventory")
-	void CloseInventory(APlayerController* InstigatingPlayer);
-	
-	/**
-	 * @brief Used to interface with blueprint to create the storage inventory UI
-	 * @param PlayerInventory Inventory of player opening the storage
-	 * @param OwningPlayer Owning player controller reference 
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Inventory")
-	void AddTransferUI(UPlayerInventory* PlayerInventory, APlayerController* OwningPlayer);
-	
-
-
 protected:
 
-	/**
-	 * @brief boolean for if inventory is open
-	 */
-	UPROPERTY(Replicated,BlueprintReadOnly,Category="Inventory")
+	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category="Inventory")
+	void OnPlayerInteraction(APlayerController* InstigatingPlayer);
+
+	UPROPERTY(BlueprintReadOnly,Replicated,Category="Inventory")
 	bool bIsInventoryOpen;
 
-	/**
-	 * @brief RPC for closing the inventory when called by the client.
-	 */
-	UFUNCTION(Server,Reliable,WithValidation)
-	void Server_CloseInventory(APlayerController* InstigatingPlayer);
-	bool Server_CloseInventory_Validate(APlayerController* InstigatingPlayer);
-	void Server_CloseInventory_Implementation(APlayerController* InstigatingPlayer);
+	UPROPERTY(BlueprintReadOnly,Replicated,Category="Inventory")
+	APlayerController* InteractingPlayer;
+
+	UPROPERTY(EditDefaultsOnly,Category="Inventory")
+	TSubclassOf<UCustomUserWidget> StorageWidgetClass;
+
+	UPROPERTY(BlueprintReadOnly,Category="Inventory")
+	UCustomUserWidget* StorageWidget;
+
+	virtual bool CreateStorageWidget(APlayerController* InstigatingPlayer,UCustomUserWidget*& OutWidget);
 	
-	/**
-	 * @brief RPC for the server to tell the client to open inventory since opening storage request should only occur on
-	 * the server
-	 */
+	UFUNCTION()
+	void OnInventoryForcedClosed();
+	
 	UFUNCTION(Client,Reliable)
-	void Client_AddTransferUI(UPlayerInventory* PlayerInventory,APlayerController* OwningPlayer);
-	void Client_AddTransferUI_Implementation(UPlayerInventory* PlayerInventory,APlayerController* OwningPlayer););
+	void Client_OpenInventory(APlayerController* InstigatingPlayer);
+	void Client_OpenInventory_Implementation(APlayerController* InstigatingPlayer);
+
+	UFUNCTION(Client,Reliable)
+	void Client_CloseInventory(APlayerController* InstigatingPlayer);
+	void Client_CloseInventory_Implementation(APlayerController* InstigatingPlayer);
+
+	UFUNCTION(Server,Reliable)
+	void Server_InventorForcedClosed();
+	
 	
 };
+

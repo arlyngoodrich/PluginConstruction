@@ -302,9 +302,25 @@ public:
 	 * @return True if an item is found and false if no item is found.
 	 */
 	bool FindInventoryItemAtPosition(FInventory2D Position, FInventoryItemData& OutInventoryItemData);
+
+
+	/**
+	 * @brief Drops item into world.  Checks for free spot in a semi-circle in front of owner to spawn item.  Will then
+	 * enable physics timer so item can drop.  Safe for UI to call.  Will do RPC if not authority 
+	 * @param ItemData Inventory item to drop
+	 */
+	UFUNCTION(BlueprintCallable,Category="Inventory")
+	void DropItem(FInventoryItemData ItemData);
+
+	/**
+	 * @brief Drops item into world. Internal version that only uses item data
+	 * @param ItemData Item data to drop
+	 * @return true if item could be dropped, false if not
+	 */
+	bool DropItem(FItemData ItemData) const;
 	
 	/**
-	 * @brief Checks if the item will fit into a given position by checking slots that would be covered by the item. 
+	 * @brief Checks if the item will fit into a given position by checking slots that would be covered by the item.
 	 * @param ItemData Item to check
 	 * @param TargetPosition Target position to check
 	 * @return Returns false if it will not fit and true if it will. 
@@ -352,6 +368,31 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
 	float MaxWeight;
+
+	/**
+	 * @brief Min distance in front of actor that item will be dropped
+	 */
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
+	float DropPointMinDistance = 50.f;
+
+	/**
+	 * @brief Radius of random point that item could be dropped in 
+	 */
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
+	float DropPointRadius = 50.f;
+
+	/**
+	 * @brief Height that item should be dropped from
+	 */
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
+	float DropHeight = 50.f;
+
+	/**
+	 * @brief How many points should be attempted in random circle before quitting drop attempt
+	 */
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Inventory Data")
+	int32 SpawnAttempts = 100;
+	
 	
 	/**
 	 * @brief Current weight of the inventory
@@ -370,6 +411,7 @@ protected:
 	 */
 	UPROPERTY(ReplicatedUsing = OnRep_InventoryItemsUpdated, BlueprintReadOnly,Category="Inventory Data")
 	TArray<FInventoryItemData> InventoryItems;
+	
 	
 	/**
 	 * @brief Set to true when slots have been created. 
@@ -406,7 +448,7 @@ protected:
 	 * @param TargetItemData Item data to attempt to stack into
 	 * @param InItemData Item data to stack into target item data
 	 * @param OutRemainingItem Item data that could not be added to the stack
-	 * @return Will return true if fully stacked, will return false if not.
+	 * @return Will return true if fully stacked, will return false if partially or not stack and return remaining item.
 	 */
 	bool AttemptStack(FInventoryItemData TargetItemData, FItemData InItemData, FItemData& OutRemainingItem);
 	
@@ -517,6 +559,14 @@ protected:
 	void RemoveWeight(float RemoveWeight);
 
 
+	/**
+	 * @brief Spawns collision component at point and gets overlapping actors
+	 * @param SpawnPoint point to check
+	 * @return True if point has 0 overlapping actors, false 1 or more overlapping actors
+	 */
+	bool CheckIfOKToSpawnAtPoint(FVector SpawnPoint) const;
+	
+
 	/** ------ DEBUGGING ------**/
 	
 	/**
@@ -536,7 +586,8 @@ protected:
 	 * @brief Function to add debugging items to inventory at begin play
 	 */
 	void AddDebugItems();
-	
+
+
 	/** ------ RPCs ------ **/
 	
 	UFUNCTION(Server,Reliable,WithValidation)
@@ -566,5 +617,10 @@ protected:
 	void Server_CombineStackSameInventory(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack);
 	bool Server_CombineStackSameInventory_Validate(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack);
 	void Server_CombineStackSameInventory_Implementation(FInventoryItemData OriginatingStack,FInventoryItemData TargetStack);
+
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_DropItem(FInventoryItemData ItemData);
+	bool Server_DropItem_Validate(FInventoryItemData ItemData);
+	void Server_DropItem_Implementation(FInventoryItemData ItemData);
 	
 };

@@ -48,12 +48,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable,Category="Crafting")
 	void SetReferences(UCraftingComponent* SetMyCraftingComponent,APlayerController* OwningPlayer);
-
-	/**
-	 * @brief called by binding to On Inventory Update from crafting component
-	 */
-	UFUNCTION()
-	void OnInventoryUpdate();
+	
 
 	UFUNCTION(BlueprintCallable, Category="Crafting")
 	void UpdateIfRecipesCanBeCrafted();
@@ -105,17 +100,50 @@ protected:
 	FCraftingRecipe ActiveRecipe;
 
 	/**
+	 * @brief Recipe currently being crafted
+	 */
+	UPROPERTY(BlueprintReadOnly,Category="Crafting")
+	FCraftingRecipe CurrentlyCraftingRecipe;
+
+	/**
+	 * @brief True if recipe is actively being crafted, false if not
+	 */
+	UPROPERTY(BlueprintReadOnly,Category="Crafting")
+	bool bIsRecipeBeingCrafted;
+
+	/**
+	 * @brief Timer handling crafting time
+	 */
+	UPROPERTY(BlueprintReadOnly,Category="Crafting")
+	FTimerHandle CraftingTimer;
+
+	/**
 	 * @brief boolean for if an active recipe is selected.  Should mostly be true except when the menu is first opened
 	 * and before a recipe is selected. 
 	 */
 	UPROPERTY(BlueprintReadOnly, Category="Crafting")
 	bool bHasActiveRecipe = false;
+
+	virtual void BeginDestroy() override;
 	
 	/**
 	 * @brief Creates Recipe Widget Objects for display in recipe grid
 	 */
 	UFUNCTION(BlueprintCallable, Category="Crafting")
 	void InitializeCraftingWidget();
+
+	/**
+ * @brief called by binding to On Inventory Update from crafting component
+ */
+	UFUNCTION()
+	void OnInventoryUpdate();
+
+	/**
+	 * @brief Updates Crafting Queue Widgets
+	 * @param UpdatedQueue Updated queue coming from crafting component
+	 */
+	UFUNCTION()
+	void OnCraftingQueueUpdated(TArray<FCraftingQueueSlot> UpdatedQueue);
 
 	/**
 	 * @brief Called after Initialized Recipes methods created Crafting Recipes Widgets.  Should fill grid in BP
@@ -129,11 +157,33 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent,Category="Crafting",DisplayName="Setup Recipe Details")
 	void BP_UpdateActiveRecipeDetails();
 
+	UFUNCTION(BlueprintImplementableEvent,Category="Crafting",DisplayName="Update Crafting Queue")
+	void BP_UpdateCraftingQueue(const TArray<FCraftingQueueSlot>& UpdatedQueue);
+
+	/**
+	 * @brief Called by binding to crafting component 
+	 * @param CraftDuration time duration of crafting that is currently being crafted
+	 * @param Recipe Recipe that is currently being crafted
+	 */
+	UFUNCTION()
+	void OnNewRecipeCraftStart(float CraftDuration,FCraftingRecipe Recipe);
+
+	/**
+	 * @brief Called by the crafting timer after the craft duration is finished
+	 */
+	UFUNCTION()
+	void OnRecipeCraftFinish();
+
 	/**
 	 * @brief Empties Crafting recipe widgets array and creates new widget objects from eligible crafting recipes array
 	 * from owning crafting component
 	 */
 	void RefreshRecipeWidgetReferences();
+
+
+	/**
+	 * @brief Clears input widgets
+	 */
 	void ClearRecipeInputs();
 
 	/**

@@ -26,7 +26,9 @@ public class ItemSystem : ModuleRules
 			new string[]
 			{
 				"Core",
-				"CustomWidgetTemplates"
+				"CustomWidgetTemplates",
+				"InteractionSystem",
+				"UniversalCoreAssets"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -39,7 +41,6 @@ public class ItemSystem : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-				"UnrealEd",
 				"UMG"
 				// ... add private dependencies that you statically link with here ...	
 			}

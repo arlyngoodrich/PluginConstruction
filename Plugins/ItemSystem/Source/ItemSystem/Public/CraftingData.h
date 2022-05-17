@@ -100,9 +100,13 @@ struct FCraftingRecipe : public FTableRowBase
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Crafting Recipe")
 	TArray<TSubclassOf<UCraftingComponent>> EligibleCraftingComponentTypes;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Crafting Recipe")
+	float CraftTime;
+
 	/**
 	 * @brief If Recipe is valid recipe
 	 */
+	UPROPERTY()
 	bool bIsValid;
 
 	/**
@@ -111,20 +115,44 @@ struct FCraftingRecipe : public FTableRowBase
 	FCraftingRecipe()
 	{
 		RecipeName = FName();
+		bIsValid = true;
+		CraftTime = 0;
+	}
+
+
+	void Invalidate()
+	{
+		RecipeName = FName();
 		bIsValid = false;
 	}
+		
 
 	/**
 	 * @brief Valid Constructor for crafting Recipe 
 	 */
 	FCraftingRecipe(const FName SetRecipeName,const TArray<FRecipeComponent> SetRecipeInputs,const FRecipeComponent SetRecipeOutputs,
-	                const TArray<TSubclassOf<UCraftingComponent>> SetEligibleCraftingComponentTypes)
+	                const TArray<TSubclassOf<UCraftingComponent>> SetEligibleCraftingComponentTypes,const float SetCraftTime)
 	{
 		RecipeName = SetRecipeName;
 		RecipeInputs = SetRecipeInputs;
 		RecipeOutputs = SetRecipeOutputs;
 		EligibleCraftingComponentTypes = SetEligibleCraftingComponentTypes;
 		bIsValid = true;
+		CraftTime = SetCraftTime;
+	}
+
+	/**
+	* @brief Valid Constructor for crafting Recipe 
+	*/
+	FCraftingRecipe(const FName SetRecipeName,const TArray<FRecipeComponent> SetRecipeInputs,const FRecipeComponent SetRecipeOutputs,
+				const TArray<TSubclassOf<UCraftingComponent>> SetEligibleCraftingComponentTypes)
+	{
+		RecipeName = SetRecipeName;
+		RecipeInputs = SetRecipeInputs;
+		RecipeOutputs = SetRecipeOutputs;
+		EligibleCraftingComponentTypes = SetEligibleCraftingComponentTypes;
+		bIsValid = true;
+		CraftTime = 0;
 	}
 
 	bool operator==(const FCraftingRecipe& Recipe) const
@@ -132,7 +160,59 @@ struct FCraftingRecipe : public FTableRowBase
 		return (RecipeName == Recipe.RecipeName);
 	}
 
-
-
 };
 
+/**
+ * @brief Data struct for encapsulating recipes in the crafting queue
+ */
+USTRUCT(BlueprintType)
+struct FCraftingQueueSlot
+{
+	GENERATED_USTRUCT_BODY()
+
+	/**
+	 * @brief Recipe
+	 */
+	UPROPERTY(BlueprintReadOnly, Category = "Crafting Recipe")
+	FCraftingRecipe Recipe;
+
+	/**
+	* @brief Recipe
+	*/
+	UPROPERTY(BlueprintReadOnly, Category = "Crafting Recipe")
+	int32 SlotPosition;
+
+	/**
+	 * @brief How many times the recipe should be crafted
+	 */
+	UPROPERTY( BlueprintReadOnly, Category = "Crafting Recipe")
+	int32 Quantity;
+	
+
+	/**
+	 * @brief Default Constructor
+	 */
+	FCraftingQueueSlot()
+	{
+		Recipe = FCraftingRecipe();
+		SlotPosition = 0;
+		Quantity = 0;
+	}
+	
+
+	/**
+	* @brief Full Constructor
+	*/
+	FCraftingQueueSlot(const FCraftingRecipe SetRecipe,const int32 SetSlotPosition, const int32 SetQuantity)
+	{
+		Recipe = SetRecipe;
+		SlotPosition = SetSlotPosition;
+		Quantity = SetQuantity;
+	}
+
+	bool operator==(const FCraftingQueueSlot& RecipeSlot) const
+	{
+		return (Recipe.RecipeName == RecipeSlot.Recipe.RecipeName && SlotPosition == RecipeSlot.SlotPosition);
+	}
+
+};

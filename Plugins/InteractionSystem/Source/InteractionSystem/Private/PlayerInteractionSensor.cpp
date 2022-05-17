@@ -39,18 +39,42 @@ void UPlayerInteractionSensor::TickComponent(float DeltaTime, ELevelTick TickTyp
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
-	if (bShouldCheckForInteractable)
+	if (bShouldDoLookChecks)
 	{
 		InteractionCheckLoop();
 	}
 
 }
 
+FVector UPlayerInteractionSensor::GetLookLocation() const {return LookLocation;}
+
+FHitResult UPlayerInteractionSensor::GetLookHitResult() const {return LookHitResult;}
+
+
+void UPlayerInteractionSensor::ToggleLookChecks(bool bShouldPerformLookChecks)
+{
+	bShouldDoLookChecks = bShouldPerformLookChecks;
+
+	if (bShouldPerformLookChecks)
+	{
+		UE_LOG(LogInteractionSystem,Log,TEXT("Interaction Started for %s"),*GetOwner()->GetName())
+	}
+	else
+	{
+		UE_LOG(LogInteractionSystem,Log,TEXT("Interaction Stopped for %s"),*GetOwner()->GetName())
+	}
+}
+
+void UPlayerInteractionSensor::ToggleInteraction(const bool bSetInteractionOK)
+{
+	bInteractionOK = bSetInteractionOK;
+}
+
 void UPlayerInteractionSensor::Initialize()
 {
 
 	//TODO Change to Owning Pawn.  Interaction sensor could be used on non-character actor.  
-	ACharacter* OwningCharacterCheck = Cast<ACharacter>(GetOwner());
+	const ACharacter* OwningCharacterCheck = Cast<ACharacter>(GetOwner());
 
 	if(!OwningCharacterCheck)
 	{
@@ -72,6 +96,7 @@ void UPlayerInteractionSensor::Initialize()
 			OwningController = OwningControllerCheck;
 			UE_LOG(LogInteractionSystem, Log, TEXT("Interaction Sensor Component successfully initialized on %s"), *GetOwner()->GetName())
 				
+			ToggleLookChecks(true);
 			ToggleInteraction(true);
 		}
 	}
@@ -79,7 +104,7 @@ void UPlayerInteractionSensor::Initialize()
 
 void UPlayerInteractionSensor::Interact()
 {
-	if (bInteractableObjectInView)
+	if (bInteractableObjectInView && bInteractionOK)
 	{
 		if (GetOwnerRole() == ROLE_Authority)
 		{
@@ -111,29 +136,17 @@ void UPlayerInteractionSensor::Server_TriggerInteraction_Implementation(UInterac
 	TriggerInteraction(ComponentInView);
 }
 
-void UPlayerInteractionSensor::ToggleInteraction(bool bShouldCheckForInteraction)
-{
-	bShouldCheckForInteractable = bShouldCheckForInteraction;
 
-	if (bShouldCheckForInteraction)
-	{
-		UE_LOG(LogInteractionSystem,Log,TEXT("Interaction Started for %s"),*GetOwner()->GetName())
-	}
-	else
-	{
-		UE_LOG(LogInteractionSystem,Log,TEXT("Interaction Stopped for %s"),*GetOwner()->GetName())
-	}
-}
 
 void UPlayerInteractionSensor::InteractionCheckLoop()
 {
 	AActor* HitActorInView;
 
 	//Perform hit scan to get hit actor
-	if (GetHitActorInView(HitActorInView))
+	if (SetLookLocationLoop(HitActorInView) && bInteractionOK)
 	{
+	
 		//If Actor in view is not the same as the new actor in view, set as new one.  
-		//Otherwise don't check for interactable component if it's the same
 		if (HitActorInView != ActorInView)
 		{
 
@@ -156,24 +169,33 @@ void UPlayerInteractionSensor::InteractionCheckLoop()
 				bInteractableObjectInView = true;
 				return;
 			}
+			//If new actor does not have an IOC but there is still a valid one
+			else if(InteractableObjectComponentInView)
+			{
+				InteractableObjectComponentInView->ToggleFocus(false);
+				InteractableObjectComponentInView = nullptr;
+				bInteractableObjectInView = false;
+				return;
+			}
 		}
-		else
-		{
-			//If the actor is the same, no need to make any changes
-			return;
-		}
-	} 	//If there was previously an interactable in view but is no longer
-	else if (InteractableObjectComponentInView)
+	}
+	//If there was previously an interactable in view but is no longer
+	else if (InteractableObjectComponentInView) 
 	{
 		InteractableObjectComponentInView->ToggleFocus(false);
 		InteractableObjectComponentInView = nullptr;
 		ActorInView = nullptr;
 		bInteractableObjectInView = false;
 	}
-
+	else //If IOC in View is already null, clear references
+	{
+		InteractableObjectComponentInView = nullptr;
+		ActorInView = nullptr;
+		bInteractableObjectInView = false;
+	}
 }
 
-bool UPlayerInteractionSensor::GetHitActorInView(AActor*& HitActor) const
+bool UPlayerInteractionSensor::SetLookLocationLoop(AActor*& HitActor)
 {
 
 	if (!OwningController) { return false; }
@@ -193,6 +215,7 @@ bool UPlayerInteractionSensor::GetHitActorInView(AActor*& HitActor) const
 	EndLocation = StartLocation + (ViewRotation.Vector() * InteractionDistance);
 
 	TraceResult = GetWorld()->LineTraceSingleByChannel(Hit, StartLocation, EndLocation, ECC_Visibility, TraceParams);
+	LookHitResult = Hit;
 
 	if (bDrawDebug)
 	{
@@ -208,10 +231,12 @@ bool UPlayerInteractionSensor::GetHitActorInView(AActor*& HitActor) const
 			DrawDebugBox(GetWorld(), Hit.Location, FVector(10.f, 10.f, 10.f), FColor::Red, false, .1f);
 		}
 
+		LookLocation = Hit.Location;
 		return true;
 	}
 	else
 	{
+		LookLocation = EndLocation;
 		HitActor = nullptr;
 		return false;
 	}

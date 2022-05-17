@@ -5,6 +5,7 @@
 
 #include "ItemBase.h"
 #include "ItemSystem.h"
+#include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
@@ -263,7 +264,7 @@ bool UInventoryComponent::TransferItemToPosition(UInventoryComponent* TargetInve
                                                  const FInventoryItemData TargetItem)
 {
 
-	UE_LOG(LogItemSystem,Log,TEXT("Attempting to transfer %s item from %s to position %s in inventory %s"),
+	UE_LOG(LogItemSystem,Log,TEXT("Attempting to transfer %s item from %s to position %s in inventory %s"), 
 		*TargetItem.Item.DisplayName.ToString(),*GetOwner()->GetName(),*TargetInventory->GetOwner()->GetName(),
 		*TargetPosition.GetPositionAsString())
 
@@ -277,6 +278,7 @@ bool UInventoryComponent::TransferItemToPosition(UInventoryComponent* TargetInve
 	
 	if(TransferItemChecks(TargetItem,TargetInventory,TargetPosition) == false)
 	{
+		UE_LOG(LogTestItemSystem,Log,TEXT("Transfer failed checks"))
 		return false;
 	}
 
@@ -293,14 +295,14 @@ bool UInventoryComponent::TransferItemToPosition(UInventoryComponent* TargetInve
 	{
 		//Item Added to target inventory
 
-		UE_LOG(LogItemSystem,Log,TEXT("%s item was transferred to %s from %s"),
+		UE_LOG(LogItemSystem,Log,TEXT("%s item was transferred to %s from %s"), 
 			*TargetItem.Item.DisplayName.ToString(),*TargetInventory->GetOwner()->GetName(),*GetOwner()->GetName())
 		return true;
 		
 	}
 	else
 	{
-		UE_LOG(LogItemSystem,Log,TEXT("%s failed to transfer %s item to %s"),
+		UE_LOG(LogItemSystem,Log,TEXT("%s failed to transfer %s item to %s"), 
 			*GetOwner()->GetName(),*TargetItem.Item.DisplayName.ToString(),*TargetInventory->GetOwner()->GetName())
 		return false;
 	}
@@ -347,9 +349,8 @@ bool UInventoryComponent::AutoAddItem(const FItemData InItem, FItemData& OutRema
 			//Check to see if they are the same class 
 			if(InItem.InWorldClass->StaticClass() == TargetInventoryItem.Item.InWorldClass->StaticClass())
 			{
-				if(AttemptStack(TargetInventoryItem,InItem,OutRemainingItem))
+				if(AttemptStack(TargetInventoryItem,OutRemainingItem,OutRemainingItem))
 				{
-					//Item Fully stacked
 					return true;
 				}
 			}
@@ -668,8 +669,8 @@ bool UInventoryComponent::FullyRemoveInventoryItem(const FInventoryItemData Targ
 	if(InventoryItems.Find(TargetInventoryItem,ItemIndex))
 	{
 
-		//Uncover Slots
-		if(SetSlotStatuses(TargetInventoryItem.GetCoveredSlots(),false))
+		//Uncover Slots --> get original item inventory item in case it was rotated during move/transfer process
+		if(SetSlotStatuses(InventoryItems[ItemIndex].GetCoveredSlots(),false))
 		{
 			InventoryItems.RemoveAt(ItemIndex);
 			OnRep_InventoryItemsUpdated();
@@ -1115,6 +1116,63 @@ bool UInventoryComponent::FindInventoryItemAtPosition(const FInventory2D Positio
 	return false;
 }
 
+void UInventoryComponent::DropItem(const FInventoryItemData ItemData)
+{
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		Server_DropItem(ItemData);
+		return;
+	}
+	
+	//Ensure item is in inventory
+	if(InventoryItems.Contains(ItemData) == false){return;}
+	
+	if(DropItem(ItemData.Item))
+	{
+		FullyRemoveInventoryItem(ItemData);
+	}
+}
+
+bool UInventoryComponent::DropItem(const FItemData ItemData) const
+{
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		return false;
+	}
+	
+	//Get point in front of owning actor
+	const FVector SpawnPointCenter = GetOwner()->GetActorForwardVector() * (DropPointMinDistance + DropPointRadius) + 
+		GetOwner()->GetActorLocation();
+
+	for (int i = 1; i < SpawnAttempts; ++i)
+	{
+		const FVector2D RandSpawnPoint = FMath::RandPointInCircle(DropPointRadius);
+		const FVector SpawnPoint = SpawnPointCenter + FVector(RandSpawnPoint.X,RandSpawnPoint.Y,DropHeight);
+
+		if(CheckIfOKToSpawnAtPoint(SpawnPoint))
+		{
+			//DrawDebugSphere(GetWorld(), SpawnPoint,10.f,8,FColor::Green,false,10);
+			
+			const FActorSpawnParameters SpawnParameters;
+			if(AItemBase* SpawnedItem = GetWorld()->SpawnActor<AItemBase>(ItemData.InWorldClass, SpawnPoint,
+																		  GetOwner()->GetActorRotation(), SpawnParameters))
+			{
+				UE_LOG(LogItemSystem,Log,TEXT("%s item dropped by %s"),*ItemData.DisplayName.ToString(),*GetOwner()->GetName())
+				SpawnedItem->SetItemData(ItemData);
+				SpawnedItem->StartPhysicsTimer();
+				return true;
+			}
+			
+			break;
+		}
+	}
+
+	UE_LOG(LogItemSystem,Log,TEXT("Could not drop %s item from %s inventory.  Could not find valid spawn point"),
+		*ItemData.DisplayName.ToString(),*GetOwner()->GetName())
+	return false;
+}
+
 bool UInventoryComponent::SetSlotStatus(const FInventory2D TargetPosition, const bool NewIsOccupied,
                                         const bool bShouldBroadCast)
 {
@@ -1391,6 +1449,33 @@ void UInventoryComponent::AddDebugItems()
 	}
 }
 
+bool UInventoryComponent::CheckIfOKToSpawnAtPoint(const FVector SpawnPoint) const
+{
+	const FName Name("SphereCollision");
+	USphereComponent* SphereComponent = NewObject<USphereComponent>(GetOwner(),USphereComponent::StaticClass(),Name);
+
+	if(SphereComponent == nullptr)
+	{
+		UE_LOG(LogItemSystem,Error,TEXT("%s could not create drop item collision check component"),
+		*GetOwner()->GetName())
+		return false;
+	}
+
+	SphereComponent->RegisterComponent();
+	SphereComponent->SetWorldLocation(SpawnPoint);
+
+	TArray<AActor*> Actors;
+	SphereComponent->GetOverlappingActors(Actors);
+
+	const bool bSpawnOK = Actors.Num() == 0;
+
+	SphereComponent->DestroyComponent();
+	
+	return bSpawnOK;
+	
+}
+
+
 bool UInventoryComponent::Server_MoveItem_Validate(FInventoryItemData TargetItem, FInventory2D TargetPosition,
                                                    bool bRotateITem)
 {
@@ -1452,6 +1537,16 @@ void UInventoryComponent::Server_CombineStackSameInventory_Implementation(FInven
 	FInventoryItemData TargetStack)
 {
 	CombineStacks_SameInventory(OriginatingStack,TargetStack);
+}
+
+bool UInventoryComponent::Server_DropItem_Validate(FInventoryItemData ItemData)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_DropItem_Implementation(FInventoryItemData ItemData)
+{
+	DropItem(ItemData);
 }
 
 

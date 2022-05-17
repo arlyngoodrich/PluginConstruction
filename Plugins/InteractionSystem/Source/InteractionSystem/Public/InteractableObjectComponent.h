@@ -47,6 +47,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Interaction System")
 	FInteractionTriggeredDelegate OnInteractionTriggered;
 
+
 protected:
 	/**
 	 * @brief Called when the game starts
@@ -84,10 +85,17 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction System", meta = (EditCondition = "bShouldShowWdiget"))
 	TSubclassOf<UInteractionWidget> InteractionWidgetClass;
+
+
+protected:
+	// Called when the game starts
+	virtual void BeginPlay() override;
 	
+
 	/**
 	 * @brief Widget class that should be shown on interaction 
 	 */
+
 	UPROPERTY()
 	UInteractionWidget* InteractionWidget;
 	
@@ -109,12 +117,19 @@ protected:
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction System", DisplayName = "On Interaction Triggered")
 	void BP_OnInteractionTriggered(AActor* InstigatingActor);
+
+	UFUNCTION()
+	void OnOwnerDestroy(AActor* DestroyedActor);
 	
 	/**
 	 * @brief Boolean property for when the IOC's actor is in focus.  
 	 */
 	UPROPERTY(BlueprintReadOnly, Category = "Interaction System")
 	bool bIsInFocus;
+
+
+	UPROPERTY()
+	AActor* OwningActor;
 
 	/**
 	 * @brief Helper function to toggle outline on the actor's mesh components

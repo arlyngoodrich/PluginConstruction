@@ -6,6 +6,8 @@
 #define LOCTEXT_NAMESPACE "FItemSystemModule"
 
 DEFINE_LOG_CATEGORY(LogItemSystem)
+DEFINE_LOG_CATEGORY(LogTestItemSystem)
+
 
 #undef LOCTEXT_NAMESPACE
 	

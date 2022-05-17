@@ -108,7 +108,6 @@ void UInventoryGridWidget::RemoveTransfer()
 void UInventoryGridWidget::RequestTransfer(const FInventoryItemData TargetItem) const
 {
 	if(TransferInventory == nullptr){return;}
-
 	OwningInventoryComponent->TransferItem(TransferInventory,TargetItem);
 	
 }
