@@ -116,13 +116,12 @@ void UCraftingComponent::OnRep_CraftingQueueUpdated()
 	OnCraftingQueueUpdated.Broadcast(CraftingQueue);
 }
 
-
-bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe)
+bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe, const int32 CraftingAmount)
 {
 	UpdateInventories();
 
 	//Check to see if able to craft recipe.  OK to perform on client so we're not doing an RPC if we can't 
-	if(CraftRecipeChecks(Recipe) == false)
+	if(CanQueueSlotBeCrafted(Recipe,CraftingAmount) == false)
 	{
 		return false;
 	}
@@ -130,7 +129,7 @@ bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe)
 	//Ensure only crafting on the server
 	if(GetOwnerRole()!=ROLE_Authority)
 	{
-		Server_RequestCraftRecipe(Recipe);
+		Server_RequestCraftRecipe(Recipe,CraftingAmount);
 		return true;
 	}
 
@@ -140,7 +139,7 @@ bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe)
 		return false;
 	}
 
-	AddRecipeToQueue(Recipe,1);
+	AddRecipeToQueue(Recipe,CraftingAmount);
 
 	//If actively crafting, return
 	if(bIsActivelyCrafting)
@@ -157,7 +156,6 @@ bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe)
 void UCraftingComponent::StartCraftingTimer(const FCraftingRecipe Recipe)
 {
 	
-
 	if(GetOwnerRole()!=ROLE_Authority)
 	{
 		return;
@@ -207,7 +205,7 @@ void UCraftingComponent::FinalizeCrafting()
 
 	//Remove slot that was just crafted
 	const TArray<FCraftingQueueSlot> Queue = CraftingQueue;
-	CraftingQueue = RemoveSlotFromCraftingQueue(0,Queue);
+	CraftingQueue = DecrementSlotQuantityAtPosition(0,Queue);
 	OnRep_CraftingQueueUpdated();
 
 	//Remove items that can no longer be crafted
@@ -286,7 +284,7 @@ void UCraftingComponent::UpdateCraftingQueue()
 
 	for (int i = TestQueue.Num() - 1; i >= 0; --i)
 	{
-		if(CanRecipeBeCrafted(TestQueue[i].Recipe) == false)
+		if(CanQueueSlotBeCrafted(TestQueue[i].Recipe,TestQueue[i].Quantity) == false)
 		{
 			TestQueue = RemoveSlotFromCraftingQueue(TestQueue[i].SlotPosition,TestQueue);
 		}
@@ -318,6 +316,25 @@ TArray<FCraftingQueueSlot> UCraftingComponent::RemoveSlotFromCraftingQueue(const
 			{
 				Queue[i].SlotPosition--;
 			}
+		}
+	}
+	
+	return Queue;
+}
+
+TArray<FCraftingQueueSlot> UCraftingComponent::DecrementSlotQuantityAtPosition(const int32 DecrementSlotPosition,
+                                                                               TArray<FCraftingQueueSlot> Queue)
+{
+	for (int i = 0; i < Queue.Num(); ++i)
+	{
+		if(Queue[i].SlotPosition==DecrementSlotPosition)
+		{
+			Queue[i].Quantity--;
+			if(Queue[i].Quantity == 0)
+			{
+				Queue = RemoveSlotFromCraftingQueue(DecrementSlotPosition,Queue);
+			}
+			break;
 		}
 	}
 	
@@ -444,6 +461,48 @@ bool UCraftingComponent::CraftRecipeChecks(const FCraftingRecipe Recipe) const
 	
 }
 
+bool UCraftingComponent::CanQueueSlotBeCrafted(const FCraftingRecipe Recipe, const int32 CraftingQuantity) const
+{
+	//Ensure component can craft recipe
+	if(IsComponentEligibleToCraftRecipe(Recipe) == false)
+	{
+		//UE_LOG(LogItemSystem,Log,TEXT("%s attempted to craft %s recipe but is not eligible to"),
+		//	*GetOwner()->GetName(),*Recipe.RecipeName.ToString())
+		return false;
+	}
+
+	//Get Eligible Inventory Components
+	if(InventoryComponents.Num() == 0)
+	{
+		//UE_LOG(LogItemSystem,Log,TEXT("%s attempted to craft %s recipe but there are no inventories"),
+		//*GetOwner()->GetName(),*Recipe.RecipeName.ToString())
+		return false;
+	}
+	
+	//Ensure Inventories have enough inputs
+	TArray<bool> InputChecks;
+	const TArray<FRecipeComponent> Inputs = Recipe.RecipeInputs;
+	for (int i = 0; i < Inputs.Num(); ++i)
+	{
+		//Multiple Recipe Inputs by Slot Qty
+		FRecipeComponent TargetInput = Inputs[i];
+		const int32 RecipeQty = TargetInput.Quantity;
+		TargetInput.Quantity = RecipeQty * CraftingQuantity;
+		
+		bool InputCheck = InputComponentCheck(TargetInput,InventoryComponents);
+		InputChecks.Add(InputCheck);
+	}
+
+	if(InputChecks.Contains(false))
+	{
+		//UE_LOG(LogItemSystem,Log,TEXT("%s attempted to craft %s recipe but there are not enough inputs"),
+		//*GetOwner()->GetName(),*Recipe.RecipeName.ToString())
+		return false;
+	}
+	
+	return true;
+}
+
 bool UCraftingComponent::InputComponentCheck(const FRecipeComponent Component,TArray<UInventoryComponent*> InventoryComponentsRef)
 {
 	int32 Quantity = 0;
@@ -539,14 +598,14 @@ void UCraftingComponent::UpdateInventoryBindings(const TArray<UInventoryComponen
 	
 }
 
-bool UCraftingComponent::Server_RequestCraftRecipe_Validate(FCraftingRecipe Recipe)
+bool UCraftingComponent::Server_RequestCraftRecipe_Validate(FCraftingRecipe Recipe,int32 CraftingAmount)
 {
 	return true;
 }
 
-void UCraftingComponent::Server_RequestCraftRecipe_Implementation(FCraftingRecipe Recipe)
+void UCraftingComponent::Server_RequestCraftRecipe_Implementation(FCraftingRecipe Recipe,int32 CraftingAmount)
 {
-	CraftRecipe(Recipe);
+	CraftRecipe(Recipe,CraftingAmount);
 }
 
 void UCraftingComponent::Client_CraftingStarted_Implementation(const float CraftDuration,FCraftingRecipe Recipe)

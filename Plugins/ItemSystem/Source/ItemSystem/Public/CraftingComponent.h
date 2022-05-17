@@ -57,7 +57,7 @@ public:
 	 * @return Returns true if recipe was crafted, returns false if not
 	 */
 	UFUNCTION(BlueprintCallable,Category="Crafting")
-	bool CraftRecipe(FCraftingRecipe Recipe);
+	bool CraftRecipe(FCraftingRecipe Recipe, int32 CraftingAmount);
 
 	/**
 	 * @brief Gets Crafting Components' eligible crafting recipes
@@ -183,14 +183,28 @@ protected:
 	* @brief Attempts to craft next item in queue
 	*/
 	void CraftFromQueue();
-
 	
 	/**
 	 * @brief Check items in queue to make sure they can still be crafted.  If not remove them from queue. 
 	 */
 	void UpdateCraftingQueue();
 
+	/**
+	 * @brief Removes entire slot from crafting queue.  Will update other slot positions as needed
+	 * @param RemoveSlotPosition Position to remove
+	 * @param Queue Queue reference to remove slot from 
+	 * @return Update queue reference with removed slots. Useful so OnRep does not get called multiple times as indexes get updated.
+	 */
 	static TArray<FCraftingQueueSlot> RemoveSlotFromCraftingQueue(int32 RemoveSlotPosition,TArray<FCraftingQueueSlot> Queue);
+
+
+	/**
+	 * @brief Removes one crafting quantity from slot position.  If crafting quantity is zero, will remove full slot
+	 * @param DecrementSlotPosition Slot Position
+	 * @param Queue Queue reference to use
+	 * @return Update queue reference
+	 */
+	static TArray<FCraftingQueueSlot>  DecrementSlotQuantityAtPosition(int32 DecrementSlotPosition,TArray<FCraftingQueueSlot> Queue);
 	
 	/**
 	 * @brief Checks a recipe to see if the crafting component is able to craft it
@@ -205,6 +219,14 @@ protected:
 	 */
 	bool CraftRecipeChecks(FCraftingRecipe Recipe) const;
 
+
+	/**
+	 * @brief Checks if there are enough inputs available to craft the items in a slot
+	 * @param Recipe Recipe to check
+	 * @param CraftingQuantity Quantity of the recipe to craft
+	 * @return True if there are enough inputs, false if not 
+	 */
+	bool CanQueueSlotBeCrafted(FCraftingRecipe Recipe, int32 CraftingQuantity) const;
 
 	/**
 	 * @brief Checks inventories to ensure enough quantity of a component is available 
@@ -242,9 +264,9 @@ protected:
 	void UpdateInventoryBindings(TArray<UInventoryComponent*> NewInventoryComponents);
 
 	UFUNCTION(Server,WithValidation,Reliable)
-	void Server_RequestCraftRecipe(FCraftingRecipe Recipe);
-	bool Server_RequestCraftRecipe_Validate(FCraftingRecipe Recipe);
-	void Server_RequestCraftRecipe_Implementation(FCraftingRecipe Recipe);
+	void Server_RequestCraftRecipe(FCraftingRecipe Recipe,int32 CraftingAmount);
+	bool Server_RequestCraftRecipe_Validate(FCraftingRecipe Recipe,int32 CraftingAmount);
+	void Server_RequestCraftRecipe_Implementation(FCraftingRecipe Recipe,int32 CraftingAmount);
 
 	UFUNCTION(Client,Reliable)
 	void Client_CraftingStarted(float CraftDuration,FCraftingRecipe Recipe);

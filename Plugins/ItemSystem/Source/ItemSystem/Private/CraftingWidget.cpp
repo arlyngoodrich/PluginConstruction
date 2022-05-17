@@ -101,6 +101,16 @@ void UCraftingWidget::ClearActiveRecipe()
 	ClearRecipeInputs();
 }
 
+void UCraftingWidget::UpdateCraftingQuantity(const int32 NewQuantity)
+{
+	CraftingQuantity = NewQuantity;
+
+	for (int i = 0; i < RecipeInputWidgets.Num(); ++i)
+	{
+		RecipeInputWidgets[i]->SetInputQuantityNeeded(NewQuantity);
+	}
+}
+
 void UCraftingWidget::OnNewRecipeCraftStart(const float CraftDuration,const FCraftingRecipe Recipe)
 {
 	
