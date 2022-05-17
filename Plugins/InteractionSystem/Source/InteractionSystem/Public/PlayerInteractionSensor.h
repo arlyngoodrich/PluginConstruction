@@ -9,15 +9,27 @@
 class UInteractableObjectComponent;
 class APlayerController;
 
+/**
+ * @brief Component attached to player character that will "look" for actors with an Interaction Component.  Will focus on
+ * those actors and call interaction events.  
+ */
 UCLASS( ClassGroup=(InteractionSystem), blueprintable, meta=(BlueprintSpawnableComponent) )
 class INTERACTIONSYSTEM_API UPlayerInteractionSensor : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
-	// Sets default values for this component's properties
+public:
+	/**
+	 * @brief Sets default values for this component's properties
+	 */
 	UPlayerInteractionSensor();
 	
+	/**
+	 * @brief Tick function for component
+	 * @param DeltaTime Time between ticks
+	 * @param TickType Type of Tick
+	 * @param ThisTickFunction Tick function
+	 */
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	FVector GetLookLocation() const;
@@ -33,22 +45,33 @@ public:
 	void ToggleInteraction(bool bSetInteractionOK);
 
 protected:
-	// Called when the game starts
+	/**
+	 * @brief Called when the game starts
+	 */
 	virtual void BeginPlay() override;
 
-	//Boolean property for if an interactable object is in view.   
+	/**
+	 * @brief Boolean property for if an interactable object is in view.   
+	 */
 	UPROPERTY(BlueprintReadOnly, Category = "Interaction System")
 	bool bInteractableObjectInView;
-
-	//Pointer to interactable object component that is in view.  Will but null if no actors with an IOC is in view. 
+	
+	/**
+	 * @brief Pointer to interactable object component that is in view.  Will but null if no actors with an IOC is in view. 
+	 */
 	UPROPERTY(BlueprintReadOnly, Category = "Interaction System")
 	UInteractableObjectComponent* InteractableObjectComponentInView;
 
-	//Float property to see the maximum distance for the line trace to check for actors with IOCs.
+	
+	/**
+	 * @brief Float property to see the maximum distance for the line trace to check for actors with IOCs.
+	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction System")
 	float InteractionDistance;
-
-	//Boolean property to add a debug line to interaction check trace.  
+	
+	/**
+	 * @brief Boolean property to add a debug line to interaction check trace.  
+	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug")
 	bool bDrawDebug;
 
@@ -59,14 +82,23 @@ protected:
 	UPROPERTY(BlueprintReadOnly,Category = "Interaction System")
 	bool bInteractionOK;
 
-	//Owning player controller for pawn or character component is attached to. 
+
+	
+	/**
+	 * @brief Owning player controller for pawn or character component is attached to. 
+	 */
 	UPROPERTY(BlueprintReadOnly,Category="Interaction System")
 	APlayerController* OwningController;
 
-	//Actor returned by the line trace.  May or may not have an interactable object component.  Used for comparisons between frames
-	//to determine focus.  Should use Owner of Interactable Object Component to get parent actor in view.  
+
+	/**
+	* @brief Actor returned by the line trace.  May or may not have an interactable object component.
+	* Used for comparisons between frames to determine focus.  Should use Owner of Interactable Object Component to get
+	* parent actor in view.  
+	 */
 	UPROPERTY(BlueprintReadOnly,Category="Interaction System")
 	AActor* ActorInView;
+
 
 	UPROPERTY(BlueprintReadOnly,Category="Interaction System")
 	FVector LookLocation;
@@ -74,32 +106,69 @@ protected:
 	UPROPERTY(BlueprintReadOnly,Category="Interaction System")
 	FHitResult LookHitResult;
 
-	//Ensures component owner is a player controlled pawn and starts interaction loop.  
+	
+	/**
+	 * @brief Ensures component owner is a player controlled pawn and starts interaction loop. 
+	 */
 	void Initialize();
 
-	//Called by player to interact with object in view.  Ideally this is bound to an input binding.  Will do an RPC if player is a client. 
+	
+	/**
+	 * @brief Called by player to interact with object in view.  Ideally this is bound to an input binding.
+	 * Will do an RPC if player is a client. 
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Interaction System")
 	void Interact();
-
-	//Native implementation to interact with IOC in view.  Will do nothing if not in view.  
+	
+	/**
+	 * @brief Native implementation to interact with IOC in view.  Will do nothing if not in view. 
+	 * @param ComponentInView Component from actor that interaction was triggered on
+	 */
 	void TriggerInteraction(UInteractableObjectComponent* ComponentInView) const;
-
-	//RPC for the client to trigger interaction
+	
+	/**
+	 * @brief RPC for the client to trigger interaction.  Component for actor that was interacted with.  
+	 * @param ComponentInView 
+	 */
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_TriggerInteraction(UInteractableObjectComponent* ComponentInView);
 	bool Server_TriggerInteraction_Validate(UInteractableObjectComponent* ComponentInView);
 	void Server_TriggerInteraction_Implementation(UInteractableObjectComponent* ComponentInView);
 	
 
-	//Function loop that ticks every frame.  Checks for an interactable object in view.
+	/**
+	 * @brief Function that can toggles interaction.  Useful for when a UI is open.  
+	 * @param bShouldCheckForInteraction Toggle for if interaction should occur. True to perform interaction checks, false
+	 * to stop them. 
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Interaction System")
+	void ToggleInteraction(bool bShouldCheckForInteraction);
+
+	
+	/**
+	 * @brief Function loop that ticks every frame.  Checks for an interactable object in view.
+	 */
 	UFUNCTION()
 	void InteractionCheckLoop();
 
-	//Helper function to get the hit actor from the line trace
+
+	
+	/**
+	 * @brief Helper function to get the hit actor from the line trace
+	 * @param HitActor Out actor that was hit
+	 * @return True if an actor was hit, false if nothing was hit
+	 */
 	UFUNCTION()
 	bool SetLookLocationLoop(AActor*& HitActor);
 
-	//Helper function to retrieve interactable object from an actor 
+
+	
+	/**
+	 * @brief Helper function to retrieve interactable object from an actor 
+	 * @param HitActor Actor to check for interactable
+	 * @param HitActorInteractableObjectComponent Out interactable component from actor
+	 * @return True if hit actor had an interactable component, false if it did not. 
+	 */
 	UFUNCTION()
 	static bool GetInteractableComponent(const AActor* HitActor, UInteractableObjectComponent*& HitActorInteractableObjectComponent);
 		
