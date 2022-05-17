@@ -41,6 +41,14 @@ public:
 	void SetInventoryQuantities(int32 SetItemQtyInInventories);
 
 	/**
+	 * @brief Called by crafting component when the crafting amount changes.  Multiples recipe input to show how much is
+	 * needed to craft
+	 * @param NewCraftingAmount Amount of recipe that is to be crafted
+	 */
+	UFUNCTION(BlueprintCallable,Category="Crafting")
+	void SetInputQuantityNeeded(int32 NewCraftingAmount);
+	
+	/**
 	 * @brief Returns Recipe component reference
 	 */
 	UFUNCTION(BlueprintPure, Category="Crafting")
