@@ -47,17 +47,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Interaction System")
 	FInteractionTriggeredDelegate OnInteractionTriggered;
 
-
-protected:
 	/**
-	 * @brief Called when the game starts
-	 */
-	virtual void BeginPlay() override;
-	
-	 
-	/**
-	 * @brief Boolean default property for if the base mesh components should outline if the object is in focus.
-	 */
+ * @brief Boolean default property for if the base mesh components should outline if the object is in focus.
+ */
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction System")
 	bool bShouldOutline;
 	
@@ -79,22 +71,18 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction System",meta = (EditCondition = "bShouldShowWdiget"))
 	FText InteractionText;
+
+protected:
+	/**
+	 * @brief Called when the game starts
+	 */
+	virtual void BeginPlay() override;
 	
 	/**
 	 * @brief Widget class that should be shown on interaction 
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction System", meta = (EditCondition = "bShouldShowWdiget"))
 	TSubclassOf<UInteractionWidget> InteractionWidgetClass;
-
-
-protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-	
-
-	/**
-	 * @brief Widget class that should be shown on interaction 
-	 */
 
 	UPROPERTY()
 	UInteractionWidget* InteractionWidget;

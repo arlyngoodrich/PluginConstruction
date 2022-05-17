@@ -40,7 +40,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Interaction System")
 	void ToggleLookChecks(bool bShouldPerformLookChecks);
 	
-	//Function that can toggles interaction 
+	/**
+	 * @brief Function that can toggles interaction.  Useful for when a UI is open.  
+	 * @param bSetInteractionOK Toggle for if interaction should occur. True to perform interaction checks, false
+	 * to stop them. 
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Interaction System")
 	void ToggleInteraction(bool bSetInteractionOK);
 
@@ -134,16 +138,6 @@ protected:
 	void Server_TriggerInteraction(UInteractableObjectComponent* ComponentInView);
 	bool Server_TriggerInteraction_Validate(UInteractableObjectComponent* ComponentInView);
 	void Server_TriggerInteraction_Implementation(UInteractableObjectComponent* ComponentInView);
-	
-
-	/**
-	 * @brief Function that can toggles interaction.  Useful for when a UI is open.  
-	 * @param bShouldCheckForInteraction Toggle for if interaction should occur. True to perform interaction checks, false
-	 * to stop them. 
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Interaction System")
-	void ToggleInteraction(bool bShouldCheckForInteraction);
-
 	
 	/**
 	 * @brief Function loop that ticks every frame.  Checks for an interactable object in view.
