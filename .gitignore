@@ -3,6 +3,7 @@ DerivedDataCache
 Intermediate
 Saved
 Documentation
+Content/Megascans
 .vscode
 .vs
 *.VC.db
@@ -14,4 +15,3 @@ Documentation
 *.xcodeproj
 *.xcworkspace
 /Build/
-
