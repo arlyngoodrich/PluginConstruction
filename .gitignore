@@ -5,7 +5,9 @@ Saved
 Documentation
 Content/Megascans
 Content/PN_GrassLibrary
+Content/UltraDynamicSky
 Plugins/EnvironmentSystem/Content/PN_GrassLibrary
+Plugins/EnvironmentSystem/Content/UltraDynamicSky
 .vscode
 .vs
 *.VC.db
