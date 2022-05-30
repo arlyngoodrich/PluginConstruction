@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "FoliageSwapper.generated.h"
 
+class UCustomFoliageISMC;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ENVIRONMENTSYSTEM_API UFoliageSwapper : public UActorComponent
@@ -27,8 +28,13 @@ public:
 protected:
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Foliage System")
-	float SwapDistance;
+	float SwapDistance = 500.f;
 
-	
+	UPROPERTY(BlueprintReadOnly,Category="Foliage System")
+	TArray<UCustomFoliageISMC*> CustomFoliageISMCs;
+
+	void GetCustomFoliageISMCs();
+
+	void SwapInstancesInRange();
 		
 };

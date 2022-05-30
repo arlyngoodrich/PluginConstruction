@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogEnvironmentSystem, Log, All);
+
+
 class FEnvironmentSystemModule : public IModuleInterface
 {
 public:

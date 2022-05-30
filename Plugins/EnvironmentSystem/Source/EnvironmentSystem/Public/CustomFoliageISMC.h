@@ -6,6 +6,8 @@
 #include "FoliageInstancedStaticMeshComponent.h"
 #include "CustomFoliageISMC.generated.h"
 
+class ACustomFoliageBase;
+
 /**
  * 
  */
@@ -13,5 +15,10 @@ UCLASS()
 class ENVIRONMENTSYSTEM_API UCustomFoliageISMC : public UFoliageInstancedStaticMeshComponent
 {
 	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Foliage System")
+	TSubclassOf<ACustomFoliageBase> FoliageActorClass;
 	
 };
