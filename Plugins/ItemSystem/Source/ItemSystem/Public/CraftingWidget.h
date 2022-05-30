@@ -131,7 +131,7 @@ protected:
 	bool bHasActiveRecipe = false;
 
 	UPROPERTY(BlueprintReadOnly,Category="Crafting")
-	int32 CraftingQuantity;
+	int32 CraftingQuantity = 1;
 
 	virtual void BeginDestroy() override;
 	

@@ -118,6 +118,14 @@ void UCraftingComponent::OnRep_CraftingQueueUpdated()
 
 bool UCraftingComponent::CraftRecipe(const FCraftingRecipe Recipe, const int32 CraftingAmount)
 {
+
+	if(CraftingAmount == 0)
+	{
+		UE_LOG(LogItemSystem,Warning,TEXT("%s attempted to craft %s but craft quantity was 0"),
+			*GetOwner()->GetName(),*Recipe.RecipeName.ToString());
+		return false;
+	}
+	
 	UpdateInventories();
 
 	//Check to see if able to craft recipe.  OK to perform on client so we're not doing an RPC if we can't 
