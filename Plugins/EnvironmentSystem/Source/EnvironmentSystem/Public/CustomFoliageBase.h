@@ -7,6 +7,7 @@
 #include "CustomFoliageBase.generated.h"
 
 class UCustomFoliageISMC;
+class ACustomFoliageManager;
 
 UCLASS()
 class ENVIRONMENTSYSTEM_API ACustomFoliageBase : public AActor
@@ -27,13 +28,16 @@ public:
 
 	UCustomFoliageISMC* GetOriginatingFoliageISMC() const;
 	
-	void SetReferences(UCustomFoliageISMC* SetOriginatingFoliageISMC);
+	void SetReferences(UCustomFoliageISMC* SetOriginatingFoliageISMC, ACustomFoliageManager* SetFoliageManager);
 
 
 protected:
 
 	UPROPERTY(BlueprintReadOnly,Category="Foliage")
 	UCustomFoliageISMC* OriginatingFoliageISMC;
+
+	UPROPERTY(BlueprintReadOnly,Category="Foliage")
+	ACustomFoliageManager* FoliageManager;
 	
 
 };

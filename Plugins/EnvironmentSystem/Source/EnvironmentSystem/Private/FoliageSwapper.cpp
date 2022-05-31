@@ -4,9 +4,8 @@
 #include "FoliageSwapper.h"
 
 #include "CustomFoliageBase.h"
-#include "CustomFoliageISMC.h"
+#include "CustomFoliageManager.h"
 #include "EnvironmentSystem.h"
-#include "InstancedFoliageActor.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values for this component's properties
@@ -14,7 +13,7 @@ UFoliageSwapper::UFoliageSwapper()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 
 	// ...
 }
@@ -25,138 +24,39 @@ void UFoliageSwapper::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GetCustomFoliageISMCs();
-
-	// ...
+	CheckInToFoliageManager();
 	
 }
 
 
-// Called every frame
-void UFoliageSwapper::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UFoliageSwapper::OnComponentDestroyed(bool bDestroyingHierarchy)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	SwapInstancesInRange();
-	ReplaceSpawnedActors();
-
-	// ...
+	CheckOutOfFoliageManager();
+	
+	Super::OnComponentDestroyed(bDestroyingHierarchy);
 }
 
-void UFoliageSwapper::GetCustomFoliageISMCs()
+void UFoliageSwapper::CheckInToFoliageManager()
 {
-	//Get Instanced Foliage Actor
 	TArray<AActor*> FoundActors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AInstancedFoliageActor::StaticClass(), FoundActors);
-	
-	for (int i = 0; i < FoundActors.Num(); ++i)
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACustomFoliageManager::StaticClass(), FoundActors);
+
+	//If none or more than 1, then log error
+	if(FoundActors.Num() == 0 || FoundActors.Num() > 1)
 	{
-		if(const AInstancedFoliageActor* TargetFoliageActor = Cast<AInstancedFoliageActor>(FoundActors[i]))
-		{
-			TArray<UCustomFoliageISMC*> FoundCustomFoliageISMCs;
-			TargetFoliageActor->GetComponents<UCustomFoliageISMC>(FoundCustomFoliageISMCs);
-			CustomFoliageISMCs += FoundCustomFoliageISMCs;
-		}
+		UE_LOG(LogEnvironmentSystem,Error,TEXT("Found %d Foliage Managers. Expected 1"),FoundActors.Num())
+		return;
 	}
 
-	UE_LOG(LogEnvironmentSystem,Warning,TEXT("%s found %d custom foliage ISMCs"),
-		*GetOwner()->GetName(),CustomFoliageISMCs.Num())
-
-	if(CustomFoliageISMCs.Num()>0)
-	{
-		bSwapFoliage = true;
-	}
+	FoliageManager = Cast<ACustomFoliageManager>(FoundActors[0]);
+	FoliageManager->CheckInComponent(this);
 }
 
-void UFoliageSwapper::SwapInstancesInRange()
+void UFoliageSwapper::CheckOutOfFoliageManager()
 {
-
-	if(bSwapFoliage==false){return;}
-
-	//Loop through FoliageISMCs
-	for (int i = 0; i < CustomFoliageISMCs.Num(); ++i)
+	if(FoliageManager)
 	{
-		UCustomFoliageISMC* TargetFoliageISMC = CustomFoliageISMCs[i];
-		
-		//Get Foliage Indexes to remove
-		TArray<int32> Instances;
-		TargetFoliageISMC->GetInstancesInRange(GetOwner()->GetActorLocation(),SwapDistance,Instances);
-
-		//Check if there are instances in range
-		if(Instances.Num() > 0)
-		{
-			//Get Foliage Transforms
-			TArray<FTransform> Transforms;
-			for (int t = 0; t < Instances.Num(); ++t)
-			{
-				FTransform InstanceTransform;
-				if(TargetFoliageISMC->GetInstanceTransform(Instances[t],InstanceTransform,true))
-				{
-					Transforms.Add(InstanceTransform);
-				}
-			}
-
-			//Remove Indexes
-			TargetFoliageISMC->RemoveInstances(Instances);
-
-			//Spawn Actors
-			for (int a = 0; a < Transforms.Num(); ++a)
-			{
-				SpawnFoliageActor(Transforms[a],TargetFoliageISMC);
-			}
-		}
-	}
-}
-
-void UFoliageSwapper::ReplaceSpawnedActors()
-{
-	for (int i = SpawnedFoliageActors.Num() - 1; i >= 0; --i)
-	{
-		if(ACustomFoliageBase* TargetFoliageActor = SpawnedFoliageActors[i])
-		{
-			const float Distance = FVector::Dist(TargetFoliageActor->GetActorLocation(),GetOwner()->GetActorLocation());
-
-			//Check if distance is greater than target distance
-			if(Distance > SwapDistance)
-			{
-				FTransform Transform = TargetFoliageActor->GetActorTransform();
-				if(UCustomFoliageISMC* FoliageISMC = TargetFoliageActor->GetOriginatingFoliageISMC())
-				{
-					//Add Instance and Destroy Actor
-					FoliageISMC->AddInstance(Transform,true);
-					TargetFoliageActor->Destroy();
-
-					//Remove Index
-					SpawnedFoliageActors.RemoveAt(i);
-				}
-			}
-		}
-	}
-}
-
-void UFoliageSwapper::SpawnFoliageActor(const FTransform Transform, UCustomFoliageISMC* OriginatingISMC)
-{
-
-	if(GetOwnerRole() != ROLE_Authority)
-	{
-		Server_SpawnFoliageActor(Transform,OriginatingISMC);
+		FoliageManager->CheckOutComponent(this);
 	}
 	
-	if (ACustomFoliageBase* NewActor = GetWorld()->SpawnActor<ACustomFoliageBase>(
-					OriginatingISMC->FoliageActorClass, Transform))
-	{
-		NewActor->SetReferences(OriginatingISMC);
-		SpawnedFoliageActors.Add(NewActor);
-	}
 }
-
-bool UFoliageSwapper::Server_SpawnFoliageActor_Validate(FTransform Transform, UCustomFoliageISMC* OriginatingISMC)
-{
-	return true;
-}
-
-void UFoliageSwapper::Server_SpawnFoliageActor_Implementation(const FTransform Transform, UCustomFoliageISMC* OriginatingISMC)
-{
-	SpawnFoliageActor(Transform,OriginatingISMC);
-}
-

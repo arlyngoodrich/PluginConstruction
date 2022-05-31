@@ -6,8 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "FoliageSwapper.generated.h"
 
-class UCustomFoliageISMC;
-class ACustomFoliageBase;
+class ACustomFoliageManager;
 
 UCLASS( ClassGroup=(Foliage), meta=(BlueprintSpawnableComponent) )
 class ENVIRONMENTSYSTEM_API UFoliageSwapper : public UActorComponent
@@ -19,38 +18,18 @@ public:
 	UFoliageSwapper();
 
 protected:
+
+	UPROPERTY(BlueprintReadOnly,Category="Foliage System")
+	ACustomFoliageManager* FoliageManager;
+	
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void OnComponentDestroyed(bool bDestroyingHierarchy) override;
+	
+	void CheckInToFoliageManager();
 
-protected:
+	void CheckOutOfFoliageManager();
 
-	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Foliage System")
-	float SwapDistance = 500.f;
-
-	UPROPERTY(BlueprintReadOnly,Category="Foliage System")
-	TArray<UCustomFoliageISMC*> CustomFoliageISMCs;
-
-	UPROPERTY(BlueprintReadOnly,Category="Foliage System")
-	TArray<ACustomFoliageBase*> SpawnedFoliageActors;
-
-	UPROPERTY(BlueprintReadOnly,Category="Foliage System")
-	bool bSwapFoliage;
-
-	void GetCustomFoliageISMCs();
-
-	void SwapInstancesInRange();
-
-	void ReplaceSpawnedActors();
-
-	void SpawnFoliageActor(FTransform Transform, UCustomFoliageISMC* OriginatingISMC);
-
-	UFUNCTION(Server,Reliable,WithValidation)
-	void Server_SpawnFoliageActor(FTransform Transform, UCustomFoliageISMC* OriginatingISMC);
-	bool Server_SpawnFoliageActor_Validate(FTransform Transform, UCustomFoliageISMC* OriginatingISMC);
-	void Server_SpawnFoliageActor_Implementation(FTransform Transform, UCustomFoliageISMC* OriginatingISMC);
-		
+	
 };

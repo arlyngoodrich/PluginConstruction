@@ -6,6 +6,10 @@
 #include "GameFramework/Actor.h"
 #include "CustomFoliageManager.generated.h"
 
+class UCustomFoliageISMC;
+class UFoliageSwapper;
+class ACustomFoliageBase;
+
 UCLASS()
 class ENVIRONMENTSYSTEM_API ACustomFoliageManager : public AActor
 {
@@ -20,13 +24,41 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
-	void CheckInActor(AActor* ActorToTrack);
+	void CheckInComponent(UFoliageSwapper* ComponentToTrack);
+
+	void CheckOutComponent(UFoliageSwapper* ComponentToRemove);
 
 protected:
 
-	TArray<AActor*> TrackedActors;
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Foliage System")
+	float SwapLoopRate = .1;
 
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Foliage System")
+	float SwapRange = 500;
+	
+	UPROPERTY(BlueprintReadOnly,Category="Foliage System")
+	TArray<UFoliageSwapper*> TrackedComponents;
+
+	UPROPERTY(BlueprintReadOnly,Category="Foliage System")
+	TArray<UCustomFoliageISMC*> CustomFoliageISMCs;
+
+	UPROPERTY(BlueprintReadOnly,Category="Foliage System")
+	TArray<ACustomFoliageBase*> TrackedFoliage;
+	
+
+	UPROPERTY(BlueprintReadOnly,Category="Foliage System")
+	FTimerHandle FoliageSwapTimerHandle;
+
+	bool bSwapFoliage;
+
+	void GetCustomFoliageISMCs();
+
+	void StartFoliageSwapLoop();
+
+	void FoliageSwapLoop();
+
+	void SwapInstancesInRangeWithActors();
+	
+	
 };

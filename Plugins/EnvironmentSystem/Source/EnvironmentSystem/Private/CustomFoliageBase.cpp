@@ -30,7 +30,7 @@ void ACustomFoliageBase::Tick(float DeltaTime)
 
 UCustomFoliageISMC* ACustomFoliageBase::GetOriginatingFoliageISMC() const {return OriginatingFoliageISMC;}
 
-void ACustomFoliageBase::SetReferences(UCustomFoliageISMC* SetOriginatingFoliageISMC)
+void ACustomFoliageBase::SetReferences(UCustomFoliageISMC* SetOriginatingFoliageISMC, ACustomFoliageManager* SetFoliageManager)
 {
 	if(SetOriginatingFoliageISMC == nullptr)
 	{
@@ -41,5 +41,7 @@ void ACustomFoliageBase::SetReferences(UCustomFoliageISMC* SetOriginatingFoliage
 	}
 	
 	OriginatingFoliageISMC = SetOriginatingFoliageISMC;
+
+	FoliageManager = SetFoliageManager;
 }
 
