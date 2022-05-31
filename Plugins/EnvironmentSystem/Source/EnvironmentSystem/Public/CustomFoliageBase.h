@@ -28,16 +28,24 @@ public:
 
 	UCustomFoliageISMC* GetOriginatingFoliageISMC() const;
 	
-	void SetReferences(UCustomFoliageISMC* SetOriginatingFoliageISMC, ACustomFoliageManager* SetFoliageManager);
+	void OnSpawned(UCustomFoliageISMC* SetOriginatingFoliageISMC, ACustomFoliageManager* SetFoliageManager);
 
+	void RequestRemoval();
 
 protected:
 
-	UPROPERTY(BlueprintReadOnly,Category="Foliage")
+	UPROPERTY(Replicated,BlueprintReadOnly,Category="Foliage")
 	UCustomFoliageISMC* OriginatingFoliageISMC;
 
 	UPROPERTY(BlueprintReadOnly,Category="Foliage")
 	ACustomFoliageManager* FoliageManager;
+
+	bool bInstanceRemoved;
 	
+	void RemoveInstance();
+
+	UFUNCTION(NetMulticast,Reliable)
+	void Multicast_AddInstance();
+	void Multicast_AddInstance_Implementation();
 
 };

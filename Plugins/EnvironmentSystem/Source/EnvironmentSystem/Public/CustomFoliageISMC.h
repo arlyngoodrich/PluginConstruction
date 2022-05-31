@@ -18,11 +18,14 @@ class ENVIRONMENTSYSTEM_API UCustomFoliageISMC : public UFoliageInstancedStaticM
 
 public:
 
+
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Foliage System")
 	TSubclassOf<ACustomFoliageBase> FoliageActorClass;
 	
 	void GetInstancesInRange(FVector Center, float Range, TArray<int32>&  Instances) const;
 
 	void GetInstancesInRangeOfLocations(TArray<FVector> Locations, float Range, TArray<int32>& Instances) const;
+
+	bool RemoveInstanceAtLocation(FVector Location);
 	
 };

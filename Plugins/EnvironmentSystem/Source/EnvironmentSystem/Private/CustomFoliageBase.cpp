@@ -3,7 +3,9 @@
 
 #include "CustomFoliageBase.h"
 
+#include "CustomFoliageISMC.h"
 #include "EnvironmentSystem.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 ACustomFoliageBase::ACustomFoliageBase()
@@ -13,6 +15,16 @@ ACustomFoliageBase::ACustomFoliageBase()
 	bReplicates = true;
 
 }
+
+void ACustomFoliageBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifetimeProps) const
+{
+
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ACustomFoliageBase, OriginatingFoliageISMC);
+	
+}
+
 
 // Called when the game starts or when spawned
 void ACustomFoliageBase::BeginPlay()
@@ -25,12 +37,19 @@ void ACustomFoliageBase::BeginPlay()
 void ACustomFoliageBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	
+	if(bInstanceRemoved == false)
+	{
+		if(OriginatingFoliageISMC)
+		{
+			RemoveInstance();
+		}
+	}
 }
 
 UCustomFoliageISMC* ACustomFoliageBase::GetOriginatingFoliageISMC() const {return OriginatingFoliageISMC;}
 
-void ACustomFoliageBase::SetReferences(UCustomFoliageISMC* SetOriginatingFoliageISMC, ACustomFoliageManager* SetFoliageManager)
+void ACustomFoliageBase::OnSpawned(UCustomFoliageISMC* SetOriginatingFoliageISMC, ACustomFoliageManager* SetFoliageManager)
 {
 	if(SetOriginatingFoliageISMC == nullptr)
 	{
@@ -41,7 +60,32 @@ void ACustomFoliageBase::SetReferences(UCustomFoliageISMC* SetOriginatingFoliage
 	}
 	
 	OriginatingFoliageISMC = SetOriginatingFoliageISMC;
-
 	FoliageManager = SetFoliageManager;
+	RemoveInstance();
+	
+}
+
+void ACustomFoliageBase::RemoveInstance()
+{
+	if(OriginatingFoliageISMC->RemoveInstanceAtLocation(GetActorLocation()) == false)
+	{
+		UE_LOG(LogEnvironmentSystem,Warning,TEXT("%s Failed To Remove Instance"),
+			*GetName())
+	}
+	
+	bInstanceRemoved = true;
+}
+
+void ACustomFoliageBase::RequestRemoval()
+{
+	if(HasAuthority() == false){return;}
+	Multicast_AddInstance();
+}
+
+
+void ACustomFoliageBase::Multicast_AddInstance_Implementation()
+{
+	OriginatingFoliageISMC->AddInstance(GetActorTransform(),true);
+	Destroy();
 }
 

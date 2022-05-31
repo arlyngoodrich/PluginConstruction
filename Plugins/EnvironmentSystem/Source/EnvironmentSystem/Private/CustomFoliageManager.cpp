@@ -103,18 +103,15 @@ void ACustomFoliageManager::StartFoliageSwapLoop()
 
 void ACustomFoliageManager::FoliageSwapLoop()
 {
-
-	//Swap Instances in range with actors
 	SwapInstancesInRangeWithActors();
-
-
-	//Swap Actors out of range with instances
-	
-	
+	SwapActorsOutRangeWithInstances();
 }
 
 void ACustomFoliageManager::SwapInstancesInRangeWithActors()
 {
+
+	if(HasAuthority() == false){return;}
+	
 	//Loop through foliage ISMCs
 	for (int ISMC = 0; ISMC < CustomFoliageISMCs.Num(); ++ISMC)
 	{
@@ -146,23 +143,66 @@ void ACustomFoliageManager::SwapInstancesInRangeWithActors()
 					i,*TargetISMC->GetName())
 			}
 		}
-
-		//Remove Instances
-		TargetISMC->RemoveInstances(IndexesToRemove);
 		
 		//Spawn Actors
 		for (int t = 0; t < Transforms.Num(); ++t)
 		{
-			if(ACustomFoliageBase* NewFoliage = GetWorld()->SpawnActor<ACustomFoliageBase>(TargetISMC->FoliageActorClass,Transforms[t]))
-			{
-				TrackedFoliage.Add(NewFoliage);
-				NewFoliage->SetReferences(TargetISMC,this);
-			}
-			
+			//Only Spawn foliage on the Server
+			SpawnFoliageActor(Transforms[t],TargetISMC);
 		}
-		
+	}
+}
 
-		
+void ACustomFoliageManager::SwapActorsOutRangeWithInstances()
+{
+
+	if(HasAuthority() == false){return;}
+	
+	//Loop through tracked foliage
+	for (int i = TrackedFoliage.Num() - 1; i >= 0; --i)
+	{
+		//Make sure target foliage is valid
+		if(ACustomFoliageBase* TargetFoliage = TrackedFoliage[i])
+		{
+			TArray<bool> RangeChecks;
+			for (int y = 0; y < TrackedComponents.Num(); ++y)
+			{
+				const UFoliageSwapper* TargetSwapper = TrackedComponents[y];
+				const float Distance = FVector::Dist(TargetFoliage->GetActorLocation(),TargetSwapper->GetOwner()->GetActorLocation());
+
+				//Check if tracked component is in range of foliage
+				bool bIsInRange = Distance < SwapRange+100;
+				RangeChecks.Add(bIsInRange);
+			}
+
+			//Check if any actors are still in range
+			if(RangeChecks.Contains(true) == false)
+			{
+				//Remove destroy and remove from tracking
+				TargetFoliage->RequestRemoval();
+				TrackedFoliage.RemoveAt(i);
+			}
+		}
+		else
+		{
+			//If tracked actor null, remove from tracking
+			TrackedFoliage.RemoveAt(i);
+		}
+	}
+}
+
+//Only Spawn Actor if Authority
+void ACustomFoliageManager::SpawnFoliageActor(const FTransform Transform, UCustomFoliageISMC* FoliageISMC)
+{
+	if(HasAuthority() == false)
+	{
+		return;
+	}
+
+	if(ACustomFoliageBase* NewFoliage = GetWorld()->SpawnActor<ACustomFoliageBase>(FoliageISMC->FoliageActorClass,Transform))
+	{
+		TrackedFoliage.Add(NewFoliage);
+		NewFoliage->OnSpawned(FoliageISMC,this);
 	}
 }
 

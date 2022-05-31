@@ -59,6 +59,10 @@ protected:
 	void FoliageSwapLoop();
 
 	void SwapInstancesInRangeWithActors();
-	
+
+	void SwapActorsOutRangeWithInstances();
+
+	void SpawnFoliageActor(FTransform Transform, UCustomFoliageISMC* FoliageISMC);
+		
 	
 };

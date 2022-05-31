@@ -3,6 +3,8 @@
 
 #include "CustomFoliageISMC.h"
 
+
+
 void UCustomFoliageISMC::GetInstancesInRange(const FVector Center, const float Range, TArray<int32>& Instances) const
 {
 	
@@ -45,4 +47,23 @@ void UCustomFoliageISMC::GetInstancesInRangeOfLocations(TArray<FVector> Location
 			}
 		}
 	}
+}
+
+bool UCustomFoliageISMC::RemoveInstanceAtLocation(const FVector Location)
+{
+	
+	for (int i = 0; i < GetInstanceCount(); ++i)
+	{
+		FTransform Transform;
+		if(GetInstanceTransform(i,Transform,true))
+		{
+			const float Distance = FVector::Dist(Transform.GetLocation(),Location);
+			if(Distance<=1)
+			{
+				RemoveInstance(i);
+				return true;
+			}
+		}
+	}
+	return false;
 }
