@@ -43,5 +43,7 @@ protected:
 	void GetCustomFoliageISMCs();
 
 	void SwapInstancesInRange();
+
+	void ReplaceSpawnedActors();
 		
 };

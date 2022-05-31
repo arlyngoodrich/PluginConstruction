@@ -38,6 +38,7 @@ void UFoliageSwapper::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	SwapInstancesInRange();
+	ReplaceSpawnedActors();
 
 	// ...
 }
@@ -104,7 +105,34 @@ void UFoliageSwapper::SwapInstancesInRange()
 				if (ACustomFoliageBase* NewActor = GetWorld()->SpawnActor<ACustomFoliageBase>(
 					TargetFoliageISMC->FoliageActorClass, Transforms[a]))
 				{
+					NewActor->SetReferences(TargetFoliageISMC);
 					SpawnedFoliageActors.Add(NewActor);
+				}
+			}
+		}
+	}
+}
+
+void UFoliageSwapper::ReplaceSpawnedActors()
+{
+	for (int i = SpawnedFoliageActors.Num() - 1; i >= 0; --i)
+	{
+		if(ACustomFoliageBase* TargetFoliageActor = SpawnedFoliageActors[i])
+		{
+			const float Distance = FVector::Dist(TargetFoliageActor->GetActorLocation(),GetOwner()->GetActorLocation());
+
+			//Check if distance is greater than target distance
+			if(Distance > SwapDistance)
+			{
+				FTransform Transform = TargetFoliageActor->GetActorTransform();
+				if(UCustomFoliageISMC* FoliageISMC = TargetFoliageActor->GetOriginatingFoliageISMC())
+				{
+					//Add Instance and Destroy Actor
+					FoliageISMC->AddInstance(Transform,true);
+					TargetFoliageActor->Destroy();
+
+					//Remove Index
+					SpawnedFoliageActors.RemoveAt(i);
 				}
 			}
 		}

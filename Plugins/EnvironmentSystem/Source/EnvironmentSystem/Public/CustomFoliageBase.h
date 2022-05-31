@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "CustomFoliageBase.generated.h"
 
+class UCustomFoliageISMC;
+
 UCLASS()
 class ENVIRONMENTSYSTEM_API ACustomFoliageBase : public AActor
 {
@@ -23,10 +25,14 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void SetReferences();
+	UCustomFoliageISMC* GetOriginatingFoliageISMC() const;
+	
+	void SetReferences(UCustomFoliageISMC* SetOriginatingFoliageISMC);
 
 protected:
 
+	UPROPERTY(BlueprintReadOnly,Category="Foliage")
+	UCustomFoliageISMC* OriginatingFoliageISMC;
 	
 
 };
