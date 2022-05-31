@@ -60,7 +60,7 @@ void ACustomFoliageManager::CheckOutComponent(UFoliageSwapper* ComponentToRemove
 	
 	if(TrackedComponents.Contains(ComponentToRemove))
 	{
-		TrackedComponents.RemoveAll(ComponentToRemove);
+		TrackedComponents.Remove(ComponentToRemove);
 		UE_LOG(LogEnvironmentSystem,Log,TEXT("Foliage Manager removed %s from tracking"),
 			*ComponentToRemove->GetOwner()->GetName())
 	}
@@ -88,7 +88,7 @@ void ACustomFoliageManager::GetCustomFoliageISMCs()
 	}
 
 	UE_LOG(LogEnvironmentSystem,Warning,TEXT("%s found %d custom foliage ISMCs"),
-		*GetOwner()->GetName(),CustomFoliageISMCs.Num())
+		*GetName(),CustomFoliageISMCs.Num())
 
 	if(CustomFoliageISMCs.Num()>0)
 	{
@@ -105,6 +105,7 @@ void ACustomFoliageManager::FoliageSwapLoop()
 {
 
 	//Swap Instances in range with actors
+	SwapInstancesInRangeWithActors();
 
 
 	//Swap Actors out of range with instances
@@ -155,7 +156,7 @@ void ACustomFoliageManager::SwapInstancesInRangeWithActors()
 			if(ACustomFoliageBase* NewFoliage = GetWorld()->SpawnActor<ACustomFoliageBase>(TargetISMC->FoliageActorClass,Transforms[t]))
 			{
 				TrackedFoliage.Add(NewFoliage);
-				NewFoliage->SetReferences(TargetISMC);
+				NewFoliage->SetReferences(TargetISMC,this);
 			}
 			
 		}
