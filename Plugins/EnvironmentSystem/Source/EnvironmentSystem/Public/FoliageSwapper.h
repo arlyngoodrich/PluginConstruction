@@ -7,6 +7,7 @@
 #include "FoliageSwapper.generated.h"
 
 class UCustomFoliageISMC;
+class ACustomFoliageBase;
 
 UCLASS( ClassGroup=(Foliage), meta=(BlueprintSpawnableComponent) )
 class ENVIRONMENTSYSTEM_API UFoliageSwapper : public UActorComponent
@@ -32,6 +33,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly,Category="Foliage System")
 	TArray<UCustomFoliageISMC*> CustomFoliageISMCs;
+
+	UPROPERTY(BlueprintReadOnly,Category="Foliage System")
+	TArray<ACustomFoliageBase*> SpawnedFoliageActors;
 
 	UPROPERTY(BlueprintReadOnly,Category="Foliage System")
 	bool bSwapFoliage;

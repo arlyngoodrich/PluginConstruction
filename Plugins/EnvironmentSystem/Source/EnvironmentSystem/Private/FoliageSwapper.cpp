@@ -101,7 +101,11 @@ void UFoliageSwapper::SwapInstancesInRange()
 			//Spawn Actors
 			for (int a = 0; a < Transforms.Num(); ++a)
 			{
-				GetWorld()->SpawnActor<ACustomFoliageBase>(TargetFoliageISMC->FoliageActorClass,Transforms[a]);
+				if (ACustomFoliageBase* NewActor = GetWorld()->SpawnActor<ACustomFoliageBase>(
+					TargetFoliageISMC->FoliageActorClass, Transforms[a]))
+				{
+					SpawnedFoliageActors.Add(NewActor);
+				}
 			}
 		}
 	}
