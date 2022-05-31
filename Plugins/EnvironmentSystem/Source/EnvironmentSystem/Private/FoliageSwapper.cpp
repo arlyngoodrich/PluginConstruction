@@ -24,6 +24,7 @@ UFoliageSwapper::UFoliageSwapper()
 void UFoliageSwapper::BeginPlay()
 {
 	Super::BeginPlay();
+
 	GetCustomFoliageISMCs();
 
 	// ...
@@ -35,6 +36,7 @@ void UFoliageSwapper::BeginPlay()
 void UFoliageSwapper::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
 	SwapInstancesInRange();
 
 	// ...
@@ -59,7 +61,10 @@ void UFoliageSwapper::GetCustomFoliageISMCs()
 	UE_LOG(LogEnvironmentSystem,Warning,TEXT("%s found %d custom foliage ISMCs"),
 		*GetOwner()->GetName(),CustomFoliageISMCs.Num())
 
-	bSwapFoliage = CustomFoliageISMCs.Num()>0;
+	if(CustomFoliageISMCs.Num()>0)
+	{
+		bSwapFoliage = true;
+	}
 }
 
 void UFoliageSwapper::SwapInstancesInRange()
@@ -73,8 +78,8 @@ void UFoliageSwapper::SwapInstancesInRange()
 		UCustomFoliageISMC* TargetFoliageISMC = CustomFoliageISMCs[i];
 		
 		//Get Foliage Indexes to remove
-		TArray<int32> Instances = TargetFoliageISMC->GetInstancesOverlappingSphere(
-			GetOwner()->GetActorLocation(), SwapDistance, true);
+		TArray<int32> Instances;
+		TargetFoliageISMC->GetInstancesInRange(GetOwner()->GetActorLocation(),SwapDistance,Instances);
 
 		//Check if there are instances in range
 		if(Instances.Num() > 0)
@@ -98,10 +103,7 @@ void UFoliageSwapper::SwapInstancesInRange()
 			{
 				GetWorld()->SpawnActor<ACustomFoliageBase>(TargetFoliageISMC->FoliageActorClass,Transforms[a]);
 			}
-		
 		}
-	
 	}
-	
 }
 

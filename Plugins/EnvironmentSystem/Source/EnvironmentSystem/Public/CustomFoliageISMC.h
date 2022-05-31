@@ -20,5 +20,8 @@ public:
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Foliage System")
 	TSubclassOf<ACustomFoliageBase> FoliageActorClass;
+
+	UFUNCTION(BlueprintCallable,Category="Foliage System")
+	void GetInstancesInRange(FVector Center, float Range, TArray<int32>&  Instances) const;
 	
 };
