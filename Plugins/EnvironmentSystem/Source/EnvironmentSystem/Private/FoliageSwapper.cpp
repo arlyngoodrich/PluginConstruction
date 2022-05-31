@@ -2,6 +2,8 @@
 
 
 #include "FoliageSwapper.h"
+
+#include "CustomFoliageBase.h"
 #include "CustomFoliageISMC.h"
 #include "EnvironmentSystem.h"
 #include "InstancedFoliageActor.h"
@@ -33,6 +35,7 @@ void UFoliageSwapper::BeginPlay()
 void UFoliageSwapper::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	SwapInstancesInRange();
 
 	// ...
 }
@@ -55,20 +58,50 @@ void UFoliageSwapper::GetCustomFoliageISMCs()
 
 	UE_LOG(LogEnvironmentSystem,Warning,TEXT("%s found %d custom foliage ISMCs"),
 		*GetOwner()->GetName(),CustomFoliageISMCs.Num())
+
+	bSwapFoliage = CustomFoliageISMCs.Num()>0;
 }
 
 void UFoliageSwapper::SwapInstancesInRange()
 {
+
+	if(bSwapFoliage==false){return;}
+
+	//Loop through FoliageISMCs
 	for (int i = 0; i < CustomFoliageISMCs.Num(); ++i)
 	{
 		UCustomFoliageISMC* TargetFoliageISMC = CustomFoliageISMCs[i];
 		
-		
+		//Get Foliage Indexes to remove
 		TArray<int32> Instances = TargetFoliageISMC->GetInstancesOverlappingSphere(
 			GetOwner()->GetActorLocation(), SwapDistance, true);
 
+		//Check if there are instances in range
+		if(Instances.Num() > 0)
+		{
+			//Get Foliage Transforms
+			TArray<FTransform> Transforms;
+			for (int t = 0; t < Instances.Num(); ++t)
+			{
+				FTransform InstanceTransform;
+				if(TargetFoliageISMC->GetInstanceTransform(Instances[t],InstanceTransform,true))
+				{
+					Transforms.Add(InstanceTransform);
+				}
+			}
+
+			//Remove Indexes
+			TargetFoliageISMC->RemoveInstances(Instances);
+
+			//Spawn Actors
+			for (int a = 0; a < Transforms.Num(); ++a)
+			{
+				GetWorld()->SpawnActor<ACustomFoliageBase>(TargetFoliageISMC->FoliageActorClass,Transforms[a]);
+			}
 		
-		
+		}
+	
 	}
+	
 }
 

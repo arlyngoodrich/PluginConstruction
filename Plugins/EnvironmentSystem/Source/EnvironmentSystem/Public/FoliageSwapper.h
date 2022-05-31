@@ -8,7 +8,7 @@
 
 class UCustomFoliageISMC;
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(Foliage), meta=(BlueprintSpawnableComponent) )
 class ENVIRONMENTSYSTEM_API UFoliageSwapper : public UActorComponent
 {
 	GENERATED_BODY()
@@ -32,6 +32,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly,Category="Foliage System")
 	TArray<UCustomFoliageISMC*> CustomFoliageISMCs;
+
+	UPROPERTY(BlueprintReadOnly,Category="Foliage System")
+	bool bSwapFoliage;
 
 	void GetCustomFoliageISMCs();
 

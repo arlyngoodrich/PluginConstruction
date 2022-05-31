@@ -11,7 +11,7 @@ class ACustomFoliageBase;
 /**
  * 
  */
-UCLASS()
+UCLASS(Blueprintable)
 class ENVIRONMENTSYSTEM_API UCustomFoliageISMC : public UFoliageInstancedStaticMeshComponent
 {
 	GENERATED_BODY()
