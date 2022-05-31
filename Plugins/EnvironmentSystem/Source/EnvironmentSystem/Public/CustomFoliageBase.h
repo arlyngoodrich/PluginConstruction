@@ -29,6 +29,7 @@ public:
 	
 	void SetReferences(UCustomFoliageISMC* SetOriginatingFoliageISMC);
 
+
 protected:
 
 	UPROPERTY(BlueprintReadOnly,Category="Foliage")

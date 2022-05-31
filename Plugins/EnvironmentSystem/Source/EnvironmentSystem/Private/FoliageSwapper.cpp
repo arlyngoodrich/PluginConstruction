@@ -102,12 +102,7 @@ void UFoliageSwapper::SwapInstancesInRange()
 			//Spawn Actors
 			for (int a = 0; a < Transforms.Num(); ++a)
 			{
-				if (ACustomFoliageBase* NewActor = GetWorld()->SpawnActor<ACustomFoliageBase>(
-					TargetFoliageISMC->FoliageActorClass, Transforms[a]))
-				{
-					NewActor->SetReferences(TargetFoliageISMC);
-					SpawnedFoliageActors.Add(NewActor);
-				}
+				SpawnFoliageActor(Transforms[a],TargetFoliageISMC);
 			}
 		}
 	}
@@ -137,5 +132,31 @@ void UFoliageSwapper::ReplaceSpawnedActors()
 			}
 		}
 	}
+}
+
+void UFoliageSwapper::SpawnFoliageActor(const FTransform Transform, UCustomFoliageISMC* OriginatingISMC)
+{
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		Server_SpawnFoliageActor(Transform,OriginatingISMC);
+	}
+	
+	if (ACustomFoliageBase* NewActor = GetWorld()->SpawnActor<ACustomFoliageBase>(
+					OriginatingISMC->FoliageActorClass, Transform))
+	{
+		NewActor->SetReferences(OriginatingISMC);
+		SpawnedFoliageActors.Add(NewActor);
+	}
+}
+
+bool UFoliageSwapper::Server_SpawnFoliageActor_Validate(FTransform Transform, UCustomFoliageISMC* OriginatingISMC)
+{
+	return true;
+}
+
+void UFoliageSwapper::Server_SpawnFoliageActor_Implementation(const FTransform Transform, UCustomFoliageISMC* OriginatingISMC)
+{
+	SpawnFoliageActor(Transform,OriginatingISMC);
 }
 

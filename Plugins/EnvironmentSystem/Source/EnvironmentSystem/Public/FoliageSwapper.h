@@ -45,5 +45,12 @@ protected:
 	void SwapInstancesInRange();
 
 	void ReplaceSpawnedActors();
+
+	void SpawnFoliageActor(FTransform Transform, UCustomFoliageISMC* OriginatingISMC);
+
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_SpawnFoliageActor(FTransform Transform, UCustomFoliageISMC* OriginatingISMC);
+	bool Server_SpawnFoliageActor_Validate(FTransform Transform, UCustomFoliageISMC* OriginatingISMC);
+	void Server_SpawnFoliageActor_Implementation(FTransform Transform, UCustomFoliageISMC* OriginatingISMC);
 		
 };
