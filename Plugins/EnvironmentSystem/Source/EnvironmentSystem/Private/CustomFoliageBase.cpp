@@ -66,7 +66,7 @@ void ACustomFoliageBase::OnRep_RemoveInstance() const
 			*GetName())
 	}
 	
-	OriginatingFoliageISMC->RemoveInstance(Index);
+	OriginatingFoliageISMC->RemoveInstance_Safe(Index);
 	
 }
 
@@ -80,7 +80,7 @@ void ACustomFoliageBase::RequestRemoval()
 void ACustomFoliageBase::Multicast_AddInstance_Implementation()
 {
 	
-	OriginatingFoliageISMC->AddInstance(GetActorTransform(),true);
+	OriginatingFoliageISMC->AddInstance_Safe(GetActorTransform());
 	Destroy();
 }
 

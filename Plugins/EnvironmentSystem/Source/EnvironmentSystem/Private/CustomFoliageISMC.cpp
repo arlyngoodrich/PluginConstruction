@@ -95,3 +95,34 @@ bool UCustomFoliageISMC::GetInstanceIndexFromLocation(const FVector Location, in
 
 	return false;
 }
+
+void UCustomFoliageISMC::AddInstance_Safe(FTransform Transform)
+{
+	StartSafeRemoveTimer();
+	AddInstance(Transform,true);	
+}
+
+void UCustomFoliageISMC::RemoveInstance_Safe(int32 Index)
+{
+	FTransform NullTransform;
+	NullTransform.SetLocation(FVector(0,0,-5000));
+	NullTransform.SetScale3D(FVector(0,0,0));
+
+	UpdateInstanceTransform(Index,NullTransform,true);
+	InstancesPendingRemove.Add(Index);
+	StartSafeRemoveTimer();
+}
+
+void UCustomFoliageISMC::StartSafeRemoveTimer()
+{
+	GetWorld()->GetTimerManager().SetTimer(SafeRemoveTimerHandle,this,&UCustomFoliageISMC::RemovePendingInstances,PendingRemoveTime);
+}
+
+void UCustomFoliageISMC::RemovePendingInstances()
+{
+	if(InstancesPendingRemove.Num()>0)
+	{
+		RemoveInstances(InstancesPendingRemove);
+		InstancesPendingRemove.Empty();
+	}
+}

@@ -51,5 +51,23 @@ public:
 	 * @return True if found, false if not
 	 */
 	bool GetInstanceIndexFromLocation(FVector Location, int32& OutIndex) const;
+
+
+	void AddInstance_Safe(FTransform Transform);
+
+
+	void RemoveInstance_Safe(int32 Index);
+
+protected:
+
+	FTimerHandle SafeRemoveTimerHandle;
+
+	TArray<int32> InstancesPendingRemove;
+
+	float PendingRemoveTime =5.f;
+	
+	void StartSafeRemoveTimer();
+
+	void RemovePendingInstances();
 	
 };
