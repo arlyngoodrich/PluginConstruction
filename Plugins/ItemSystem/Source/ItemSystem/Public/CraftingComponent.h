@@ -54,6 +54,7 @@ public:
 	/**
 	 * @brief Uses inventories attached to owning actor to craft a recipe.  Will perform RPC if not server. 
 	 * @param Recipe Recipe to craft
+	 * @param CraftingAmount Amount to be crafted
 	 * @return Returns true if recipe was crafted, returns false if not
 	 */
 	UFUNCTION(BlueprintCallable,Category="Crafting")
