@@ -60,10 +60,38 @@ bool UCustomFoliageISMC::RemoveInstanceAtLocation(const FVector Location)
 			const float Distance = FVector::Dist(Transform.GetLocation(),Location);
 			if(Distance<=1)
 			{
+
+				FTransform NullTransform;
+				NullTransform.SetLocation(FVector(0,0,0));
+				NullTransform.SetScale3D(FVector(0,0,0));
+				UpdateInstanceTransform(i,NullTransform,true);
 				RemoveInstance(i);
+
 				return true;
 			}
 		}
 	}
+
+
+	return false;
+}
+
+bool UCustomFoliageISMC::GetInstanceIndexFromLocation(const FVector Location, int32& OutIndex) const
+{
+	for (int i = 0; i < GetInstanceCount(); ++i)
+	{
+		FTransform Transform;
+		if(GetInstanceTransform(i,Transform,true))
+		{
+			const float Distance = FVector::Dist(Transform.GetLocation(),Location);
+			if(Distance<=1)
+			{
+				OutIndex = i;
+				return true;
+			}
+		}
+	}
+
+
 	return false;
 }

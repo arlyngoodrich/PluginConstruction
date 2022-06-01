@@ -27,5 +27,7 @@ public:
 	void GetInstancesInRangeOfLocations(TArray<FVector> Locations, float Range, TArray<int32>& Instances) const;
 
 	bool RemoveInstanceAtLocation(FVector Location);
+
+	bool GetInstanceIndexFromLocation(FVector Location, int32& OutIndex) const;
 	
 };

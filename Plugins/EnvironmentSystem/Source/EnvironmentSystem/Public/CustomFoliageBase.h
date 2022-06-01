@@ -34,15 +34,14 @@ public:
 
 protected:
 
-	UPROPERTY(Replicated,BlueprintReadOnly,Category="Foliage")
+	UPROPERTY(ReplicatedUsing=OnRep_RemoveInstance,BlueprintReadOnly,Category="Foliage")
 	UCustomFoliageISMC* OriginatingFoliageISMC;
 
 	UPROPERTY(BlueprintReadOnly,Category="Foliage")
 	ACustomFoliageManager* FoliageManager;
 
-	bool bInstanceRemoved;
-	
-	void RemoveInstance();
+	UFUNCTION()
+	void OnRep_RemoveInstance() const;
 
 	UFUNCTION(NetMulticast,Reliable)
 	void Multicast_AddInstance();

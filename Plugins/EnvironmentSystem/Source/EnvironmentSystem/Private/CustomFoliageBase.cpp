@@ -37,14 +37,6 @@ void ACustomFoliageBase::BeginPlay()
 void ACustomFoliageBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
-	if(bInstanceRemoved == false)
-	{
-		if(OriginatingFoliageISMC)
-		{
-			RemoveInstance();
-		}
-	}
 }
 
 UCustomFoliageISMC* ACustomFoliageBase::GetOriginatingFoliageISMC() const {return OriginatingFoliageISMC;}
@@ -61,19 +53,21 @@ void ACustomFoliageBase::OnSpawned(UCustomFoliageISMC* SetOriginatingFoliageISMC
 	
 	OriginatingFoliageISMC = SetOriginatingFoliageISMC;
 	FoliageManager = SetFoliageManager;
-	RemoveInstance();
+	OnRep_RemoveInstance();
 	
 }
 
-void ACustomFoliageBase::RemoveInstance()
+void ACustomFoliageBase::OnRep_RemoveInstance() const
 {
-	if(OriginatingFoliageISMC->RemoveInstanceAtLocation(GetActorLocation()) == false)
+	int32 Index;
+	if(OriginatingFoliageISMC->GetInstanceIndexFromLocation(GetActorLocation(),Index) == false)
 	{
 		UE_LOG(LogEnvironmentSystem,Warning,TEXT("%s Failed To Remove Instance"),
 			*GetName())
 	}
 	
-	bInstanceRemoved = true;
+	OriginatingFoliageISMC->RemoveInstance(Index);
+	
 }
 
 void ACustomFoliageBase::RequestRemoval()
@@ -85,6 +79,7 @@ void ACustomFoliageBase::RequestRemoval()
 
 void ACustomFoliageBase::Multicast_AddInstance_Implementation()
 {
+	
 	OriginatingFoliageISMC->AddInstance(GetActorTransform(),true);
 	Destroy();
 }

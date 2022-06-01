@@ -171,7 +171,7 @@ void ACustomFoliageManager::SwapActorsOutRangeWithInstances()
 				const float Distance = FVector::Dist(TargetFoliage->GetActorLocation(),TargetSwapper->GetOwner()->GetActorLocation());
 
 				//Check if tracked component is in range of foliage
-				bool bIsInRange = Distance < SwapRange+100;
+				bool bIsInRange = Distance < SwapRange;
 				RangeChecks.Add(bIsInRange);
 			}
 
