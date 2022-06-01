@@ -2,8 +2,8 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "1.0",
-	"FriendlyName": "EnvironmentSystem",
-	"Description": "Code Plugin for Environment System",
+	"FriendlyName": "BuildingSystem",
+	"Description": "Code plugin for the Building System's core assets ",
 	"Category": "Custom",
 	"CreatedBy": "Arlyn Goodrich",
 	"CreatedByURL": "",
@@ -16,7 +16,7 @@
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "EnvironmentSystem",
+			"Name": "BuildingSystem",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}
