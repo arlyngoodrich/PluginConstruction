@@ -89,11 +89,7 @@ void ACustomFoliageManager::GetCustomFoliageISMCs()
 
 	UE_LOG(LogEnvironmentSystem,Warning,TEXT("%s found %d custom foliage ISMCs"),
 		*GetName(),CustomFoliageISMCs.Num())
-
-	if(CustomFoliageISMCs.Num()>0)
-	{
-		bSwapFoliage = true;
-	}
+	
 }
 
 void ACustomFoliageManager::StartFoliageSwapLoop()
