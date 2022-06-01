@@ -19,16 +19,28 @@ public:
 
 protected:
 
+	/**
+	 * @brief Foliage Manager found in worl
+	 */
 	UPROPERTY(BlueprintReadOnly,Category="Foliage System")
 	ACustomFoliageManager* FoliageManager;
 	
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	/**
+	 * @brief Used to check out from foliage manager
+	 */
 	virtual void OnComponentDestroyed(bool bDestroyingHierarchy) override;
 	
+	/**
+	 * @brief Let the foliage manager know this component should be tracked
+	 */
 	void CheckInToFoliageManager();
 
+	/**
+	* @brief Let the foliage manager know this component should no longer be tracked
+	*/
 	void CheckOutOfFoliageManager();
 
 	
