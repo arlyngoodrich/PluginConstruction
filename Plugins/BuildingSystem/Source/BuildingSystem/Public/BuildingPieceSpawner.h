@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BuildingPieceSnapPoint.h"
 #include "Components/ActorComponent.h"
 #include "BuildingPieceSpawner.generated.h"
 
@@ -10,6 +11,7 @@ class ABuildingPiece;
 class UPlayerInteractionSensor;
 class ACustomPlayerController;
 class UMaterialInterface;
+class UBuildingPieceSnapPoint;
 
 
 UCLASS( ClassGroup=(BulidingSystem), Blueprintable, meta=(BlueprintSpawnableComponent) )
@@ -111,6 +113,26 @@ protected:
 	 * @brief Update the transform of the ghost mesh until canceled or placed
 	 */
 	void SpawnLoop();
+
+	/**
+	* @brief Checks for snap point during spawn loop
+	* @param OutTransform Transform of closest eligible snap point
+	 * @param OutSnapPoint Snap point found
+	* @param ViewLocation View Location of player
+	* @param BuildingPiece Building Piece to check for snaps with
+	* @return true if snap point found, false if not
+	*/
+	bool SnapPointFound(FTransform& OutTransform, UBuildingPieceSnapPoint*& OutSnapPoint, FVector ViewLocation, const ABuildingPiece* BuildingPiece) const;
+
+	
+	/**
+	 * @brief Checks for snap point during spawn loop
+	 * @param OutTransform Transform of closest eligible snap point
+	 * @param ViewLocation View Location of player
+	 * @param BuildingPiece Building Piece to check for snaps with
+	 * @return true if snap point found, false if not
+	 */
+	bool SnapPointFound(FTransform& OutTransform,FVector ViewLocation, const ABuildingPiece* BuildingPiece) const;
 
 	/**
 	 * @brief Takes Location of Ghost mesh, ends spawn loop, and spawns a new finalized version 

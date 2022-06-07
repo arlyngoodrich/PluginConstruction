@@ -15,6 +15,9 @@ public:
 	// Sets default values for this actor's properties
 	ABuildingPiece();
 
+	UFUNCTION(BlueprintCallable,Category="Building System")
+	bool GetShouldCheckForSnaps() const;
+
 	/**
 	 * @brief Called by Building Piece Spawner 
 	 */
@@ -39,5 +42,9 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,Category="Building System")
+	bool bCheckForSnaps = true;
+	
 
 };

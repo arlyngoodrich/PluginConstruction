@@ -4,6 +4,7 @@
 #include "BuildingPieceSpawner.h"
 
 #include "BuildingPiece.h"
+#include "BuildingPieceSnapPoint.h"
 #include "BuildingSystem.h"
 #include "CustomPlayerController.h"
 #include "PlayerInteractionSensor.h"
@@ -177,6 +178,15 @@ void UBuildingPieceSpawner::SpawnGhostPiece(ABuildingPiece*& OutBuildingPiece) c
 
 	SetMaterial(OutBuildingPiece,GoodPlacementMaterial);
 
+	//Remove Snap Points
+	TArray<UBuildingPieceSnapPoint*> SnapPoints;
+	OutBuildingPiece->GetComponents<UBuildingPieceSnapPoint>(SnapPoints);
+	for (int i = SnapPoints.Num() - 1; i >= 0; --i)
+	{
+		SnapPoints[i]->DestroyComponent();
+	}
+	
+
 	OutBuildingPiece->SetOwner(GetOwner());
 	
 }
@@ -191,11 +201,86 @@ void UBuildingPieceSpawner::SpawnLoop()
 
 	const FVector Location = PlayerInteractionSensor->GetLookLocation();
 	GhostPiece->SetActorLocation(Location);
+	if(GhostPiece->GetShouldCheckForSnaps())
+	{
+		FTransform Transform;
+		if(SnapPointFound(Transform,Location,GhostPiece))
+		{
+			GhostPiece->SetActorTransform(Transform);
+		}
+	}
 
 	bIsOKToPlace = GhostPiece->CheckPlacement();
 	SetMaterial(GhostPiece,bIsOKToPlace ? GoodPlacementMaterial : BadPlacementMaterial);
 
 }
+
+bool UBuildingPieceSpawner::SnapPointFound(FTransform& OutTransform, UBuildingPieceSnapPoint*& OutSnapPoint,
+                                           const FVector ViewLocation, const ABuildingPiece* BuildingPiece) const
+{
+	if(BuildingPiece == nullptr){return false;}
+
+	//Get Mesh Components
+	TArray<UMeshComponent*> MeshComponents;
+	BuildingPiece->GetComponents<UMeshComponent>(MeshComponents);
+	if(MeshComponents.Num() == 0 ){return false;}
+
+	TArray<UBuildingPieceSnapPoint*> BuildingPieceSnapPoints;
+	BuildingPiece->GetComponents<UBuildingPieceSnapPoint>(BuildingPieceSnapPoints);
+	
+	//Get Overlapping Snap Points
+	TArray<UBuildingPieceSnapPoint*> SnapPoints;
+	
+	for (int i = 0; i < MeshComponents.Num(); ++i)
+	{
+		TArray<UPrimitiveComponent*> Components;
+		MeshComponents[i]->GetOverlappingComponents(Components);
+
+		for (int c = 0; c < Components.Num(); ++c)
+		{
+			if(UBuildingPieceSnapPoint* SnapPoint = Cast<UBuildingPieceSnapPoint>(Components[c]))
+			{
+				if(SnapPoint->IsEligibleClass(BuildingPiece->GetClass()))
+				{
+					
+					//Make sure it's not one of the building pieces snap points
+					if(BuildingPieceSnapPoints.Contains(SnapPoint) == false)
+					{
+						SnapPoints.Add(SnapPoint);
+					}
+					
+				}
+			}
+		}
+	}
+	
+	//If none, return false
+	if(SnapPoints.Num() == 0) {return false;}
+	
+	//if true, see which one is closest
+	TArray<float> SnapPointDistances;
+	for (int i = 0; i < SnapPoints.Num(); ++i)
+	{
+		float Dist = FVector::Dist(ViewLocation,SnapPoints[i]->GetComponentLocation());
+		SnapPointDistances.Add(Dist);
+	}
+
+	//return true with transform
+	int32 MinIndex;
+	FMath::Min<float>(SnapPointDistances,&MinIndex);
+	OutTransform = SnapPoints[MinIndex]->GetComponentTransform();
+	OutSnapPoint = SnapPoints[MinIndex];
+	return true;
+}
+
+bool UBuildingPieceSpawner::SnapPointFound(FTransform& OutTransform, const FVector ViewLocation, const ABuildingPiece* BuildingPiece) const
+{
+	UBuildingPieceSnapPoint* SnapPoint;
+	const bool bSnapPointFound = SnapPointFound(OutTransform,SnapPoint,ViewLocation,BuildingPiece);
+	return bSnapPointFound;
+	
+}
+
 
 void UBuildingPieceSpawner::FinalizePlacement()
 {
@@ -204,7 +289,6 @@ void UBuildingPieceSpawner::FinalizePlacement()
 	const FTransform Transform = GhostPiece->GetTransform();
 	const TSubclassOf<ABuildingPiece> Class = GhostPiece->GetClass();
 	EndSpawnLoop();
-
 	Server_SpawnBuildingPiece(Class,Transform);
 	
 }
@@ -246,6 +330,17 @@ void UBuildingPieceSpawner::Server_SpawnBuildingPiece_Implementation(const TSubc
                                                                      const FTransform Transform)
 {
 	const FActorSpawnParameters SpawnParameters;
-	GetWorld()->SpawnActor<ABuildingPiece>(Class,Transform,SpawnParameters);
+
+	ABuildingPiece* BuildingPiece = GetWorld()->SpawnActor<ABuildingPiece>(Class, Transform, SpawnParameters);
+
+	if(BuildingPiece->GetShouldCheckForSnaps())
+	{
+		UBuildingPieceSnapPoint* SnapPoint;
+		FTransform SnapTransform;;
+		if(SnapPointFound(SnapTransform,SnapPoint,Transform.GetLocation(),BuildingPiece))
+		{
+			SnapPoint->AddSnappedPiece(BuildingPiece);
+		}
+	}
 }
 
