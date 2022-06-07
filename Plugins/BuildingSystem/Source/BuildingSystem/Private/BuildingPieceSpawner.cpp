@@ -170,6 +170,8 @@ void UBuildingPieceSpawner::SpawnGhostPiece(ABuildingPiece*& OutBuildingPiece) c
 	OutBuildingPiece->GetComponents<UMeshComponent>(MeshComponents);
 	for (int i = 0; i < MeshComponents.Num(); ++i)
 	{
+		MeshComponents[i]->SetCollisionObjectType(ECC_WorldDynamic);
+		MeshComponents[i]->SetCollisionResponseToChannels(ECR_Overlap);
 		MeshComponents[i]->SetCollisionResponseToChannel(ECC_Visibility,ECR_Ignore);
 	}
 
