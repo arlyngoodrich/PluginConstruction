@@ -34,10 +34,16 @@ protected:
 	float SpawnLoopRate;
 
 	/**
-	 * @brief TEMP PROPERTY! 
+	 * @brief Class chosen by player to spawn
 	 */
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Building System")
-	TSubclassOf<ABuildingPiece> TestPieceToSpawn;
+	TSubclassOf<ABuildingPiece> BuildingPieceClass;
+
+	/**
+	 * @brief Ghost building piece to show player where building piece will spawn.
+	 */
+	UPROPERTY(BlueprintReadOnly,Category="Building System")
+	ABuildingPiece* GhostPiece;
 
 	/**
 	 * @brief Spawn Loop Timer Property
@@ -63,10 +69,17 @@ protected:
 	UPROPERTY(BlueprintReadOnly,Category="Building System")
 	bool bReferencesSet = false;
 
+	UPROPERTY(BlueprintReadOnly,Category="Building System")
+	bool bIsPlacingBuildingPiece;
+
 	/**
 	 * @brief Set pointer references from owning character
 	 */
 	void SetReferences();
+
+	void SetBindings();
+
+	void ClearBindings();
 
 	/**
 	 * @brief Spawn ghost mesh and start the spawn loop timer
@@ -74,11 +87,23 @@ protected:
 	void StartSpawnLoop();
 
 	/**
+	 * @brief Spawns Ghost mesh 
+	 */
+	void SpawnGhostPiece(ABuildingPiece*& OutBuildingPiece) const;
+
+	/**
 	 * @brief Update the transform of the ghost mesh until canceled or placed
 	 */
 	void SpawnLoop();
-	
-	
 
+	/**
+	 * @brief Takes Location of Ghost mesh, ends spawn loop, and spawns a new finalized version 
+	 */
+	void FinalizePlacement();
+
+	/**
+	 * @brief Destroys ghost mesh and ends spawn loop
+	 */
+	void EndSpawnLoop();
 		
 };

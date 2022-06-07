@@ -15,6 +15,11 @@ public:
 	// Sets default values for this actor's properties
 	ABuildingPiece();
 
+	/**
+	 * @brief Called by Building Piece Spawner 
+	 */
+	void OnPlacementStart();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

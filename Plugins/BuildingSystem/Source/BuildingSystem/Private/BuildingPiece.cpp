@@ -11,6 +11,19 @@ ABuildingPiece::ABuildingPiece()
 
 }
 
+void ABuildingPiece::OnPlacementStart()
+{
+	if(HasAuthority())
+	{
+		SetReplicates(false);
+		if(GetLocalRole()==ROLE_AutonomousProxy)
+		{
+			Destroy();
+		}
+	}
+
+}
+
 // Called when the game starts or when spawned
 void ABuildingPiece::BeginPlay()
 {
