@@ -11,7 +11,7 @@ class UPlayerInteractionSensor;
 class ACustomPlayerController;
 
 
-UCLASS( ClassGroup=(BulidingSystem), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(BulidingSystem), Blueprintable, meta=(BlueprintSpawnableComponent) )
 class BUILDINGSYSTEM_API UBuildingPieceSpawner : public UActorComponent
 {
 	GENERATED_BODY()
@@ -31,7 +31,7 @@ protected:
 	 * @brief Rate for updating the spawn position of the ghost mesh
 	 */
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Bulding System")
-	float SpawnLoopRate;
+	float SpawnLoopRate = .01;
 
 	/**
 	 * @brief Class chosen by player to spawn
@@ -99,11 +99,13 @@ protected:
 	/**
 	 * @brief Takes Location of Ghost mesh, ends spawn loop, and spawns a new finalized version 
 	 */
+	UFUNCTION()
 	void FinalizePlacement();
 
 	/**
 	 * @brief Destroys ghost mesh and ends spawn loop
 	 */
+	UFUNCTION()
 	void EndSpawnLoop();
 		
 };

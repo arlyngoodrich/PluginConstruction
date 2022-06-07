@@ -62,14 +62,14 @@ void UBuildingPieceSpawner::BeginPlay()
 
 void UBuildingPieceSpawner::SetReferences()
 {
-	APawn* OwningPawn = Cast<APawn>(GetOwner());
+	const APawn* OwningPawn = Cast<APawn>(GetOwner());
 	if(OwningPawn == nullptr)
 	{
 		UE_LOG(LogBuildingSystem,Error,TEXT("Building System Component not owned by pawn"))
 		return;
 	}
 
-	ACustomPlayerController* Controller = Cast<ACustomPlayerController>(OwningPawn);
+	ACustomPlayerController* Controller = Cast<ACustomPlayerController>(OwningPawn->GetController());
 	if(Controller == nullptr)
 	{
 		UE_LOG(LogBuildingSystem,Error,TEXT("Building System Component pawn controller not Custom Player Controller"))
@@ -143,12 +143,12 @@ void UBuildingPieceSpawner::SpawnGhostPiece(ABuildingPiece*& OutBuildingPiece) c
 	OutBuildingPiece->GetComponents<UMeshComponent>(MeshComponents);
 	for (int i = 0; i < MeshComponents.Num(); ++i)
 	{
-		MeshComponents[i]->SetCollisionResponseToChannel(ECC_Vehicle,ECR_Ignore);
+		MeshComponents[i]->SetCollisionResponseToChannel(ECC_Visibility,ECR_Ignore);
 
 		//TODO Set Material
 	}
 
-	GhostPiece->SetOwner(GetOwner());
+	OutBuildingPiece->SetOwner(GetOwner());
 	
 }
 
@@ -183,6 +183,7 @@ void UBuildingPieceSpawner::EndSpawnLoop()
 	GetWorld()->GetTimerManager().ClearTimer(SpawnLoopTimer);
 	bIsPlacingBuildingPiece = false;
 	BuildingPieceClass = nullptr;
+	PlayerInteractionSensor->ToggleInteraction(true);
 	ClearBindings();
 }
 
