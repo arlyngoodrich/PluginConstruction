@@ -12,6 +12,8 @@ ABuildingPiece::ABuildingPiece()
 
 }
 
+bool ABuildingPiece::GetShouldCheckForSnaps() const { return bCheckForSnaps; }
+
 void ABuildingPiece::OnPlacementStart()
 {
 	if(HasAuthority())
