@@ -24,12 +24,14 @@ void ABuildingPiece::OnPlacementStart()
 
 }
 
+
 // Called when the game starts or when spawned
 void ABuildingPiece::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
+
 
 // Called every frame
 void ABuildingPiece::Tick(float DeltaTime)
@@ -38,3 +40,14 @@ void ABuildingPiece::Tick(float DeltaTime)
 
 }
 
+
+bool ABuildingPiece::CheckPlacement_Implementation()
+{
+	return Internal_CheckPlacement();
+}
+
+
+bool ABuildingPiece::Internal_CheckPlacement()
+{
+	return true;
+}

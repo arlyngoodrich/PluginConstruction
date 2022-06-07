@@ -20,12 +20,24 @@ public:
 	 */
 	void OnPlacementStart();
 
+	/**
+	 * @brief Blueprint version to check placement.  Defaults to native Internal_CheckPlacement method but can be overriden.
+	 * @return True if OK to place, false if not.
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category="Building System")
+	bool CheckPlacement();
+
+	/**
+	 * @brief Native version of check placement. 
+	 * @return True if OK to place, false if not. 
+	 */
+	virtual bool Internal_CheckPlacement();
+	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 };

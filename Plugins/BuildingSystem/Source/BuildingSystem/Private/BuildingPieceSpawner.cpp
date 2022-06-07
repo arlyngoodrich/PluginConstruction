@@ -17,6 +17,33 @@ UBuildingPieceSpawner::UBuildingPieceSpawner()
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicated(true);
 
+	//C:/GameDev/Projects/PluginConstruction/Plugins/BuildingSystem/Content/Materials/MI_BadPlacement.uasset
+
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface>
+	GoodMaterial(TEXT("MaterialInstanceConstant'/BuildingSystem/Materials/MI_GoodPlacement.MI_GoodPlacement'"));
+
+	if(GoodMaterial.Object)
+	{
+		GoodPlacementMaterial = Cast<UMaterialInterface>(GoodMaterial.Object);
+	}
+	else
+	{
+		UE_LOG(LogBuildingSystem,Warning,TEXT("%s could not set default good spawn material"),*GetClass()->GetName())
+	}
+
+	//Get bad spawn default material
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface>
+	BadMaterial(TEXT("MaterialInstanceConstant'/BuildingSystem/Materials/MI_BadPlacement.MI_BadPlacement'"));
+
+	if(BadMaterial.Object)
+	{
+		BadPlacementMaterial = Cast<UMaterialInterface>(BadMaterial.Object);
+	}
+	else
+	{
+		UE_LOG(LogBuildingSystem,Warning,TEXT("%s could not set default bad spawn material"),*GetClass()->GetName())
+	}
+
 	// ...
 }
 
@@ -144,9 +171,9 @@ void UBuildingPieceSpawner::SpawnGhostPiece(ABuildingPiece*& OutBuildingPiece) c
 	for (int i = 0; i < MeshComponents.Num(); ++i)
 	{
 		MeshComponents[i]->SetCollisionResponseToChannel(ECC_Visibility,ECR_Ignore);
-
-		//TODO Set Material
 	}
+
+	SetMaterial(OutBuildingPiece,GoodPlacementMaterial);
 
 	OutBuildingPiece->SetOwner(GetOwner());
 	
@@ -162,11 +189,16 @@ void UBuildingPieceSpawner::SpawnLoop()
 
 	const FVector Location = PlayerInteractionSensor->GetLookLocation();
 	GhostPiece->SetActorLocation(Location);
-	
+
+	bIsOKToPlace = GhostPiece->CheckPlacement();
+	SetMaterial(GhostPiece,bIsOKToPlace ? GoodPlacementMaterial : BadPlacementMaterial);
+
 }
 
 void UBuildingPieceSpawner::FinalizePlacement()
 {
+	if(bIsOKToPlace == false){return;}
+	
 	const FTransform Transform = GhostPiece->GetTransform();
 	const TSubclassOf<ABuildingPiece> Class = GhostPiece->GetClass();
 	EndSpawnLoop();
@@ -185,5 +217,22 @@ void UBuildingPieceSpawner::EndSpawnLoop()
 	BuildingPieceClass = nullptr;
 	PlayerInteractionSensor->ToggleInteraction(true);
 	ClearBindings();
+}
+
+void UBuildingPieceSpawner::SetMaterial(const AActor* Actor, UMaterialInterface* NewMaterial)
+{
+	if(Actor == nullptr || NewMaterial == nullptr) {return;}
+	
+	TArray<UMeshComponent*> MeshComponents;
+	Actor->GetComponents<UMeshComponent>(MeshComponents);
+	for (int i = 0; i < MeshComponents.Num(); ++i)
+	{
+		const int32 NumMaterials = MeshComponents[i]->GetNumMaterials();
+
+		for (int n = 0; n < NumMaterials; ++n)
+		{
+			MeshComponents[i]->SetMaterial(n,NewMaterial);
+		}
+	}
 }
 

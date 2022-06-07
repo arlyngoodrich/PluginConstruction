@@ -9,6 +9,7 @@
 class ABuildingPiece;
 class UPlayerInteractionSensor;
 class ACustomPlayerController;
+class UMaterialInterface;
 
 
 UCLASS( ClassGroup=(BulidingSystem), Blueprintable, meta=(BlueprintSpawnableComponent) )
@@ -32,6 +33,12 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Bulding System")
 	float SpawnLoopRate = .01;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Building System")
+	UMaterialInterface* GoodPlacementMaterial;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Building System")
+	UMaterialInterface* BadPlacementMaterial;
 
 	/**
 	 * @brief Class chosen by player to spawn
@@ -72,13 +79,22 @@ protected:
 	UPROPERTY(BlueprintReadOnly,Category="Building System")
 	bool bIsPlacingBuildingPiece;
 
+	UPROPERTY(BlueprintReadOnly,Category="Building System")
+	bool bIsOKToPlace;
+
 	/**
 	 * @brief Set pointer references from owning character
 	 */
 	void SetReferences();
 
+	/**
+	 * @brief Set input bindings from Custom Player Controller
+	 */
 	void SetBindings();
 
+	/**
+	 * @brief Clear input bindings from Custom Player Controller
+	 */
 	void ClearBindings();
 
 	/**
@@ -107,5 +123,13 @@ protected:
 	 */
 	UFUNCTION()
 	void EndSpawnLoop();
-		
+
+
+	/**
+	 * @brief Helper function to change material of all mesh components of an actor
+	 * @param Actor Target Actor
+	 * @param NewMaterial  New Material 
+	 */
+	static void SetMaterial(const AActor* Actor, UMaterialInterface* NewMaterial);
+	
 };
