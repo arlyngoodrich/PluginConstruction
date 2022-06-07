@@ -26,6 +26,9 @@ public class BuildingSystem : ModuleRules
 			new string[]
 			{
 				"Core",
+				"CustomWidgetTemplates",
+				"InteractionSystem",
+				"UniversalCoreAssets"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
