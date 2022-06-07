@@ -92,14 +92,14 @@ void UBuildingPieceSpawner::SetReferences()
 	const APawn* OwningPawn = Cast<APawn>(GetOwner());
 	if(OwningPawn == nullptr)
 	{
-		UE_LOG(LogBuildingSystem,Error,TEXT("Building System Component not owned by pawn"))
+		//UE_LOG(LogBuildingSystem,Error,TEXT("Building System Component not owned by pawn"))
 		return;
 	}
 
 	ACustomPlayerController* Controller = Cast<ACustomPlayerController>(OwningPawn->GetController());
 	if(Controller == nullptr)
 	{
-		UE_LOG(LogBuildingSystem,Error,TEXT("Building System Component pawn controller not Custom Player Controller"))
+		//UE_LOG(LogBuildingSystem,Error,TEXT("Building System Component pawn controller not Custom Player Controller"))
 		return;
 	}
 
@@ -205,8 +205,7 @@ void UBuildingPieceSpawner::FinalizePlacement()
 	const TSubclassOf<ABuildingPiece> Class = GhostPiece->GetClass();
 	EndSpawnLoop();
 
-	const FActorSpawnParameters SpawnParameters;
-	GetWorld()->SpawnActor<ABuildingPiece>(Class,Transform,SpawnParameters);
+	Server_SpawnBuildingPiece(Class,Transform);
 	
 }
 
@@ -236,5 +235,17 @@ void UBuildingPieceSpawner::SetMaterial(const AActor* Actor, UMaterialInterface*
 			MeshComponents[i]->SetMaterial(n,NewMaterial);
 		}
 	}
+}
+
+bool UBuildingPieceSpawner::Server_SpawnBuildingPiece_Validate(TSubclassOf<ABuildingPiece> Class, FTransform Transform)
+{
+	return true;
+}
+
+void UBuildingPieceSpawner::Server_SpawnBuildingPiece_Implementation(const TSubclassOf<ABuildingPiece> Class,
+                                                                     const FTransform Transform)
+{
+	const FActorSpawnParameters SpawnParameters;
+	GetWorld()->SpawnActor<ABuildingPiece>(Class,Transform,SpawnParameters);
 }
 

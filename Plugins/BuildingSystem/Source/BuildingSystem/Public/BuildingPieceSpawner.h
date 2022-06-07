@@ -131,5 +131,10 @@ protected:
 	 * @param NewMaterial  New Material 
 	 */
 	static void SetMaterial(const AActor* Actor, UMaterialInterface* NewMaterial);
+
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_SpawnBuildingPiece(TSubclassOf<ABuildingPiece> Class, FTransform Transform);
+	bool Server_SpawnBuildingPiece_Validate(TSubclassOf<ABuildingPiece> Class, FTransform Transform);
+	void Server_SpawnBuildingPiece_Implementation(TSubclassOf<ABuildingPiece> Class, FTransform Transform);
 	
 };
