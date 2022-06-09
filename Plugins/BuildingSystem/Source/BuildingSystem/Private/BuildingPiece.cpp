@@ -157,6 +157,7 @@ void ABuildingPiece::OnPlaced(const bool SetIsSnapped)
 		else
 		{
 			UE_LOG(LogBuildingSystem,Error,TEXT("%s could not spawn building"),*GetName())
+			//TODO add building merging
 		}
 	}
 }
