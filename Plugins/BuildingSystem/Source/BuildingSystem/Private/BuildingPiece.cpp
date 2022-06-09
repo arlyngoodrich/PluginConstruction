@@ -138,11 +138,19 @@ void ABuildingPiece::OnPlaced(const bool SetIsSnapped)
 	{
 		//If no snap points/owning building, create one
 		const FActorSpawnParameters SpawnParameters;
-		ABuilding* NewBuilding = GetWorld()->SpawnActor<ABuilding>(ABuildingPiece::StaticClass(), GetTransform(), SpawnParameters);
-		NewBuilding->CheckBuildingPieceIn(this);
-		OwningBuilding = NewBuilding;
+		if(ABuilding* NewBuilding = GetWorld()->SpawnActor<ABuilding>(ABuilding::StaticClass(), GetTransform(), SpawnParameters))
+		{
+			NewBuilding->CheckBuildingPieceIn(this);
+			OwningBuilding = NewBuilding;
+			UE_LOG(LogBuildingSystem,Log,TEXT("%s created new building %s"),*GetName(),*NewBuilding->GetName())
+		}
+		else
+		{
+			UE_LOG(LogBuildingSystem,Error,TEXT("%s could not spawn building"),*GetName())
+		}
+	
 
-		UE_LOG(LogBuildingSystem,Log,TEXT("%s created new building %s"),*GetName(),*NewBuilding->GetName())
+		
 	}
 }
 
