@@ -36,8 +36,42 @@ void ABuilding::BeginPlay()
 	if(HasAuthority())
 	{
 		TimeCreated = FDateTime::UtcNow();
+		if(bSpawnedAsTemplateBuilding)
+		{
+			InitializeFromTemplate();
+		}
 	}
 	
+}
+
+void ABuilding::InitializeFromTemplate()
+{
+	if(HasAuthority() == false){return;}
+
+	//Get Building Pieces form Child Actors
+	TArray<AActor*> ChildActors;
+	GetAllChildActors(ChildActors,true);
+	for (int i = 0; i < ChildActors.Num(); ++i)
+	{
+		AActor* TargetActor = ChildActors[i];
+		if(ABuildingPiece* TargetBuildingPiece = Cast<ABuildingPiece>(TargetActor))
+		{
+			//Set owning Building and check in
+			TargetBuildingPiece->SetOwningBuilding(this);
+			CheckBuildingPieceIn(TargetBuildingPiece);
+		}
+	}
+
+	for (int i = 0; i < MyBuildingPieces.Num(); ++i)
+	{
+		//Have owned building pieces update their support points
+		if(MyBuildingPieces[i])
+		{
+			MyBuildingPieces[i]->UpdateSupportPoints();
+		}
+	}
+
+	UE_LOG(LogBuildingSystem,Log,TEXT("%s spawned from template"),*GetName())
 }
 
 

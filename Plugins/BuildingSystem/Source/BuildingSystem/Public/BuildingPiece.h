@@ -37,6 +37,12 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	/**
+	 * @brief Checks for valid overlapping snap points and sets support points
+	 */
+	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category="Buidling System")
+	void UpdateSupportPoints();
+
+	/**
 	 * @brief Called by Building Piece Spawning Component when spawn is set on  sever
 	 * @param SetIsSnapped If the building piece was snapped during spawning
 	 */

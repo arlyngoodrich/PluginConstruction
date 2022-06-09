@@ -74,6 +74,39 @@ void ABuildingPiece::Tick(float DeltaTime)
 
 }
 
+void ABuildingPiece::UpdateSupportPoints()
+{
+	//Check for overlapping snap points
+	TArray<UMeshComponent*> MeshComponents;
+	TArray<UBuildingPieceSnapPoint*> MyOwnedSnapPoints;
+
+	GetComponents<UBuildingPieceSnapPoint>(MyOwnedSnapPoints);
+	GetComponents<UMeshComponent>(MeshComponents);
+
+	//Cycyke through all mesh components to find overlapping snapped points 
+	for (int i = 0; i < MeshComponents.Num(); ++i)
+	{
+		const UMeshComponent* TargetMeshComponent = MeshComponents[i];
+		TArray<UPrimitiveComponent*> PrimitiveComponents;
+		TargetMeshComponent->GetOverlappingComponents(PrimitiveComponents);
+
+		//Cycle through overlapped primitives looking for snap point components
+		for (int c = 0; c < PrimitiveComponents.Num(); ++c)
+		{
+			UPrimitiveComponent* TargetPrimitiveComponent = PrimitiveComponents[c];
+			if(UBuildingPieceSnapPoint* SnapPoint = Cast<UBuildingPieceSnapPoint>(TargetPrimitiveComponent))
+			{
+				//Make sure snap point is eligible to provide support and that its not one of this building pieces own snap points
+				if(SnapPoint->IsEligibleForSupport(this->GetClass()) && MyOwnedSnapPoints.Contains(SnapPoint) == false)
+				{
+					//Add valid overlapping snap points to snap points array
+					SupportingSnapPoints.Add(SnapPoint);
+				}
+			}
+		}
+	}
+}
+
 void ABuildingPiece::OnPlaced(const bool SetIsSnapped)
 {
 
@@ -84,35 +117,7 @@ void ABuildingPiece::OnPlaced(const bool SetIsSnapped)
 	bIsSnapped = SetIsSnapped;
 	if(bIsSnapped)
 	{
-		//Check for overlapping snap points
-		TArray<UMeshComponent*> MeshComponents;
-		TArray<UBuildingPieceSnapPoint*> MyOwnedSnapPoints;
-
-		GetComponents<UBuildingPieceSnapPoint>(MyOwnedSnapPoints);
-		GetComponents<UMeshComponent>(MeshComponents);
-
-		//Cycyke through all mesh components to find overlapping snapped points 
-		for (int i = 0; i < MeshComponents.Num(); ++i)
-		{
-			const UMeshComponent* TargetMeshComponent = MeshComponents[i];
-			TArray<UPrimitiveComponent*> PrimitiveComponents;
-			TargetMeshComponent->GetOverlappingComponents(PrimitiveComponents);
-
-			//Cycle through overlapped primitives looking for snap point components
-			for (int c = 0; c < PrimitiveComponents.Num(); ++c)
-			{
-				UPrimitiveComponent* TargetPrimitiveComponent = PrimitiveComponents[c];
-				if(UBuildingPieceSnapPoint* SnapPoint = Cast<UBuildingPieceSnapPoint>(TargetPrimitiveComponent))
-				{
-					//Make sure snap point is eligible to provide support and that its not one of this building pieces own snap points
-					if(SnapPoint->IsEligibleForSupport(this->GetClass()) && MyOwnedSnapPoints.Contains(SnapPoint) == false)
-					{
-						//Add valid overlapping snap points to snap points array
-						SupportingSnapPoints.Add(SnapPoint);
-					}
-				}
-			}
-		}
+		UpdateSupportPoints();
 
 		//Make sure there are valid snap points
 		if(SupportingSnapPoints.Num()==0)

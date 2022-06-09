@@ -55,6 +55,12 @@ protected:
 	virtual void BeginPlay() override;
 
 	/**
+	 * @brief If the building is placed in the world with building piece child actors
+	 */
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Building System")
+	bool bSpawnedAsTemplateBuilding = false;
+
+	/**
 	 * @brief Building pieces that make up this building
 	 */
 	UPROPERTY(BlueprintReadOnly,Replicated,Category="Building System")
@@ -65,6 +71,9 @@ protected:
 	 */
 	UPROPERTY(BlueprintReadOnly, Replicated, Category="Building System")
 	FDateTime TimeCreated;
+
+	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category="Building System")
+	void InitializeFromTemplate();
 
 
 };
