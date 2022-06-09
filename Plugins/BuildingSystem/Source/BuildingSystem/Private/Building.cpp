@@ -99,5 +99,6 @@ void ABuilding::MergeBuilding(ABuilding* TargetBuilding)
 		}
 	}
 
+	UE_LOG(LogBuildingSystem,Log,TEXT("%s merged into %s"),*TargetBuilding->GetName(),*GetName())
 	TargetBuilding->Destroy();
 }
