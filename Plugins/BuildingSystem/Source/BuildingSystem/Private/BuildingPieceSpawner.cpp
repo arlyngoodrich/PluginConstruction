@@ -332,7 +332,8 @@ void UBuildingPieceSpawner::Server_SpawnBuildingPiece_Implementation(const TSubc
 	const FActorSpawnParameters SpawnParameters;
 
 	ABuildingPiece* BuildingPiece = GetWorld()->SpawnActor<ABuildingPiece>(Class, Transform, SpawnParameters);
-
+	bool bPieceSnapped = false;
+	
 	if(BuildingPiece->GetShouldCheckForSnaps())
 	{
 		UBuildingPieceSnapPoint* SnapPoint;
@@ -340,8 +341,11 @@ void UBuildingPieceSpawner::Server_SpawnBuildingPiece_Implementation(const TSubc
 		if(SnapPointFound(SnapTransform,SnapPoint,Transform.GetLocation(),BuildingPiece))
 		{
 			SnapPoint->AddSnappedPiece(BuildingPiece);
+			bPieceSnapped = true;
 		}
 	}
+
+	BuildingPiece->OnPlaced(bPieceSnapped);
 
 	UE_LOG(LogBuildingSystem,Log,TEXT("%s placed %s building piece"),
 		*GetOwner()->GetName(),*BuildingPiece->GetName())
