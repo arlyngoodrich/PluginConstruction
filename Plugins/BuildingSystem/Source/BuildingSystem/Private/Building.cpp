@@ -48,6 +48,7 @@ void ABuilding::CheckBuildingPieceIn(ABuildingPiece* BuildingPiece)
 		return;
 	}
 
+	UE_LOG(LogBuildingSystem,Log,TEXT("%s checked into %s building"),*BuildingPiece->GetName(),*GetName())
 	MyBuildingPieces.Add(BuildingPiece);	
 	
 }
@@ -68,6 +69,7 @@ void ABuilding::CheckBuildingPieceOut(ABuildingPiece* BuildingPiece)
 		
 	}
 
+	UE_LOG(LogBuildingSystem,Log,TEXT("%s checked out of %s building"),*BuildingPiece->GetName(),*GetName())
 	MyBuildingPieces.Remove(BuildingPiece);	
 		
 }
