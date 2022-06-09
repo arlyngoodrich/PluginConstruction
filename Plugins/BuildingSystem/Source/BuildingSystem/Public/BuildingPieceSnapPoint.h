@@ -20,15 +20,33 @@ public:
 
 	UBuildingPieceSnapPoint();
 	
+
 	/**
-	 * @brief Building Piece classes that can snap to this component
+	 * @brief Gets the snap point owning building piece
 	 */
 	UFUNCTION(BlueprintCallable,Category="Building System")
-	TArray<TSubclassOf<ABuildingPiece>> GetAcceptableSnapClasses();
-
+	ABuildingPiece* GetOwningPiece() const;
+	
+	/**
+	 * @brief Checks if a building piece is eligible to snap to the snap point
+	 * @param Class Class to check
+	 * @return True if OK to snap, false if not
+	 */
 	UFUNCTION(BlueprintCallable,Category="Building System")
-	bool IsEligibleClass(TSubclassOf<ABuildingPiece> Class);
+	bool IsEligibleForSnap(TSubclassOf<ABuildingPiece> Class);
 
+	/**
+	* @brief Checks if a building piece is eligible to be support by this snap point
+	* @param Class Class to check
+	* @return True if OK to snap, false if not
+	*/
+	UFUNCTION(BlueprintCallable,Category="Building System")
+	bool IsEligibleForSupport(TSubclassOf<ABuildingPiece> Class);
+
+	/**
+	 * @brief Sets the building piece as the snapped piece
+	 * @param Piece Piece to snap
+	 */
 	void AddSnappedPiece(ABuildingPiece* Piece);
 
 protected:
@@ -39,10 +57,24 @@ protected:
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Building System")
 	TArray<TSubclassOf<ABuildingPiece>> AcceptableSnapClasses;
 
+	/**
+	 * @brief boolean for if snap point already has a piece snapped to it
+	 */
 	UPROPERTY(Replicated, BlueprintReadOnly,Category="Building System")
 	bool bIsSnapped;
 
+	/**
+	 * @brief Piece that this snap point is a component of
+	 */
+	UPROPERTY(Replicated,BlueprintReadOnly,Category="Buidling System")
+	ABuildingPiece* OwningPiece;
+	
+	/**
+	 * @brief Piece that this connected to this snap point
+	 */
 	UPROPERTY(Replicated, BlueprintReadOnly,Category="Building System")
 	ABuildingPiece* SnappedPiece;
+
+	virtual void BeginPlay() override;
 		
 };

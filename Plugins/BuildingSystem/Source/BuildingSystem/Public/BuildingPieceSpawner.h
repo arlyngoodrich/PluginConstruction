@@ -154,6 +154,11 @@ protected:
 	 */
 	static void SetMaterial(const AActor* Actor, UMaterialInterface* NewMaterial);
 
+	/**
+	 * @brief RPC for finalizing building spawn which should only happen on server
+	 * @param Class Building Class to spawn
+	 * @param Transform Transform for new building
+	 */
 	UFUNCTION(Server,Reliable,WithValidation)
 	void Server_SpawnBuildingPiece(TSubclassOf<ABuildingPiece> Class, FTransform Transform);
 	bool Server_SpawnBuildingPiece_Validate(TSubclassOf<ABuildingPiece> Class, FTransform Transform);
