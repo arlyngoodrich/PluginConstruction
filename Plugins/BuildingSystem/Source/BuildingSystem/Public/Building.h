@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "Building.generated.h"
 
+class ABuildingPiece;
+
 UCLASS()
 class BUILDINGSYSTEM_API ABuilding : public AActor
 {
@@ -15,12 +17,18 @@ public:
 	// Sets default values for this actor's properties
 	ABuilding();
 
+	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category="Building System")
+	void CheckBuildingPieceIn(ABuildingPiece* BuildingPiece);
+
+	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category="Building System")
+	void CheckBuildingPieceOut(ABuildingPiece* BuildingPiece);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UPROPERTY(BlueprintReadOnly,Replicated,Category="Building System")
+	TArray<ABuildingPiece*> MyBuildingPieces;
+
 
 };

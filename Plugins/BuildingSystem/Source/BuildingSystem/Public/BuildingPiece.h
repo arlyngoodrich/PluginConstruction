@@ -6,6 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "BuildingPiece.generated.h"
 
+class UBuildingPieceSnapPoint;
+class ABuilding;
+
 UCLASS()
 class BUILDINGSYSTEM_API ABuildingPiece : public AActor
 {
@@ -39,12 +42,29 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category="Building System")
+	void OnPlaced(bool SetIsSnapped);
+
+	UFUNCTION(BlueprintCallable,Category="Building System")
+	ABuilding* GetOwningBuilding();
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,Category="Building System")
 	bool bCheckForSnaps = true;
+
+	UPROPERTY(BlueprintReadOnly, Replicated, Category="Building System")
+	bool bIsSnapped;
+
+	UPROPERTY(BlueprintReadOnly,Replicated,Category="Building System")
+	TArray<UBuildingPieceSnapPoint*> SupportingSnapPoints;
+
+	UPROPERTY(BlueprintReadOnly,Replicated,Category="Building System")
+	ABuilding* OwningBuilding = nullptr;
+
 	
 
 };

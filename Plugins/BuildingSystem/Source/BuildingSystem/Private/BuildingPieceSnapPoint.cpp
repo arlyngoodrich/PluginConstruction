@@ -3,6 +3,7 @@
 
 #include "BuildingPieceSnapPoint.h"
 #include "BuildingPiece.h"
+#include "BuildingSystem.h"
 #include "Net/UnrealNetwork.h"
 
 UBuildingPieceSnapPoint::UBuildingPieceSnapPoint()
@@ -10,7 +11,6 @@ UBuildingPieceSnapPoint::UBuildingPieceSnapPoint()
 	SetIsReplicated(true);
 }
 
-TArray<TSubclassOf<ABuildingPiece>> UBuildingPieceSnapPoint::GetAcceptableSnapClasses() {return AcceptableSnapClasses;}
 
 void UBuildingPieceSnapPoint::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifetimeProps) const
 {
@@ -20,7 +20,9 @@ void UBuildingPieceSnapPoint::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	DOREPLIFETIME(UBuildingPieceSnapPoint, SnappedPiece);
 }
 
-bool UBuildingPieceSnapPoint::IsEligibleClass(TSubclassOf<ABuildingPiece> Class)
+ABuildingPiece* UBuildingPieceSnapPoint::GetOwningPiece() const {return OwningPiece;}
+
+bool UBuildingPieceSnapPoint::IsEligibleForSnap(const TSubclassOf<ABuildingPiece> Class)
 {
 
 	if(bIsSnapped){return false;}
@@ -36,8 +38,34 @@ bool UBuildingPieceSnapPoint::IsEligibleClass(TSubclassOf<ABuildingPiece> Class)
 	return ClassChecks.Contains(true);
 }
 
+bool UBuildingPieceSnapPoint::IsEligibleForSupport(const TSubclassOf<ABuildingPiece> Class)
+{
+	TArray<bool> ClassChecks;
+	
+	for (int i = 0; i < AcceptableSnapClasses.Num(); ++i)
+	{
+		bool ClassCheck = Class->IsChildOf(AcceptableSnapClasses[i]);
+		ClassChecks.Add(ClassCheck);
+	}
+
+	return ClassChecks.Contains(true);
+}
+
 void UBuildingPieceSnapPoint::AddSnappedPiece(ABuildingPiece* Piece)
 {
 	SnappedPiece = Piece;
 	bIsSnapped = true;
+}
+
+void UBuildingPieceSnapPoint::BeginPlay()
+{
+	Super::BeginPlay();
+
+	OwningPiece = Cast<ABuildingPiece>(GetOwner());
+	if(OwningPiece == nullptr)
+	{
+		UE_LOG(LogBuildingSystem,Error,TEXT("Buiding Snap point component owner is not building piece but %s"),
+			*GetOwner()->GetName())
+	}
+	
 }

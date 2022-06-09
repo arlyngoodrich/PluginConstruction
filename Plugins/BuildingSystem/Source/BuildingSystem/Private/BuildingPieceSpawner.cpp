@@ -240,7 +240,7 @@ bool UBuildingPieceSpawner::SnapPointFound(FTransform& OutTransform, UBuildingPi
 		{
 			if(UBuildingPieceSnapPoint* SnapPoint = Cast<UBuildingPieceSnapPoint>(Components[c]))
 			{
-				if(SnapPoint->IsEligibleClass(BuildingPiece->GetClass()))
+				if(SnapPoint->IsEligibleForSnap(BuildingPiece->GetClass()))
 				{
 					
 					//Make sure it's not one of the building pieces snap points
@@ -342,5 +342,9 @@ void UBuildingPieceSpawner::Server_SpawnBuildingPiece_Implementation(const TSubc
 			SnapPoint->AddSnappedPiece(BuildingPiece);
 		}
 	}
+
+	UE_LOG(LogBuildingSystem,Log,TEXT("%s placed %s building piece"),
+		*GetOwner()->GetName(),*BuildingPiece->GetName())
+	
 }
 
