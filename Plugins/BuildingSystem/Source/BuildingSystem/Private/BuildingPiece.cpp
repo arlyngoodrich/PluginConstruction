@@ -47,6 +47,16 @@ void ABuildingPiece::BeginPlay()
 	
 }
 
+void ABuildingPiece::BeginDestroy()
+{
+	if(OwningBuilding && HasAuthority())
+	{
+		OwningBuilding->CheckBuildingPieceOut(this);
+	}
+	
+	Super::BeginDestroy();
+}
+
 
 // Called every frame
 void ABuildingPiece::Tick(float DeltaTime)
@@ -148,9 +158,6 @@ void ABuildingPiece::OnPlaced(const bool SetIsSnapped)
 		{
 			UE_LOG(LogBuildingSystem,Error,TEXT("%s could not spawn building"),*GetName())
 		}
-	
-
-		
 	}
 }
 
