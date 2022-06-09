@@ -32,12 +32,6 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category="Building System")
 	bool CheckPlacement();
-
-	/**
-	 * @brief Native version of check placement. 
-	 * @return True if OK to place, false if not. 
-	 */
-	virtual bool Internal_CheckPlacement();
 	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -56,6 +50,12 @@ public:
 	UFUNCTION(BlueprintCallable,Category="Building System")
 	ABuilding* GetOwningBuilding();
 
+	/**
+	 * @brief Updates Owning Building for this piece. Can only be done on the server
+	 * @param NewOwningBuilding New Owning Building 
+	 */
+	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category="Building System")
+	void SetOwningBuilding(ABuilding* NewOwningBuilding);
 
 protected:
 	// Called when the game starts or when spawned
@@ -91,6 +91,10 @@ protected:
 	UPROPERTY(BlueprintReadOnly,Replicated,Category="Building System")
 	ABuilding* OwningBuilding = nullptr;
 
-	
+	/**
+	* @brief Native version of check placement. 
+	 * @return True if OK to place, false if not. 
+	*/
+	virtual bool Internal_CheckPlacement();
 
 };

@@ -15,11 +15,15 @@ ABuilding::ABuilding()
 
 }
 
+FDateTime ABuilding::GetTimeCreated() const { return TimeCreated;}
+TArray<ABuildingPiece*> ABuilding::GetBuildingPieces(){return MyBuildingPieces;}
+
 void ABuilding::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(ABuilding, MyBuildingPieces);
+	DOREPLIFETIME(ABuilding, TimeCreated);
 
 }
 
@@ -27,6 +31,12 @@ void ABuilding::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifeti
 void ABuilding::BeginPlay()
 {
 	Super::BeginPlay();
+
+	//Set time created 
+	if(HasAuthority())
+	{
+		TimeCreated = FDateTime::UtcNow();
+	}
 	
 }
 
@@ -72,4 +82,22 @@ void ABuilding::CheckBuildingPieceOut(ABuildingPiece* BuildingPiece)
 	UE_LOG(LogBuildingSystem,Log,TEXT("%s checked out of %s building"),*BuildingPiece->GetName(),*GetName())
 	MyBuildingPieces.Remove(BuildingPiece);	
 		
+}
+
+void ABuilding::MergeBuilding(ABuilding* TargetBuilding)
+{
+	if(HasAuthority() == false){return;}
+	
+	TArray<ABuildingPiece*> BuildingPiecesToAdd = TargetBuilding->GetBuildingPieces();
+
+	for (int i = 0; i < BuildingPiecesToAdd.Num(); ++i)
+	{
+		if(ABuildingPiece* TargetPiece = BuildingPiecesToAdd[i])
+		{
+			TargetPiece->SetOwningBuilding(this);
+			CheckBuildingPieceIn(TargetPiece);
+		}
+	}
+
+	TargetBuilding->Destroy();
 }

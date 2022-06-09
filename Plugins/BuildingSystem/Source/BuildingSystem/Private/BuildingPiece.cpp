@@ -27,6 +27,15 @@ void ABuildingPiece::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutL
 bool ABuildingPiece::GetShouldCheckForSnaps() const { return bCheckForSnaps; }
 ABuilding* ABuildingPiece::GetOwningBuilding(){return OwningBuilding;}
 
+void ABuildingPiece::SetOwningBuilding(ABuilding* NewOwningBuilding)
+{
+	if(HasAuthority() == false ){return;}
+
+	if(NewOwningBuilding == nullptr){return;}
+
+	OwningBuilding = NewOwningBuilding;
+}
+
 void ABuildingPiece::OnPlacementStart()
 {
 	if(HasAuthority())
@@ -141,7 +150,27 @@ void ABuildingPiece::OnPlaced(const bool SetIsSnapped)
 		//If more than one building, merge with older one?
 		else
 		{
-			UE_LOG(LogBuildingSystem,Warning,TEXT("Multiple Buildings Found, need to implement building merge"))
+			TArray<FDateTime> DateTimes;
+			for (int i = 0; i < FoundBuildings.Num(); ++i)
+			{
+				FDateTime DateTime = FoundBuildings[i]->GetTimeCreated();
+				DateTimes.Add(DateTime);
+			}
+
+			//Find oldest building
+			int32 OldIndex;
+			FMath::Min<FDateTime>(DateTimes,&OldIndex);
+			ABuilding* OldestBuilding = FoundBuildings[OldIndex];
+
+			//Find newest building
+			int32 NewIndex;
+			FMath::Max<FDateTime>(DateTimes,&NewIndex);
+			ABuilding* NewestBuilding = FoundBuildings[NewIndex];
+
+			//Check into oldest building and trigger merge
+			OldestBuilding->CheckBuildingPieceIn(this);
+			OldestBuilding->MergeBuilding(NewestBuilding);
+			
 		}
 	}
 	else
@@ -153,11 +182,6 @@ void ABuildingPiece::OnPlaced(const bool SetIsSnapped)
 			NewBuilding->CheckBuildingPieceIn(this);
 			OwningBuilding = NewBuilding;
 			UE_LOG(LogBuildingSystem,Log,TEXT("%s created new building %s"),*GetName(),*NewBuilding->GetName())
-		}
-		else
-		{
-			UE_LOG(LogBuildingSystem,Error,TEXT("%s could not spawn building"),*GetName())
-			//TODO add building merging
 		}
 	}
 }

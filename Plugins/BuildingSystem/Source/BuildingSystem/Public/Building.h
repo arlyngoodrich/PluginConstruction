@@ -18,6 +18,19 @@ public:
 	ABuilding();
 
 	/**
+	 * @brief Get when the building was created
+	 * @return UTC Date time building was created
+	 */
+	UFUNCTION(BlueprintCallable,Category="Building System")
+	FDateTime GetTimeCreated() const;
+
+	/**
+	 * @return All owned building pieces
+	 */
+	UFUNCTION(BlueprintCallable,Category="Building System")
+	TArray<ABuildingPiece*> GetBuildingPieces();
+
+	/**
 	 * @brief Adds building piece to MyBuildingPieces array.  Ensures not null pointer and will not add duplicate.
 	 * @param BuildingPiece Building Piece to add
 	 */
@@ -31,6 +44,12 @@ public:
 	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category="Building System")
 	void CheckBuildingPieceOut(ABuildingPiece* BuildingPiece);
 
+	/**
+	 * @brief Merges the target building pieces into the instigating (this) building piece
+	 * @param TargetBuilding Building to Merge into this building
+	 */
+	void MergeBuilding(ABuilding* TargetBuilding);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -41,7 +60,11 @@ protected:
 	UPROPERTY(BlueprintReadOnly,Replicated,Category="Building System")
 	TArray<ABuildingPiece*> MyBuildingPieces;
 
-	//TODO add time created 
+	/**
+	 * @brief Set on being play. Set with UTC.
+	 */
+	UPROPERTY(BlueprintReadOnly, Replicated, Category="Building System")
+	FDateTime TimeCreated;
 
 
 };
