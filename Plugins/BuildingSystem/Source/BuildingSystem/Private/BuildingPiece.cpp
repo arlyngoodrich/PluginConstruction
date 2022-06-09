@@ -47,14 +47,14 @@ void ABuildingPiece::BeginPlay()
 	
 }
 
-void ABuildingPiece::BeginDestroy()
+void ABuildingPiece::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if(OwningBuilding && HasAuthority())
+	if(EndPlayReason == EEndPlayReason::Destroyed && OwningBuilding && HasAuthority())
 	{
 		OwningBuilding->CheckBuildingPieceOut(this);
 	}
 	
-	Super::BeginDestroy();
+	Super::EndPlay(EndPlayReason);
 }
 
 
