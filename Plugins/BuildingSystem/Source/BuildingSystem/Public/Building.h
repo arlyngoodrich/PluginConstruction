@@ -8,7 +8,7 @@
 
 class ABuildingPiece;
 
-UCLASS()
+UCLASS(ClassGroup=(BulidingSystem), Blueprintable)
 class BUILDINGSYSTEM_API ABuilding : public AActor
 {
 	GENERATED_BODY()
