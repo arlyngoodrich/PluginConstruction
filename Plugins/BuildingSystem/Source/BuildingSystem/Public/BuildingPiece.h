@@ -80,16 +80,46 @@ protected:
 	bool bCheckForSnaps = true;
 
 	/**
+	 * @brief Max amount of Instability before piece breaks from building
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,Category="Building System")
+	int32 MaxInstability = 3;
+
+	/**
+	 * @brief Current amount of Instability
+	 */
+	UPROPERTY(BlueprintReadOnly, Replicated, Category="Building System")
+	int32 CurrentInstability;
+
+	/**
 	 * @brief If the building piece is snapped 
 	 */
 	UPROPERTY(BlueprintReadOnly, Replicated, Category="Building System")
 	bool bIsSnapped;
 
 	/**
+	* @brief If the building piece is overlapping World Static (IE Landscape).   
+	*/
+	UPROPERTY(BlueprintReadOnly, Replicated, Category="Building System")
+	bool bIsOverlappingWorldStatic;
+
+	/**
+	* @brief If the building piece is overlapping World Static (IE Landscape).   
+	*/
+	UPROPERTY(BlueprintReadOnly, Replicated, Category="Building System")
+	bool bIsOverlappingBuildingPiece;
+
+	/**
 	 * @brief Array of snap points that overlapping the building piece. 
 	 */
 	UPROPERTY(BlueprintReadOnly,Replicated,Category="Building System")
 	TArray<UBuildingPieceSnapPoint*> SupportingSnapPoints;
+
+	/**
+ * @brief Array of snap points that overlapping the building piece. 
+ */
+	UPROPERTY(BlueprintReadOnly,Replicated,Category="Building System")
+	TArray<ABuildingPiece*> SupportingBuildingPieces;
 
 	/**
 	 * @brief Owning building piece

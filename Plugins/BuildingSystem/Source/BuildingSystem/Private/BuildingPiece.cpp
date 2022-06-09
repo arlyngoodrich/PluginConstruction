@@ -22,6 +22,10 @@ void ABuildingPiece::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutL
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(ABuildingPiece, bIsSnapped);
+	DOREPLIFETIME(ABuildingPiece, SupportingSnapPoints);
+	DOREPLIFETIME(ABuildingPiece, CurrentInstability);
+
+	
 }
 
 bool ABuildingPiece::GetShouldCheckForSnaps() const { return bCheckForSnaps; }
@@ -74,46 +78,12 @@ void ABuildingPiece::Tick(float DeltaTime)
 
 }
 
-void ABuildingPiece::UpdateSupportPoints()
-{
-	//Check for overlapping snap points
-	TArray<UMeshComponent*> MeshComponents;
-	TArray<UBuildingPieceSnapPoint*> MyOwnedSnapPoints;
-
-	GetComponents<UBuildingPieceSnapPoint>(MyOwnedSnapPoints);
-	GetComponents<UMeshComponent>(MeshComponents);
-
-	//Cycyke through all mesh components to find overlapping snapped points 
-	for (int i = 0; i < MeshComponents.Num(); ++i)
-	{
-		const UMeshComponent* TargetMeshComponent = MeshComponents[i];
-		TArray<UPrimitiveComponent*> PrimitiveComponents;
-		TargetMeshComponent->GetOverlappingComponents(PrimitiveComponents);
-
-		//Cycle through overlapped primitives looking for snap point components
-		for (int c = 0; c < PrimitiveComponents.Num(); ++c)
-		{
-			UPrimitiveComponent* TargetPrimitiveComponent = PrimitiveComponents[c];
-			if(UBuildingPieceSnapPoint* SnapPoint = Cast<UBuildingPieceSnapPoint>(TargetPrimitiveComponent))
-			{
-				//Make sure snap point is eligible to provide support and that its not one of this building pieces own snap points
-				if(SnapPoint->IsEligibleForSupport(this->GetClass()) && MyOwnedSnapPoints.Contains(SnapPoint) == false)
-				{
-					//Add valid overlapping snap points to snap points array
-					SupportingSnapPoints.Add(SnapPoint);
-				}
-			}
-		}
-	}
-}
 
 void ABuildingPiece::OnPlaced(const bool SetIsSnapped)
 {
 
 	if(HasAuthority() == false){return;}
-
-	SupportingSnapPoints.Empty();
-
+	
 	bIsSnapped = SetIsSnapped;
 	if(bIsSnapped)
 	{
@@ -191,16 +161,76 @@ void ABuildingPiece::OnPlaced(const bool SetIsSnapped)
 	}
 }
 
+void ABuildingPiece::UpdateSupportPoints()
+{
+
+	SupportingSnapPoints.Empty();
+	SupportingBuildingPieces.Empty();
+	
+	//Check for overlapping snap points
+	TArray<UMeshComponent*> MeshComponents;
+	TArray<UBuildingPieceSnapPoint*> MyOwnedSnapPoints;
+
+	GetComponents<UBuildingPieceSnapPoint>(MyOwnedSnapPoints);
+	GetComponents<UMeshComponent>(MeshComponents);
+
+	TArray<bool> WorldStaticChecks;
+	TArray<bool> BuildingPieceChecks;
+
+	//Cycle through all mesh components to find overlapping snapped points 
+	for (int i = 0; i < MeshComponents.Num(); ++i)
+	{
+		const UMeshComponent* TargetMeshComponent = MeshComponents[i];
+		TArray<UPrimitiveComponent*> PrimitiveComponents;
+		TargetMeshComponent->GetOverlappingComponents(PrimitiveComponents);
+
+		//Cycle through overlapped primitives looking for snap point components
+		for (int c = 0; c < PrimitiveComponents.Num(); ++c)
+		{
+			UPrimitiveComponent* TargetPrimitiveComponent = PrimitiveComponents[c];
+
+			//Check if overlapping building piece
+			if(ABuildingPiece* OverlappedBuildingPiece = Cast<ABuildingPiece>(TargetPrimitiveComponent->GetOwner()))
+			{
+				SupportingBuildingPieces.Add(OverlappedBuildingPiece);
+			}
+							
+			//Check if snap point
+			if(UBuildingPieceSnapPoint* SnapPoint = Cast<UBuildingPieceSnapPoint>(TargetPrimitiveComponent))
+			{
+				//Make sure snap point is eligible to provide support and that its not one of this building pieces own snap points
+				if(SnapPoint->IsEligibleForSupport(this->GetClass()) && MyOwnedSnapPoints.Contains(SnapPoint) == false)
+				{
+					//Add valid overlapping snap points to snap points array
+					SupportingSnapPoints.Add(SnapPoint);
+				}
+			}
+			else
+			{
+				//If not check, if world static
+				bool bIsWorldStatic = TargetPrimitiveComponent->GetCollisionObjectType()==ECC_WorldStatic;
+				WorldStaticChecks.Add(bIsWorldStatic);
+			}
+		}
+	}
+
+	bIsOverlappingWorldStatic = WorldStaticChecks.Contains(true);
+}
 
 
 
+//BP Version
 bool ABuildingPiece::CheckPlacement_Implementation()
 {
+	
 	return Internal_CheckPlacement();
 }
 
 
 bool ABuildingPiece::Internal_CheckPlacement()
 {
-	return true;
+	//Check if overlapping world static or another building piece
+	UpdateSupportPoints();
+
+	return bIsOverlappingWorldStatic || SupportingSnapPoints.Num()>0 || SupportingBuildingPieces.Num() > 0;
 }
