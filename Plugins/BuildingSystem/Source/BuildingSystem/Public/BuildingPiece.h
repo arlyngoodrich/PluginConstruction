@@ -31,7 +31,7 @@ public:
 	 * @return True if OK to place, false if not.
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category="Building System")
-	bool CheckPlacement();
+	bool CheckPlacement(bool bIsSnappedDuringSpawn);
 	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -131,6 +131,6 @@ protected:
 	* @brief Native version of check placement. 
 	 * @return True if OK to place, false if not. 
 	*/
-	virtual bool Internal_CheckPlacement();
+	virtual bool Internal_CheckPlacement(bool bIsSnappedDuringSpawn);
 
 };

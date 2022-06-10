@@ -29,11 +29,11 @@ public:
 	
 	/**
 	 * @brief Checks if a building piece is eligible to snap to the snap point
-	 * @param Class Class to check
+	 * @param PieceToCheck Piece to check if can snap
 	 * @return True if OK to snap, false if not
 	 */
 	UFUNCTION(BlueprintCallable,Category="Building System")
-	bool IsEligibleForSnap(TSubclassOf<ABuildingPiece> Class);
+	bool IsEligibleForSnap(ABuildingPiece* PieceToCheck);
 
 	/**
 	* @brief Checks if a building piece is eligible to be support by this snap point
@@ -73,7 +73,7 @@ protected:
 	 * @brief Piece that this connected to this snap point
 	 */
 	UPROPERTY(Replicated, BlueprintReadOnly,Category="Building System")
-	ABuildingPiece* SnappedPiece;
+	TArray<ABuildingPiece*> SnappedPieces;
 
 	virtual void BeginPlay() override;
 		

@@ -18,25 +18,39 @@ void UBuildingPieceSnapPoint::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(UBuildingPieceSnapPoint, bIsSnapped);
-	DOREPLIFETIME(UBuildingPieceSnapPoint, SnappedPiece);
+	DOREPLIFETIME(UBuildingPieceSnapPoint, SnappedPieces);
 }
 
 ABuildingPiece* UBuildingPieceSnapPoint::GetOwningPiece() const {return OwningPiece;}
 
-bool UBuildingPieceSnapPoint::IsEligibleForSnap(const TSubclassOf<ABuildingPiece> Class)
+bool UBuildingPieceSnapPoint::IsEligibleForSnap(ABuildingPiece* PieceToCheck)
 {
-
-	if(bIsSnapped){return false;}
 	
 	TArray<bool> ClassChecks;
-	
 	for (int i = 0; i < AcceptableSnapClasses.Num(); ++i)
 	{
-		bool ClassCheck = Class->IsChildOf(AcceptableSnapClasses[i]);
+		bool ClassCheck = PieceToCheck->GetClass()->IsChildOf(AcceptableSnapClasses[i]);
 		ClassChecks.Add(ClassCheck);
 	}
 
-	return ClassChecks.Contains(true);
+	TArray<bool> RotationChecks;
+	for (int i = 0; i < SnappedPieces.Num(); ++i)
+	{
+		const ABuildingPiece* TargetPiece = SnappedPieces[i];
+
+		//Check if it's a subclass or the same class as the target snap piece.
+		if(PieceToCheck->GetClass()->IsChildOf(TargetPiece->GetClass())||PieceToCheck->GetClass() == TargetPiece->GetClass())
+		{
+			bool RotationCheck = TargetPiece->GetActorRotation() == PieceToCheck->GetActorRotation();
+			RotationChecks.Add(RotationCheck);
+		}
+		else
+		{
+			RotationChecks.Add(false);
+		}
+	}
+	
+	return ClassChecks.Contains(true) && !RotationChecks.Contains(true);
 }
 
 bool UBuildingPieceSnapPoint::IsEligibleForSupport(const TSubclassOf<ABuildingPiece> Class)
@@ -54,7 +68,9 @@ bool UBuildingPieceSnapPoint::IsEligibleForSupport(const TSubclassOf<ABuildingPi
 
 void UBuildingPieceSnapPoint::AddSnappedPiece(ABuildingPiece* Piece)
 {
-	SnappedPiece = Piece;
+	if(Piece == nullptr){ return;}
+	
+	SnappedPieces.Add(Piece);
 	bIsSnapped = true;
 }
 

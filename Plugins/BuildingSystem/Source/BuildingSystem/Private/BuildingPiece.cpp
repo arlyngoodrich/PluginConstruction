@@ -214,23 +214,24 @@ void ABuildingPiece::UpdateSupportPoints()
 		}
 	}
 
+	bIsOverlappingBuildingPiece = SupportingBuildingPieces.Num() > 0;
 	bIsOverlappingWorldStatic = WorldStaticChecks.Contains(true);
 }
 
 
 
 //BP Version
-bool ABuildingPiece::CheckPlacement_Implementation()
+bool ABuildingPiece::CheckPlacement_Implementation(const bool bIsSnappedDuringSpawn)
 {
 	
-	return Internal_CheckPlacement();
+	return Internal_CheckPlacement(bIsSnappedDuringSpawn);
 }
 
 
-bool ABuildingPiece::Internal_CheckPlacement()
+bool ABuildingPiece::Internal_CheckPlacement(const bool bIsSnappedDuringSpawn)
 {
 	//Check if overlapping world static or another building piece
 	UpdateSupportPoints();
-
-	return bIsOverlappingWorldStatic || SupportingSnapPoints.Num()>0 || SupportingBuildingPieces.Num() > 0;
+	
+	return bIsOverlappingBuildingPiece || bIsOverlappingWorldStatic || bIsSnappedDuringSpawn;
 }
