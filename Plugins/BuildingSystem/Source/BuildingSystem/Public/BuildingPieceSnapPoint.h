@@ -19,13 +19,18 @@ class BUILDINGSYSTEM_API UBuildingPieceSnapPoint : public USphereComponent
 public:
 
 	UBuildingPieceSnapPoint();
-	
 
 	/**
 	 * @brief Gets the snap point owning building piece
 	 */
 	UFUNCTION(BlueprintCallable,Category="Building System")
 	ABuildingPiece* GetOwningPiece() const;
+
+	/**
+	* @brief Gets the building piece classes that are eligible to snap tp this point
+	*/
+	UFUNCTION(BlueprintCallable,Category="Building System")
+	TArray<TSubclassOf<ABuildingPiece>>  GetEligibleBuildingPieces() const;
 	
 	/**
 	 * @brief Checks if a building piece is eligible to snap to the snap point
@@ -48,6 +53,7 @@ public:
 	 * @param Piece Piece to snap
 	 */
 	void AddSnappedPiece(ABuildingPiece* Piece);
+	
 
 protected:
 
@@ -55,6 +61,12 @@ protected:
 	 * @brief Building piece classes that can snap to this component
 	 */
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Building System")
+	TArray<TSubclassOf<ABuildingPiece>> DefaultAcceptableSnapClasses;
+
+	/**
+	* @brief Building piece classes that can snap to this component
+	*/
+	UPROPERTY(BlueprintReadOnly,Category="Building System")
 	TArray<TSubclassOf<ABuildingPiece>> AcceptableSnapClasses;
 
 	/**
@@ -74,7 +86,9 @@ protected:
 	 */
 	UPROPERTY(Replicated, BlueprintReadOnly,Category="Building System")
 	TArray<ABuildingPiece*> SnappedPieces;
-
+	
 	virtual void BeginPlay() override;
+
+	void CheckForDuplicatedSnapPoints();
 		
 };

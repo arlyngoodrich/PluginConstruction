@@ -9,6 +9,8 @@
 class UBuildingPieceSnapPoint;
 class ABuilding;
 
+//TODO Add pivot rotating
+
 UCLASS()
 class BUILDINGSYSTEM_API ABuildingPiece : public AActor
 {
