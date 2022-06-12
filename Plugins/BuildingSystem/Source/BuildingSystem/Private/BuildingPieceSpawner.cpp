@@ -125,6 +125,8 @@ void UBuildingPieceSpawner::SetBindings()
 
 	CustomPlayerController->OnLMBPressed.AddDynamic(this,&UBuildingPieceSpawner::FinalizePlacement);
 	CustomPlayerController->OnRMBPressed.AddDynamic(this,&UBuildingPieceSpawner::EndSpawnLoop);
+	CustomPlayerController->OnMouseScrollUp.AddDynamic(this,&UBuildingPieceSpawner::IncreaseRotation);
+	CustomPlayerController->OnMouseScrollDown.AddDynamic(this,&UBuildingPieceSpawner::DecreaseRotation);
 }
 
 void UBuildingPieceSpawner::ClearBindings()
@@ -137,12 +139,14 @@ void UBuildingPieceSpawner::ClearBindings()
 
 	CustomPlayerController->OnLMBPressed.RemoveDynamic(this,&UBuildingPieceSpawner::FinalizePlacement);
 	CustomPlayerController->OnRMBPressed.RemoveDynamic(this,&UBuildingPieceSpawner::EndSpawnLoop);
+	CustomPlayerController->OnMouseScrollUp.RemoveDynamic(this,&UBuildingPieceSpawner::IncreaseRotation);
+	CustomPlayerController->OnMouseScrollDown.RemoveDynamic(this,&UBuildingPieceSpawner::DecreaseRotation);
 }
 
 void UBuildingPieceSpawner::StartSpawnLoop()
 {
 	SpawnGhostPiece(GhostPiece);
-	GhostPiece->OnPlacementStart();
+	GhostPiece->OnSpawnStart();
 	PlayerInteractionSensor->ToggleInteraction(false);
 	bIsPlacingBuildingPiece = true;
 	SetBindings();
@@ -176,7 +180,7 @@ void UBuildingPieceSpawner::SpawnGhostPiece(ABuildingPiece*& OutBuildingPiece) c
 		MeshComponents[i]->SetCollisionResponseToChannel(ECC_Visibility,ECR_Ignore);
 	}
 
-	SetMaterial(OutBuildingPiece,GoodPlacementMaterial);
+	SetMaterial(OutBuildingPiece,BadPlacementMaterial);
 
 	//Remove Snap Points
 	TArray<UBuildingPieceSnapPoint*> SnapPoints;
@@ -201,22 +205,30 @@ void UBuildingPieceSpawner::SpawnLoop()
 
 	const FVector Location = PlayerInteractionSensor->GetLookLocation();
 	GhostPiece->SetActorLocation(Location);
+
+	//Update Rotation
+	FRotator GhostRotator = GhostPiece->GetTransform().Rotator();
+	GhostRotator.Yaw = SpawnRotation.Yaw;
+	GhostPiece->SetActorRotation(GhostRotator);
+	
+	bool bSnapFound = false;
 	if(GhostPiece->GetShouldCheckForSnaps())
 	{
 		FTransform Transform;
 		if(SnapPointFound(Transform,Location,GhostPiece))
 		{
-			GhostPiece->SetActorTransform(Transform);
+			GhostPiece->SetActorLocation(Transform.GetLocation());
+			bSnapFound = true;
 		}
 	}
 
-	bIsOKToPlace = GhostPiece->CheckPlacement();
+	bIsOKToPlace = GhostPiece->CheckPlacement(bSnapFound);
 	SetMaterial(GhostPiece,bIsOKToPlace ? GoodPlacementMaterial : BadPlacementMaterial);
 
 }
 
 bool UBuildingPieceSpawner::SnapPointFound(FTransform& OutTransform, UBuildingPieceSnapPoint*& OutSnapPoint,
-                                           const FVector ViewLocation, const ABuildingPiece* BuildingPiece) const
+                                           const FVector ViewLocation, ABuildingPiece* BuildingPiece) const
 {
 	if(BuildingPiece == nullptr){return false;}
 
@@ -240,7 +252,7 @@ bool UBuildingPieceSpawner::SnapPointFound(FTransform& OutTransform, UBuildingPi
 		{
 			if(UBuildingPieceSnapPoint* SnapPoint = Cast<UBuildingPieceSnapPoint>(Components[c]))
 			{
-				if(SnapPoint->IsEligibleForSnap(BuildingPiece->GetClass()))
+				if(SnapPoint->IsEligibleForSnap(BuildingPiece))
 				{
 					
 					//Make sure it's not one of the building pieces snap points
@@ -273,7 +285,7 @@ bool UBuildingPieceSpawner::SnapPointFound(FTransform& OutTransform, UBuildingPi
 	return true;
 }
 
-bool UBuildingPieceSpawner::SnapPointFound(FTransform& OutTransform, const FVector ViewLocation, const ABuildingPiece* BuildingPiece) const
+bool UBuildingPieceSpawner::SnapPointFound(FTransform& OutTransform, const FVector ViewLocation, ABuildingPiece* BuildingPiece) const
 {
 	UBuildingPieceSnapPoint* SnapPoint;
 	const bool bSnapPointFound = SnapPointFound(OutTransform,SnapPoint,ViewLocation,BuildingPiece);
@@ -304,6 +316,16 @@ void UBuildingPieceSpawner::EndSpawnLoop()
 	ClearBindings();
 }
 
+void UBuildingPieceSpawner::IncreaseRotation()
+{
+	SpawnRotation.Yaw += RotationIncrement;
+}
+
+void UBuildingPieceSpawner::DecreaseRotation()
+{
+	SpawnRotation.Yaw -= RotationIncrement;
+}
+
 void UBuildingPieceSpawner::SetMaterial(const AActor* Actor, UMaterialInterface* NewMaterial)
 {
 	if(Actor == nullptr || NewMaterial == nullptr) {return;}
@@ -332,7 +354,6 @@ void UBuildingPieceSpawner::Server_SpawnBuildingPiece_Implementation(const TSubc
 	const FActorSpawnParameters SpawnParameters;
 
 	ABuildingPiece* BuildingPiece = GetWorld()->SpawnActor<ABuildingPiece>(Class, Transform, SpawnParameters);
-	bool bPieceSnapped = false;
 	
 	if(BuildingPiece->GetShouldCheckForSnaps())
 	{
@@ -341,11 +362,10 @@ void UBuildingPieceSpawner::Server_SpawnBuildingPiece_Implementation(const TSubc
 		if(SnapPointFound(SnapTransform,SnapPoint,Transform.GetLocation(),BuildingPiece))
 		{
 			SnapPoint->AddSnappedPiece(BuildingPiece);
-			bPieceSnapped = true;
 		}
 	}
 
-	BuildingPiece->OnPlaced(bPieceSnapped);
+	BuildingPiece->OnPlaced();
 
 	UE_LOG(LogBuildingSystem,Log,TEXT("%s placed %s building piece"),
 		*GetOwner()->GetName(),*BuildingPiece->GetName())

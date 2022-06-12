@@ -21,17 +21,20 @@ public:
 	UFUNCTION(BlueprintCallable,Category="Building System")
 	bool GetShouldCheckForSnaps() const;
 
+	UFUNCTION(BlueprintCallable,Category="Building System")
+	int32 GetCurrentInstability();
+
 	/**
 	 * @brief Called by Building Piece Spawner 
 	 */
-	void OnPlacementStart();
+	void OnSpawnStart();
 
 	/**
 	 * @brief Blueprint version to check placement.  Defaults to native Internal_CheckPlacement method but can be overriden.
 	 * @return True if OK to place, false if not.
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category="Building System")
-	bool CheckPlacement();
+	bool CheckPlacement(bool bIsSnappedDuringSpawn);
 	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -44,17 +47,16 @@ public:
 
 	/**
 	 * @brief Called by Building Piece Spawning Component when spawn is set on  sever
-	 * @param SetIsSnapped If the building piece was snapped during spawning
 	 */
 	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category="Building System")
-	void OnPlaced(bool SetIsSnapped);
+	void OnPlaced();
 
 	/**
 	 * @brief Returns owning building.  Will be null if no owning building
 	 * @return 
 	 */
 	UFUNCTION(BlueprintCallable,Category="Building System")
-	ABuilding* GetOwningBuilding();
+	ABuilding* GetOwningBuilding() const;
 
 	/**
 	 * @brief Updates Owning Building for this piece. Can only be done on the server
@@ -80,16 +82,40 @@ protected:
 	bool bCheckForSnaps = true;
 
 	/**
+	 * @brief Max amount of Instability before piece breaks from building
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,Category="Building System")
+	int32 MaxInstability = 3;
+
+	/**
+	 * @brief Current amount of Instability
+	 */
+	UPROPERTY(BlueprintReadOnly, Replicated, Category="Building System")
+	int32 CurrentInstability;
+
+	/**
 	 * @brief If the building piece is snapped 
 	 */
 	UPROPERTY(BlueprintReadOnly, Replicated, Category="Building System")
 	bool bIsSnapped;
 
 	/**
-	 * @brief Array of snap points that overlapping the building piece. 
-	 */
+	* @brief If the building piece is overlapping World Static (IE Landscape).   
+	*/
+	UPROPERTY(BlueprintReadOnly, Replicated, Category="Building System")
+	bool bIsOverlappingWorldStatic;
+
+	/**
+	* @brief If the building piece is overlapping other building pieces(IE Landscape).   
+	*/
+	UPROPERTY(BlueprintReadOnly, Replicated, Category="Building System")
+	bool bIsOverlappingBuildingPiece;
+
+	/**
+ * @brief Array of snap points that overlapping the building piece. 
+ */
 	UPROPERTY(BlueprintReadOnly,Replicated,Category="Building System")
-	TArray<UBuildingPieceSnapPoint*> SupportingSnapPoints;
+	TArray<ABuildingPiece*> SupportingBuildingPieces;
 
 	/**
 	 * @brief Owning building piece
@@ -101,6 +127,13 @@ protected:
 	* @brief Native version of check placement. 
 	 * @return True if OK to place, false if not. 
 	*/
-	virtual bool Internal_CheckPlacement();
+	virtual bool Internal_CheckPlacement(bool bIsSnappedDuringSpawn);
 
+	/**
+	 * @brief If in world static, instability will be 0. If connected to building piece, instability will be 1 more than
+	 * the minimum instability 
+	 */
+	UFUNCTION()
+	void CalculateInstability();
+	
 };

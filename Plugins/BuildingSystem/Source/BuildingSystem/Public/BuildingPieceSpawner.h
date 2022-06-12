@@ -30,22 +30,35 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+
+	/**
+	 * @brief How much the spawn piece should be rotated
+	 */
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Building System")
+	float RotationIncrement = 15.f;
+
 	/**
 	 * @brief Rate for updating the spawn position of the ghost mesh
 	 */
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Bulding System")
 	float SpawnLoopRate = .01;
 
+	/**
+	 * @brief Material to use if the spawn is good
+	 */
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Building System")
 	UMaterialInterface* GoodPlacementMaterial;
 
+	/**
+	 * @brief Material to use if the spawn is bad
+	 */
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Building System")
 	UMaterialInterface* BadPlacementMaterial;
 
 	/**
 	 * @brief Class chosen by player to spawn
 	 */
-	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Building System")
+	UPROPERTY(BlueprintReadOnly,Category="Building System")
 	TSubclassOf<ABuildingPiece> BuildingPieceClass;
 
 	/**
@@ -78,11 +91,23 @@ protected:
 	UPROPERTY(BlueprintReadOnly,Category="Building System")
 	bool bReferencesSet = false;
 
+	/**
+	 * @brief If actively placing building piece
+	 */
 	UPROPERTY(BlueprintReadOnly,Category="Building System")
 	bool bIsPlacingBuildingPiece;
 
+	/**
+	 * @brief If Spawn Is Ok
+	 */
 	UPROPERTY(BlueprintReadOnly,Category="Building System")
 	bool bIsOKToPlace;
+
+	/**
+	 * @brief Rotation to spawn building
+	 */
+	UPROPERTY(BlueprintReadOnly,Category="Building System")
+	FRotator SpawnRotation;
 
 	/**
 	 * @brief Set pointer references from owning character
@@ -122,7 +147,8 @@ protected:
 	* @param BuildingPiece Building Piece to check for snaps with
 	* @return true if snap point found, false if not
 	*/
-	bool SnapPointFound(FTransform& OutTransform, UBuildingPieceSnapPoint*& OutSnapPoint, FVector ViewLocation, const ABuildingPiece* BuildingPiece) const;
+	bool SnapPointFound(FTransform& OutTransform, UBuildingPieceSnapPoint*& OutSnapPoint, const FVector ViewLocation, ABuildingPiece*
+	                    BuildingPiece) const;
 
 	
 	/**
@@ -132,7 +158,7 @@ protected:
 	 * @param BuildingPiece Building Piece to check for snaps with
 	 * @return true if snap point found, false if not
 	 */
-	bool SnapPointFound(FTransform& OutTransform,FVector ViewLocation, const ABuildingPiece* BuildingPiece) const;
+	bool SnapPointFound(FTransform& OutTransform, const FVector ViewLocation, ABuildingPiece* BuildingPiece) const;
 
 	/**
 	 * @brief Takes Location of Ghost mesh, ends spawn loop, and spawns a new finalized version 
@@ -145,6 +171,18 @@ protected:
 	 */
 	UFUNCTION()
 	void EndSpawnLoop();
+
+	/**
+	 * @brief Increases Spawn Rotation by Rotation Increment
+	 */
+	UFUNCTION()
+	void IncreaseRotation();
+
+	/**
+	* @brief Decreases Spawn Rotation by Rotation Increment
+	*/
+	UFUNCTION()
+	void DecreaseRotation();
 
 
 	/**
