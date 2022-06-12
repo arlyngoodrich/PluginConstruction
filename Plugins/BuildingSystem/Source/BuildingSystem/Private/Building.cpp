@@ -24,7 +24,8 @@ void ABuilding::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutLifeti
 	
 	DOREPLIFETIME(ABuilding, MyBuildingPieces);
 	DOREPLIFETIME(ABuilding, TimeCreated);
-
+	DOREPLIFETIME(ABuilding, RootPiece);
+	
 }
 
 // Called when the game starts or when spawned
@@ -135,4 +136,13 @@ void ABuilding::MergeBuilding(ABuilding* TargetBuilding)
 
 	UE_LOG(LogBuildingSystem,Log,TEXT("%s merged into %s"),*TargetBuilding->GetName(),*GetName())
 	TargetBuilding->Destroy();
+}
+
+void ABuilding::SetRootPiece(ABuildingPiece* NewRootPiece)
+{
+
+	if(NewRootPiece == nullptr){return;}
+	
+	RootPiece = NewRootPiece;
+	UE_LOG(LogBuildingSystem,Log,TEXT("%s set as root for %s building"),*NewRootPiece->GetName(),*GetName())
 }

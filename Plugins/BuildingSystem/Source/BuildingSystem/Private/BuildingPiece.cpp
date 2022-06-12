@@ -22,14 +22,13 @@ void ABuildingPiece::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutL
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(ABuildingPiece, bIsSnapped);
-	DOREPLIFETIME(ABuildingPiece, SupportingSnapPoints);
 	DOREPLIFETIME(ABuildingPiece, CurrentInstability);
 
 	
 }
 
 bool ABuildingPiece::GetShouldCheckForSnaps() const { return bCheckForSnaps; }
-ABuilding* ABuildingPiece::GetOwningBuilding(){return OwningBuilding;}
+ABuilding* ABuildingPiece::GetOwningBuilding() const {return OwningBuilding;}
 
 void ABuildingPiece::SetOwningBuilding(ABuilding* NewOwningBuilding)
 {
@@ -79,92 +78,76 @@ void ABuildingPiece::Tick(float DeltaTime)
 }
 
 
-void ABuildingPiece::OnPlaced(const bool SetIsSnapped)
+void ABuildingPiece::OnPlaced()
 {
-
 	if(HasAuthority() == false){return;}
-	
-	bIsSnapped = SetIsSnapped;
-	if(bIsSnapped)
+
+
+	//Get Connecting Building Pieces
+	UpdateSupportPoints();
+
+	//Check overlapping pieces for unique buildings
+	TArray<ABuilding*> FoundBuildings;
+	for (int i = 0; i < SupportingBuildingPieces.Num(); ++i)
 	{
-		UpdateSupportPoints();
-
-		//Make sure there are valid snap points
-		if(SupportingSnapPoints.Num()==0)
+		const ABuildingPiece* TargetPiece = SupportingBuildingPieces[i];
+		ABuilding* TargetBuilding = TargetPiece->GetOwningBuilding();
+		if(TargetBuilding != nullptr && FoundBuildings.Contains(TargetBuilding) == false)
 		{
-			UE_LOG(LogBuildingSystem,Error,TEXT("%s marked as snapped but could not find any valid snap points"),
-				*GetName())
-			return;
-		}
-
-		TArray<ABuilding*> FoundBuildings;
-		//Check for owning building --> error if not
-		for (int i = 0; i < SupportingSnapPoints.Num(); ++i)
-		{
-			const UBuildingPieceSnapPoint* TargetSnapPoint = SupportingSnapPoints[i];
-			ABuildingPiece* TargetPiece = TargetSnapPoint->GetOwningPiece();
-			ABuilding* TargetBuilding = TargetPiece->GetOwningBuilding();
-			if(TargetBuilding != nullptr && FoundBuildings.Contains(TargetBuilding) == false)
-			{
-				FoundBuildings.Add(TargetBuilding);
-			}
-		}
-
-		//If no found buildings, error
-		if(FoundBuildings.Num() == 0)
-		{
-			UE_LOG(LogBuildingSystem,Error,TEXT("%s attempted to check into building but not building was found"),
-				*GetName())
-		}
-		//If one building, check in
-		else if(FoundBuildings.Num() == 1)
-		{
-			FoundBuildings[0]->CheckBuildingPieceIn(this);
-			OwningBuilding = FoundBuildings[0];
-		}
-		//If more than one building, merge with older one?
-		else
-		{
-			TArray<FDateTime> DateTimes;
-			for (int i = 0; i < FoundBuildings.Num(); ++i)
-			{
-				FDateTime DateTime = FoundBuildings[i]->GetTimeCreated();
-				DateTimes.Add(DateTime);
-			}
-
-			//Find oldest building
-			int32 OldIndex;
-			FMath::Min<FDateTime>(DateTimes,&OldIndex);
-			ABuilding* OldestBuilding = FoundBuildings[OldIndex];
-
-			//Find newest building
-			int32 NewIndex;
-			FMath::Max<FDateTime>(DateTimes,&NewIndex);
-			ABuilding* NewestBuilding = FoundBuildings[NewIndex];
-
-			//Check into oldest building and trigger merge
-			OldestBuilding->CheckBuildingPieceIn(this);
-			OldestBuilding->MergeBuilding(NewestBuilding);
-			
+			FoundBuildings.Add(TargetBuilding);
 		}
 	}
-	else
+
+	//If no found buildings, spawn a new one and make this the root piece
+	if(FoundBuildings.Num() == 0)
 	{
-		//If no snap points/owning building, create one
 		const FActorSpawnParameters SpawnParameters;
 		if(ABuilding* NewBuilding = GetWorld()->SpawnActor<ABuilding>(ABuilding::StaticClass(), GetTransform(), SpawnParameters))
 		{
 			NewBuilding->CheckBuildingPieceIn(this);
 			OwningBuilding = NewBuilding;
+			OwningBuilding->SetRootPiece(this);
+			
 			UE_LOG(LogBuildingSystem,Log,TEXT("%s created new building %s"),*GetName(),*NewBuilding->GetName())
 		}
+	}
+	//If one building, check in
+	else if(FoundBuildings.Num() == 1)
+	{
+		FoundBuildings[0]->CheckBuildingPieceIn(this);
+		OwningBuilding = FoundBuildings[0];
+	}
+	//If more than one building, merge with older one?
+	else
+	{
+		TArray<FDateTime> DateTimes;
+		for (int i = 0; i < FoundBuildings.Num(); ++i)
+		{
+			FDateTime DateTime = FoundBuildings[i]->GetTimeCreated();
+			DateTimes.Add(DateTime);
+		}
+
+		//Find oldest building
+		int32 OldIndex;
+		FMath::Min<FDateTime>(DateTimes,&OldIndex);
+		ABuilding* OldestBuilding = FoundBuildings[OldIndex];
+
+		//Find newest building
+		int32 NewIndex;
+		FMath::Max<FDateTime>(DateTimes,&NewIndex);
+		ABuilding* NewestBuilding = FoundBuildings[NewIndex];
+
+		//Check into oldest building and trigger merge
+		OldestBuilding->CheckBuildingPieceIn(this);
+		OldestBuilding->MergeBuilding(NewestBuilding);
+			
 	}
 }
 
 void ABuildingPiece::UpdateSupportPoints()
 {
 
-	SupportingSnapPoints.Empty();
+	
 	SupportingBuildingPieces.Empty();
 	
 	//Check for overlapping snap points
@@ -184,26 +167,15 @@ void ABuildingPiece::UpdateSupportPoints()
 		TArray<UPrimitiveComponent*> PrimitiveComponents;
 		TargetMeshComponent->GetOverlappingComponents(PrimitiveComponents);
 
-		//Cycle through overlapped primitives looking for snap point components
+		//Cycle through overlapped primitives looking for overlapping building pieces 
 		for (int c = 0; c < PrimitiveComponents.Num(); ++c)
 		{
-			UPrimitiveComponent* TargetPrimitiveComponent = PrimitiveComponents[c];
+			const UPrimitiveComponent* TargetPrimitiveComponent = PrimitiveComponents[c];
 
 			//Check if overlapping building piece
 			if(ABuildingPiece* OverlappedBuildingPiece = Cast<ABuildingPiece>(TargetPrimitiveComponent->GetOwner()))
 			{
 				SupportingBuildingPieces.Add(OverlappedBuildingPiece);
-			}
-							
-			//Check if snap point
-			if(UBuildingPieceSnapPoint* SnapPoint = Cast<UBuildingPieceSnapPoint>(TargetPrimitiveComponent))
-			{
-				//Make sure snap point is eligible to provide support and that its not one of this building pieces own snap points
-				if(SnapPoint->IsEligibleForSupport(this->GetClass()) && MyOwnedSnapPoints.Contains(SnapPoint) == false)
-				{
-					//Add valid overlapping snap points to snap points array
-					SupportingSnapPoints.Add(SnapPoint);
-				}
 			}
 			else
 			{
@@ -236,11 +208,4 @@ bool ABuildingPiece::Internal_CheckPlacement(const bool bIsSnappedDuringSpawn)
 	return bIsOverlappingBuildingPiece || bIsOverlappingWorldStatic || bIsSnappedDuringSpawn;
 }
 
-void ABuildingPiece::CalculateInstability()
-{
-	TArray<int32> SupportPiecesInstability;
-	for (int i = 0; i < SupportingBuildingPieces.Num(); ++i)
-	{
-		
-	}
-}
+

@@ -50,6 +50,13 @@ public:
 	 */
 	void MergeBuilding(ABuilding* TargetBuilding);
 
+	/**
+	 * @brief Sets a new root piece for the building.  Should be done when a new building is made.
+	 */
+	void SetRootPiece(ABuildingPiece* NewRootPiece);
+
+	
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -71,6 +78,9 @@ protected:
 	 */
 	UPROPERTY(BlueprintReadOnly, Replicated, Category="Building System")
 	FDateTime TimeCreated;
+
+	UPROPERTY(BlueprintReadOnly, Replicated, Category="Building System")
+	ABuildingPiece* RootPiece = nullptr;
 
 	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category="Building System")
 	void InitializeFromTemplate();

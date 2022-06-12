@@ -44,17 +44,16 @@ public:
 
 	/**
 	 * @brief Called by Building Piece Spawning Component when spawn is set on  sever
-	 * @param SetIsSnapped If the building piece was snapped during spawning
 	 */
 	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category="Building System")
-	void OnPlaced(bool SetIsSnapped);
+	void OnPlaced();
 
 	/**
 	 * @brief Returns owning building.  Will be null if no owning building
 	 * @return 
 	 */
 	UFUNCTION(BlueprintCallable,Category="Building System")
-	ABuilding* GetOwningBuilding();
+	ABuilding* GetOwningBuilding() const;
 
 	/**
 	 * @brief Updates Owning Building for this piece. Can only be done on the server
@@ -104,16 +103,10 @@ protected:
 	bool bIsOverlappingWorldStatic;
 
 	/**
-	* @brief If the building piece is overlapping World Static (IE Landscape).   
+	* @brief If the building piece is overlapping other building pieces(IE Landscape).   
 	*/
 	UPROPERTY(BlueprintReadOnly, Replicated, Category="Building System")
 	bool bIsOverlappingBuildingPiece;
-
-	/**
-	 * @brief Array of snap points that overlapping the building piece. 
-	 */
-	UPROPERTY(BlueprintReadOnly,Replicated,Category="Building System")
-	TArray<UBuildingPieceSnapPoint*> SupportingSnapPoints;
 
 	/**
  * @brief Array of snap points that overlapping the building piece. 
@@ -132,10 +125,5 @@ protected:
 	 * @return True if OK to place, false if not. 
 	*/
 	virtual bool Internal_CheckPlacement(bool bIsSnappedDuringSpawn);
-
-	/**
-	 * @brief Checks support points to calculate current instability
-	 */
-	void CalculateInstability();
-
+	
 };
