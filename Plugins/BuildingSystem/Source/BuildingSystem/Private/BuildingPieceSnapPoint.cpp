@@ -104,8 +104,6 @@ void UBuildingPieceSnapPoint::CheckForDuplicatedSnapPoints()
 	TArray<UPrimitiveComponent*> Components;
 	GetOverlappingComponents(Components);
 
-	UE_LOG(LogBuildingSystem,Log,TEXT("Checking for overlapping prims found %d "),Components.Num())	
-
 	//Go through all overlapping components
 	for (int i = 0; i < Components.Num(); ++i)
 	{

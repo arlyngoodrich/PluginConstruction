@@ -28,6 +28,9 @@ void ABuildingPiece::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutL
 }
 
 bool ABuildingPiece::GetShouldCheckForSnaps() const { return bCheckForSnaps; }
+
+int32 ABuildingPiece::GetCurrentInstability() { return CurrentInstability;}
+
 ABuilding* ABuildingPiece::GetOwningBuilding() const {return OwningBuilding;}
 
 void ABuildingPiece::SetOwningBuilding(ABuilding* NewOwningBuilding)
@@ -81,8 +84,7 @@ void ABuildingPiece::Tick(float DeltaTime)
 void ABuildingPiece::OnPlaced()
 {
 	if(HasAuthority() == false){return;}
-
-
+	
 	//Get Connecting Building Pieces
 	UpdateSupportPoints();
 
@@ -142,19 +144,19 @@ void ABuildingPiece::OnPlaced()
 		OldestBuilding->MergeBuilding(NewestBuilding);
 			
 	}
+
+	CalculateInstability();
+
 }
+
 
 void ABuildingPiece::UpdateSupportPoints()
 {
-
 	
 	SupportingBuildingPieces.Empty();
 	
-	//Check for overlapping snap points
+	//Check for overlapping primitive components
 	TArray<UMeshComponent*> MeshComponents;
-	TArray<UBuildingPieceSnapPoint*> MyOwnedSnapPoints;
-
-	GetComponents<UBuildingPieceSnapPoint>(MyOwnedSnapPoints);
 	GetComponents<UMeshComponent>(MeshComponents);
 
 	TArray<bool> WorldStaticChecks;
@@ -175,7 +177,11 @@ void ABuildingPiece::UpdateSupportPoints()
 			//Check if overlapping building piece
 			if(ABuildingPiece* OverlappedBuildingPiece = Cast<ABuildingPiece>(TargetPrimitiveComponent->GetOwner()))
 			{
-				SupportingBuildingPieces.Add(OverlappedBuildingPiece);
+				//Make sure it's not this piece
+				if(OverlappedBuildingPiece !=this)
+				{
+					SupportingBuildingPieces.Add(OverlappedBuildingPiece);
+				}
 			}
 			else
 			{
@@ -188,9 +194,45 @@ void ABuildingPiece::UpdateSupportPoints()
 
 	bIsOverlappingBuildingPiece = SupportingBuildingPieces.Num() > 0;
 	bIsOverlappingWorldStatic = WorldStaticChecks.Contains(true);
+	
 }
 
 
+void ABuildingPiece::CalculateInstability()
+{
+
+	if(bIsOverlappingWorldStatic)
+	{
+		CurrentInstability = 0;
+	}
+	else if(bIsOverlappingBuildingPiece)
+	{
+		TArray<int32> ConnectedInstability;
+		for (int i = 0; i < SupportingBuildingPieces.Num(); ++i)
+		{
+			ConnectedInstability.Add(SupportingBuildingPieces[i]->GetCurrentInstability());
+		}
+		
+		if(ConnectedInstability.Num()>0)
+		{
+			int32 MinIndex;
+			FMath::Min(ConnectedInstability,&MinIndex);
+			const int32 MinInstability = ConnectedInstability[MinIndex];
+			CurrentInstability = MinInstability + 1;
+		}
+		else
+		{
+			UE_LOG(LogBuildingSystem,Warning,TEXT("%s could not find the stabilty for connected pieces"),*GetName())
+		}
+
+	}
+	else
+	{
+		UE_LOG(LogBuildingSystem,Warning,TEXT("%s is not overlapping world static or building piece"),*GetName())
+	}
+
+	UE_LOG(LogBuildingSystem,Log,TEXT("%s instabiltiy = %d"),*GetName(),CurrentInstability);
+}
 
 //BP Version
 bool ABuildingPiece::CheckPlacement_Implementation(const bool bIsSnappedDuringSpawn)
@@ -207,5 +249,7 @@ bool ABuildingPiece::Internal_CheckPlacement(const bool bIsSnappedDuringSpawn)
 	
 	return bIsOverlappingBuildingPiece || bIsOverlappingWorldStatic || bIsSnappedDuringSpawn;
 }
+
+
 
 

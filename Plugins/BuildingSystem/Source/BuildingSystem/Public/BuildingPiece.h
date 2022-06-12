@@ -21,6 +21,9 @@ public:
 	UFUNCTION(BlueprintCallable,Category="Building System")
 	bool GetShouldCheckForSnaps() const;
 
+	UFUNCTION(BlueprintCallable,Category="Building System")
+	int32 GetCurrentInstability();
+
 	/**
 	 * @brief Called by Building Piece Spawner 
 	 */
@@ -125,5 +128,12 @@ protected:
 	 * @return True if OK to place, false if not. 
 	*/
 	virtual bool Internal_CheckPlacement(bool bIsSnappedDuringSpawn);
+
+	/**
+	 * @brief If in world static, instability will be 0. If connected to building piece, instability will be 1 more than
+	 * the minimum instability 
+	 */
+	UFUNCTION()
+	void CalculateInstability();
 	
 };

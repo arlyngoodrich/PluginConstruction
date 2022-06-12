@@ -140,8 +140,12 @@ void ABuilding::MergeBuilding(ABuilding* TargetBuilding)
 
 void ABuilding::SetRootPiece(ABuildingPiece* NewRootPiece)
 {
-
-	if(NewRootPiece == nullptr){return;}
+	if(NewRootPiece == nullptr)
+	{
+		UE_LOG(LogBuildingSystem,Error,TEXT("Attempted to set null root piece for %s building"),
+			*GetName())
+		return;
+	}
 	
 	RootPiece = NewRootPiece;
 	UE_LOG(LogBuildingSystem,Log,TEXT("%s set as root for %s building"),*NewRootPiece->GetName(),*GetName())
