@@ -146,7 +146,7 @@ void UBuildingPieceSpawner::ClearBindings()
 void UBuildingPieceSpawner::StartSpawnLoop()
 {
 	SpawnGhostPiece(GhostPiece);
-	GhostPiece->OnPlacementStart();
+	GhostPiece->OnSpawnStart();
 	PlayerInteractionSensor->ToggleInteraction(false);
 	bIsPlacingBuildingPiece = true;
 	SetBindings();

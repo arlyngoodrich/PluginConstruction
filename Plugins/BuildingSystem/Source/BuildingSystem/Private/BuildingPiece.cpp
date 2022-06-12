@@ -40,7 +40,7 @@ void ABuildingPiece::SetOwningBuilding(ABuilding* NewOwningBuilding)
 	OwningBuilding = NewOwningBuilding;
 }
 
-void ABuildingPiece::OnPlacementStart()
+void ABuildingPiece::OnSpawnStart()
 {
 	if(HasAuthority())
 	{
@@ -234,4 +234,13 @@ bool ABuildingPiece::Internal_CheckPlacement(const bool bIsSnappedDuringSpawn)
 	UpdateSupportPoints();
 	
 	return bIsOverlappingBuildingPiece || bIsOverlappingWorldStatic || bIsSnappedDuringSpawn;
+}
+
+void ABuildingPiece::CalculateInstability()
+{
+	TArray<int32> SupportPiecesInstability;
+	for (int i = 0; i < SupportingBuildingPieces.Num(); ++i)
+	{
+		
+	}
 }

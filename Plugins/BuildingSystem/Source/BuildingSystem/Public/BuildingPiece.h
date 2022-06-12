@@ -9,8 +9,6 @@
 class UBuildingPieceSnapPoint;
 class ABuilding;
 
-//TODO Add pivot rotating
-
 UCLASS()
 class BUILDINGSYSTEM_API ABuildingPiece : public AActor
 {
@@ -26,7 +24,7 @@ public:
 	/**
 	 * @brief Called by Building Piece Spawner 
 	 */
-	void OnPlacementStart();
+	void OnSpawnStart();
 
 	/**
 	 * @brief Blueprint version to check placement.  Defaults to native Internal_CheckPlacement method but can be overriden.
@@ -134,5 +132,10 @@ protected:
 	 * @return True if OK to place, false if not. 
 	*/
 	virtual bool Internal_CheckPlacement(bool bIsSnappedDuringSpawn);
+
+	/**
+	 * @brief Checks support points to calculate current instability
+	 */
+	void CalculateInstability();
 
 };
