@@ -150,3 +150,29 @@ void ABuilding::SetRootPiece(ABuildingPiece* NewRootPiece)
 	RootPiece = NewRootPiece;
 	UE_LOG(LogBuildingSystem,Log,TEXT("%s set as root for %s building"),*NewRootPiece->GetName(),*GetName())
 }
+
+void ABuilding::RemoveBuildingPiece(ABuildingPiece* BuildingPiece)
+{
+	if(HasAuthority() == false)
+	{
+		UE_LOG(LogBuildingSystem,Warning,TEXT("Non-Authority %s attempted to remove building piece"),*GetName())
+		return;
+	}
+
+	if(BuildingPiece == nullptr)
+	{
+		UE_LOG(LogBuildingSystem,Error,TEXT("Attempted to remove null building piece from %s"),
+			*GetName())
+		return;
+	}
+
+	if(MyBuildingPieces.Contains(BuildingPiece) == false)
+	{
+		UE_LOG(LogBuildingSystem,Warning,TEXT("%s building piece is not part of %s building"),*BuildingPiece->GetName(),
+			*GetName())
+		return;
+	}
+
+	CheckBuildingPieceOut(BuildingPiece);
+	BuildingPiece->Destroy();
+}

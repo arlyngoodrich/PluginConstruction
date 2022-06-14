@@ -55,7 +55,13 @@ public:
 	 */
 	void SetRootPiece(ABuildingPiece* NewRootPiece);
 
-	
+	/**
+	 * @brief Called by the individual building piece to be removed.  Building then destroys the piece and has the other
+	 * pieces in the building update their instability.  If this is the last piece, then the building destroys itself too  
+	 * @param BuildingPiece pointer to building piece that should be destroyed
+	 */
+	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category="Building System")
+	void RemoveBuildingPiece(ABuildingPiece* BuildingPiece);
 
 protected:
 	// Called when the game starts or when spawned

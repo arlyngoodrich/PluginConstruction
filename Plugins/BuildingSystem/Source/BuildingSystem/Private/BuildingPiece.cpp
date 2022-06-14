@@ -40,6 +40,25 @@ void ABuildingPiece::SetOwningBuilding(ABuilding* NewOwningBuilding)
 	OwningBuilding = NewOwningBuilding;
 }
 
+void ABuildingPiece::RemoveBuildingPiece()
+{
+	if(HasAuthority()==false)
+	{
+		Server_RemoveBuildingPiece();
+		return;
+	}
+
+	//Tell Building to remove this piece
+	if(OwningBuilding == nullptr)
+	{
+		UE_LOG(LogBuildingSystem,Error,TEXT("%s does not have a valid owning building"),*GetName())
+		return;
+	}
+
+	OwningBuilding->RemoveBuildingPiece(this);
+	
+}
+
 void ABuildingPiece::OnSpawnStart()
 {
 	if(HasAuthority())
@@ -232,6 +251,7 @@ void ABuildingPiece::CalculateInstability()
 	UE_LOG(LogBuildingSystem,Log,TEXT("%s instabiltiy = %d"),*GetName(),CurrentInstability);
 }
 
+
 //BP Version
 bool ABuildingPiece::CheckPlacement_Implementation(const bool bIsSnappedDuringSpawn)
 {
@@ -250,4 +270,13 @@ bool ABuildingPiece::Internal_CheckPlacement(const bool bIsSnappedDuringSpawn)
 
 
 
+bool ABuildingPiece::Server_RemoveBuildingPiece_Validate()
+{
+	return true;
+}
+
+void ABuildingPiece::Server_RemoveBuildingPiece_Implementation()
+{
+	RemoveBuildingPiece();
+}
 

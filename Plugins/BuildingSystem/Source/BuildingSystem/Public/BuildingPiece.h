@@ -43,9 +43,7 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category="Building System")
 	bool CheckPlacement(bool bIsSnappedDuringSpawn);
-	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+
 
 	/**
 	 * @brief Checks for valid overlapping snap points and sets support points
@@ -61,7 +59,7 @@ public:
 
 	/**
 	 * @brief Returns owning building.  Will be null if no owning building
-	 * @return 
+	 * @return Pointer to owning building piece. Can be nullptr.
 	 */
 	UFUNCTION(BlueprintCallable,Category="Building System")
 	ABuilding* GetOwningBuilding() const;
@@ -72,6 +70,15 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category="Building System")
 	void SetOwningBuilding(ABuilding* NewOwningBuilding);
+
+	/**
+	 * @brief Called when this piece should be destroyed during gameplay.  WIll do an RPC if not authority. 
+	 */
+	UFUNCTION(BlueprintCallable,Category="Buildng System")
+	void RemoveBuildingPiece();
+		
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -143,5 +150,13 @@ protected:
 	 */
 	UFUNCTION()
 	void CalculateInstability();
+
+	/**
+	 * @brief RCP for removing a building piece during gameplay
+	 */
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_RemoveBuildingPiece();
+	bool Server_RemoveBuildingPiece_Validate();
+	void Server_RemoveBuildingPiece_Implementation();
 	
 };
