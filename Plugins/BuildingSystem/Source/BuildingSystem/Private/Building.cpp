@@ -175,4 +175,9 @@ void ABuilding::RemoveBuildingPiece(ABuildingPiece* BuildingPiece)
 
 	CheckBuildingPieceOut(BuildingPiece);
 	BuildingPiece->Destroy();
+
+	if(MyBuildingPieces.Num() == 0)
+	{
+		UE_LOG(LogBuildingSystem,Log,TEXT("%s building no longer has pieces.  Removing building."),*GetName())
+	}
 }

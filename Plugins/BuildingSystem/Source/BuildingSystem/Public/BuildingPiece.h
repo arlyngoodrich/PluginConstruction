@@ -84,11 +84,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	/**
-	 * @brief Overriden from Actor
-	 * @param EndPlayReason reason play was ended.  
-	 */
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	
 	/**
 	 * @brief If the building should attempt to snap during spawn

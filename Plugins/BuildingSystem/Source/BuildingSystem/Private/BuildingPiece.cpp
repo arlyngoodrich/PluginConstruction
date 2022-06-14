@@ -79,16 +79,6 @@ void ABuildingPiece::BeginPlay()
 	
 }
 
-void ABuildingPiece::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	if(EndPlayReason == EEndPlayReason::Destroyed && OwningBuilding && HasAuthority())
-	{
-		OwningBuilding->CheckBuildingPieceOut(this);
-	}
-	
-	Super::EndPlay(EndPlayReason);
-}
-
 
 // Called every frame
 void ABuildingPiece::Tick(float DeltaTime)
