@@ -189,6 +189,9 @@ void ABuilding::RemoveBuildingPiece(ABuildingPiece* BuildingPiece, const bool bD
 	//If destroying root piece
 	if(BuildingPiece == RootPiece)
 	{
+
+		UE_LOG(LogBuildingSystem,Log,TEXT("%s destroying root piece"),*BuildingPiece->GetName())
+		
 		//Check to see if there are any other pieces in the building
 		if(MyBuildingPieces.Num() > 1)
 		{
@@ -196,7 +199,7 @@ void ABuilding::RemoveBuildingPiece(ABuildingPiece* BuildingPiece, const bool bD
 			TArray<ABuildingPiece*> PossibleNewRoots;
 			for (int i = 0; i < MyBuildingPieces.Num(); ++i)
 			{
-				if(MyBuildingPieces[i]->GetCurrentInstability() == 0)
+				if(MyBuildingPieces[i]->GetCurrentInstability() == 0 && MyBuildingPieces[i] != BuildingPiece)
 				{
 					PossibleNewRoots.Add(MyBuildingPieces[i]);
 				}
@@ -217,7 +220,8 @@ void ABuilding::RemoveBuildingPiece(ABuildingPiece* BuildingPiece, const bool bD
 			}
 			
 				//Set new Root Piece
-				RootPiece = PossibleNewRoots[0]; 
+			RootPiece = PossibleNewRoots[0];
+			UE_LOG(LogBuildingSystem,Log,TEXT("%s updated root to %s"),*GetName(),*RootPiece->GetName())
 		}
 	}
 	
@@ -238,8 +242,14 @@ void ABuilding::RemoveBuildingPiece(ABuildingPiece* BuildingPiece, const bool bD
 void ABuilding::DoStabilityCheck()
 {
 	StabilityUpdateGUID = FGuid::NewGuid();
-	RootPiece->UpdateStability(StabilityUpdateGUID);
-
+	for (int i = 0; i < MyBuildingPieces.Num(); ++i)
+	{
+		if(MyBuildingPieces[i]->GetCurrentInstability() == 0)
+		{
+			MyBuildingPieces[i]->UpdateStability(StabilityUpdateGUID);
+		}
+	}
+	
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle,this,&ABuilding::CheckStabilityUpdateGUIDs,.1f,false);
 }
