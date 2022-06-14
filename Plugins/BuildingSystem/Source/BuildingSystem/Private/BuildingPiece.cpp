@@ -23,8 +23,6 @@ void ABuildingPiece::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutL
 	
 	DOREPLIFETIME(ABuildingPiece, bIsSnapped);
 	DOREPLIFETIME(ABuildingPiece, CurrentInstability);
-
-	
 }
 
 bool ABuildingPiece::GetShouldCheckForSnaps() const { return bCheckForSnaps; }

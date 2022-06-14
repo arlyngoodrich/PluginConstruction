@@ -18,9 +18,17 @@ public:
 	// Sets default values for this actor's properties
 	ABuildingPiece();
 
+	/**
+	 * @brief Gets if the piece should attempt to snap while spawning
+	 * @return true if yes, false if no
+	 */
 	UFUNCTION(BlueprintCallable,Category="Building System")
 	bool GetShouldCheckForSnaps() const;
 
+	/**
+	 * @brief Returns the piece's instability.  0 being the most stable and higher numbers being more unstable.  
+	 * @return Current instability of the piece
+	 */
 	UFUNCTION(BlueprintCallable,Category="Building System")
 	int32 GetCurrentInstability();
 
