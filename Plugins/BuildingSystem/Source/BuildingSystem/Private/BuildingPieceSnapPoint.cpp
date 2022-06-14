@@ -27,8 +27,7 @@ TArray<TSubclassOf<ABuildingPiece>> UBuildingPieceSnapPoint::GetEligibleBuilding
 
 bool UBuildingPieceSnapPoint::IsEligibleForSnap(ABuildingPiece* PieceToCheck)
 {
-
-
+	if(PieceToCheck == nullptr){return false;}
 	
 	TArray<bool> ClassChecks;
 	for (int i = 0; i < AcceptableSnapClasses.Num(); ++i)

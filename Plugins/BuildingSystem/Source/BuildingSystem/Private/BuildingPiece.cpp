@@ -65,14 +65,16 @@ void ABuildingPiece::RemoveBuildingPiece()
 
 void ABuildingPiece::UpdateStability(const FGuid NewStabilityUpdateGUID)
 {
+	
 	if(StabilityUpdateGUID == NewStabilityUpdateGUID)
 	{
 		return;
 	}
 
-	CalculateInstability();
-	StabilityUpdateGUID = NewStabilityUpdateGUID;
+	UpdateSupportPoints();
 
+	StabilityUpdateGUID = NewStabilityUpdateGUID;
+	
 	for (int i = 0; i < SupportingBuildingPieces.Num(); ++i)
 	{
 		if(SupportingBuildingPieces[i])
@@ -80,6 +82,8 @@ void ABuildingPiece::UpdateStability(const FGuid NewStabilityUpdateGUID)
 			SupportingBuildingPieces[i]->UpdateStability(StabilityUpdateGUID);
 		}
 	}
+
+	CalculateInstability();
 }
 
 void ABuildingPiece::OnSpawnStart()

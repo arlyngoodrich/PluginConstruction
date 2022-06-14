@@ -110,6 +110,9 @@ protected:
 	void RemoveUnstablePieces();
 
 	UFUNCTION()
+	void DoStabilityCheck();
+	
+	UFUNCTION()
 	void CheckStabilityUpdateGUIDs();
 
 

@@ -89,7 +89,6 @@ void ABuilding::RemoveUnstablePieces()
 }
 
 
-
 void ABuilding::CheckBuildingPieceIn(ABuildingPiece* BuildingPiece)
 {
 	if(HasAuthority() == false){return;}
@@ -165,7 +164,7 @@ void ABuilding::SetRootPiece(ABuildingPiece* NewRootPiece)
 	UE_LOG(LogBuildingSystem,Log,TEXT("%s set as root for %s building"),*NewRootPiece->GetName(),*GetName())
 }
 
-void ABuilding::RemoveBuildingPiece(ABuildingPiece* BuildingPiece, bool bDoStabilityCheck)
+void ABuilding::RemoveBuildingPiece(ABuildingPiece* BuildingPiece, const bool bDoStabilityCheck)
 {
 	if(HasAuthority() == false)
 	{
@@ -225,30 +224,43 @@ void ABuilding::RemoveBuildingPiece(ABuildingPiece* BuildingPiece, bool bDoStabi
 	CheckBuildingPieceOut(BuildingPiece);
 	BuildingPiece->Destroy();
 
-	if(MyBuildingPieces.Num() > 0)
+	if(MyBuildingPieces.Num() > 0 && bDoStabilityCheck)
 	{
-		StabilityUpdateGUID = FGuid::NewGuid();
-		RootPiece->UpdateStability(StabilityUpdateGUID);
-
-		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle,this,&ABuilding::CheckStabilityUpdateGUIDs,.5f,false);
+		DoStabilityCheck();
 	}
-	else
+	else if(MyBuildingPieces.Num() == 0)
 	{
 		UE_LOG(LogBuildingSystem,Log,TEXT("%s building no longer has pieces.  Removing building."),*GetName())
 		Destroy();
 	}
 }
 
+void ABuilding::DoStabilityCheck()
+{
+	StabilityUpdateGUID = FGuid::NewGuid();
+	RootPiece->UpdateStability(StabilityUpdateGUID);
+
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle,this,&ABuilding::CheckStabilityUpdateGUIDs,.1f,false);
+}
+
+
 void ABuilding::CheckStabilityUpdateGUIDs()
 {
+	int32 PiecesRemoved = 0;
 	for (int i = MyBuildingPieces.Num() - 1; i >= 0; --i)
 	{
 		ABuildingPiece* TargetPiece = MyBuildingPieces[i];
 		if(TargetPiece->GetStabilityUpdateGUID() != StabilityUpdateGUID)
 		{
 			RemoveBuildingPiece(TargetPiece, false);
+			PiecesRemoved++;
 		}
+	}
+
+	if(PiecesRemoved > 0)
+	{
+		DoStabilityCheck();
 	}
 	
 }
