@@ -35,39 +35,34 @@ bool UBuildingPieceSnapPoint::IsEligibleForSnap(ABuildingPiece* PieceToCheck)
 		bool ClassCheck = PieceToCheck->GetClass()->IsChildOf(AcceptableSnapClasses[i]);
 		ClassChecks.Add(ClassCheck);
 	}
-
+	
 	TArray<bool> RotationChecks;
-	for (int i = 0; i < SnappedPieces.Num(); ++i)
+	for (int i = SnappedPieces.Num() - 1; i >= 0; --i)
 	{
-		const ABuildingPiece* TargetPiece = SnappedPieces[i];
-
-		//Check if it's a subclass or the same class as the target snap piece.
-		if(PieceToCheck->GetClass()->IsChildOf(TargetPiece->GetClass())||PieceToCheck->GetClass() == TargetPiece->GetClass())
+		ABuildingPiece* TargetPiece = SnappedPieces[i];
+			
+		if(SnappedPieces[i] != nullptr)
 		{
-			bool RotationCheck = TargetPiece->GetActorRotation() == PieceToCheck->GetActorRotation();
-			RotationChecks.Add(RotationCheck);
+			//Check if it's a subclass or the same class as the target snap piece.
+			if(PieceToCheck->GetClass()->IsChildOf(TargetPiece->GetClass())||PieceToCheck->GetClass() == TargetPiece->GetClass())
+			{
+				bool RotationCheck = TargetPiece->GetActorRotation() == PieceToCheck->GetActorRotation();
+				RotationChecks.Add(RotationCheck);
+			}
+			else
+			{
+				RotationChecks.Add(false);
+			}
 		}
 		else
 		{
-			RotationChecks.Add(false);
+			SnappedPieces.Remove(TargetPiece);
 		}
 	}
 	
 	return ClassChecks.Contains(true) && !RotationChecks.Contains(true);
 }
 
-bool UBuildingPieceSnapPoint::IsEligibleForSupport(const TSubclassOf<ABuildingPiece> Class)
-{
-	TArray<bool> ClassChecks;
-	
-	for (int i = 0; i < AcceptableSnapClasses.Num(); ++i)
-	{
-		bool ClassCheck = Class->IsChildOf(AcceptableSnapClasses[i]);
-		ClassChecks.Add(ClassCheck);
-	}
-
-	return ClassChecks.Contains(true);
-}
 
 void UBuildingPieceSnapPoint::AddSnappedPiece(ABuildingPiece* Piece)
 {
@@ -109,24 +104,26 @@ void UBuildingPieceSnapPoint::CheckForDuplicatedSnapPoints()
 		//Check to see if it's a snap point
 		if(const UBuildingPieceSnapPoint* TargetSnapPoint = Cast<UBuildingPieceSnapPoint>(Components[i]))
 		{
-
-			UE_LOG(LogBuildingSystem,Log,TEXT("Snap point overlapped"))
 			
 			//Get the eligible building classes
 			auto TargetSnapPointClasses = TargetSnapPoint->GetEligibleBuildingPieces();
-			UE_LOG(LogBuildingSystem,Log,TEXT("Overlapped snap point has %d acceptable classes"),TargetSnapPointClasses.Num())	
-			
-			
-			for (int t = 0; t < TargetSnapPointClasses.Num(); ++t)
+			UE_LOG(LogBuildingSystem,Log,TEXT("Overlapped snap point has %d acceptable classes"),TargetSnapPointClasses.Num())
+
+			//If they are in the same general location 
+			if(GetComponentLocation().Equals(TargetSnapPoint->GetComponentLocation(),2))
 			{
-				//If it has an eligible building class that this snap point has
-				if(AcceptableSnapClasses.Contains(TargetSnapPointClasses[t]))
+				for (int t = 0; t < TargetSnapPointClasses.Num(); ++t)
 				{
-					//remove the eligible building class form this snap point
-					AcceptableSnapClasses.Remove(TargetSnapPointClasses[t]);
-					UE_LOG(LogBuildingSystem,Log,TEXT("Removed class from acceptable classes"))
+					//If it has an eligible building class that this snap point has
+					if(AcceptableSnapClasses.Contains(TargetSnapPointClasses[t]))
+					{
+						//remove the eligible building class form this snap point
+						AcceptableSnapClasses.Remove(TargetSnapPointClasses[t]);
+						UE_LOG(LogBuildingSystem,Log,TEXT("Removed class from acceptable classes"))
+					}
 				}
 			}
+			
 		}
 	}
 }

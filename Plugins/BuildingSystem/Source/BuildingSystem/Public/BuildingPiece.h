@@ -96,6 +96,13 @@ public:
 	 */
 	UFUNCTION()
 	void UpdateStability(FGuid NewStabilityUpdateGUID);
+
+
+	/**
+	 * @brief Has building pieces' child snap points update their duplicate snap checks 
+	 */
+	UFUNCTION()
+	void UpdateSnapPoints() const;
 	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

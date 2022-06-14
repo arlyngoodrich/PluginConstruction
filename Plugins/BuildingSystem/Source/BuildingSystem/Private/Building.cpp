@@ -272,5 +272,12 @@ void ABuilding::CheckStabilityUpdateGUIDs()
 	{
 		DoStabilityCheck();
 	}
+	else
+	{
+		for (int i = 0; i < MyBuildingPieces.Num(); ++i)
+		{
+			MyBuildingPieces[i]->UpdateSnapPoints();
+		}
+	}
 	
 }

@@ -86,6 +86,17 @@ void ABuildingPiece::UpdateStability(const FGuid NewStabilityUpdateGUID)
 	CalculateInstability();
 }
 
+void ABuildingPiece::UpdateSnapPoints() const
+{
+	TArray<UBuildingPieceSnapPoint*> SnapPoints;
+	GetComponents<UBuildingPieceSnapPoint>(SnapPoints);
+
+	for (int i = 0; i < SnapPoints.Num(); ++i)
+	{
+		SnapPoints[i]->CheckForDuplicatedSnapPoints();
+	}
+}
+
 void ABuildingPiece::OnSpawnStart()
 {
 	if(HasAuthority())
