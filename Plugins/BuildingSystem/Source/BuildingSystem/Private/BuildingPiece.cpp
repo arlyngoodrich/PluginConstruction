@@ -23,13 +23,17 @@ void ABuildingPiece::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutL
 	
 	DOREPLIFETIME(ABuildingPiece, bIsSnapped);
 	DOREPLIFETIME(ABuildingPiece, CurrentInstability);
-
-	
 }
 
 bool ABuildingPiece::GetShouldCheckForSnaps() const { return bCheckForSnaps; }
 
-int32 ABuildingPiece::GetCurrentInstability() { return CurrentInstability;}
+float ABuildingPiece::GetCurrentInstability() const { return CurrentInstability;}
+
+float ABuildingPiece::GetMaxInstability() const { return MaxInstability;}
+
+float ABuildingPiece::GetInstabilityPercent() const { return CurrentInstability/MaxInstability;}
+
+FGuid ABuildingPiece::GetStabilityUpdateGUID() const { return StabilityUpdateGUID;}
 
 ABuilding* ABuildingPiece::GetOwningBuilding() const {return OwningBuilding;}
 
@@ -41,6 +45,60 @@ void ABuildingPiece::SetOwningBuilding(ABuilding* NewOwningBuilding)
 
 	OwningBuilding = NewOwningBuilding;
 }
+
+void ABuildingPiece::RemoveBuildingPiece()
+{
+	if(HasAuthority()==false)
+	{
+		Server_RemoveBuildingPiece();
+		return;
+	}
+
+	//Tell Building to remove this piece
+	if(OwningBuilding == nullptr)
+	{
+		UE_LOG(LogBuildingSystem,Error,TEXT("%s does not have a valid owning building"),*GetName())
+		return;
+	}
+
+	OwningBuilding->RemoveBuildingPiece(this, true);
+	
+}
+
+void ABuildingPiece::UpdateStability(const FGuid NewStabilityUpdateGUID)
+{
+	
+	if(StabilityUpdateGUID == NewStabilityUpdateGUID)
+	{
+		return;
+	}
+
+	UpdateSupportPoints();
+
+	StabilityUpdateGUID = NewStabilityUpdateGUID;
+	
+	for (int i = 0; i < SupportingBuildingPieces.Num(); ++i)
+	{
+		if(SupportingBuildingPieces[i])
+		{
+			SupportingBuildingPieces[i]->UpdateStability(StabilityUpdateGUID);
+		}
+	}
+
+	CalculateInstability();
+}
+
+void ABuildingPiece::UpdateSnapPoints() const
+{
+	TArray<UBuildingPieceSnapPoint*> SnapPoints;
+	GetComponents<UBuildingPieceSnapPoint>(SnapPoints);
+	
+	for (int i = 0; i < SnapPoints.Num(); ++i)
+	{
+		SnapPoints[i]->CheckForDuplicatedSnapPoints();
+	}
+}
+
 
 void ABuildingPiece::OnSpawnStart()
 {
@@ -62,14 +120,16 @@ void ABuildingPiece::BeginPlay()
 	
 }
 
-void ABuildingPiece::EndPlay(const EEndPlayReason::Type EndPlayReason)
+
+void ABuildingPiece::Destroyed()
 {
-	if(EndPlayReason == EEndPlayReason::Destroyed && OwningBuilding && HasAuthority())
+	if(HasAuthority())
 	{
-		OwningBuilding->CheckBuildingPieceOut(this);
+		UE_LOG(LogBuildingSystem,Log,TEXT("%s is being destroyed"),*GetName())
+		OnBeginDestroy.Broadcast(this);
 	}
 	
-	Super::EndPlay(EndPlayReason);
+	Super::Destroyed();
 }
 
 
@@ -86,7 +146,14 @@ void ABuildingPiece::OnPlaced()
 	if(HasAuthority() == false){return;}
 	
 	//Get Connecting Building Pieces
-	UpdateSupportPoints();
+	CalculateInstability();
+
+	//If current instability is greater than max instability then destroy piece
+	if(CurrentInstability>MaxInstability)
+	{
+		Destroy();
+		return;
+	}
 
 	//Check overlapping pieces for unique buildings
 	TArray<ABuilding*> FoundBuildings;
@@ -119,7 +186,7 @@ void ABuildingPiece::OnPlaced()
 		FoundBuildings[0]->CheckBuildingPieceIn(this);
 		OwningBuilding = FoundBuildings[0];
 	}
-	//If more than one building, merge with older one?
+	//If more than one building, merge with older one
 	else
 	{
 		TArray<FDateTime> DateTimes;
@@ -140,13 +207,11 @@ void ABuildingPiece::OnPlaced()
 		ABuilding* NewestBuilding = FoundBuildings[NewIndex];
 
 		//Check into oldest building and trigger merge
+		OwningBuilding = OldestBuilding;
 		OldestBuilding->CheckBuildingPieceIn(this);
 		OldestBuilding->MergeBuilding(NewestBuilding);
 			
 	}
-
-	CalculateInstability();
-
 }
 
 
@@ -162,7 +227,7 @@ void ABuildingPiece::UpdateSupportPoints()
 	TArray<bool> WorldStaticChecks;
 	TArray<bool> BuildingPieceChecks;
 
-	//Cycle through all mesh components to find overlapping snapped points 
+	//Cycle through all mesh components to find overlapping points 
 	for (int i = 0; i < MeshComponents.Num(); ++i)
 	{
 		const UMeshComponent* TargetMeshComponent = MeshComponents[i];
@@ -200,7 +265,9 @@ void ABuildingPiece::UpdateSupportPoints()
 
 void ABuildingPiece::CalculateInstability()
 {
-
+	
+	UpdateSupportPoints();
+	
 	if(bIsOverlappingWorldStatic)
 	{
 		CurrentInstability = 0;
@@ -218,21 +285,25 @@ void ABuildingPiece::CalculateInstability()
 			int32 MinIndex;
 			FMath::Min(ConnectedInstability,&MinIndex);
 			const int32 MinInstability = ConnectedInstability[MinIndex];
-			CurrentInstability = MinInstability + 1;
+			CurrentInstability = MinInstability + AdditionalInstability;
 		}
 		else
 		{
 			UE_LOG(LogBuildingSystem,Warning,TEXT("%s could not find the stabilty for connected pieces"),*GetName())
 		}
-
 	}
 	else
 	{
-		UE_LOG(LogBuildingSystem,Warning,TEXT("%s is not overlapping world static or building piece"),*GetName())
+		UE_LOG(LogBuildingSystem,Log,TEXT("%s is not overlapping world static or building piece"),*GetName())
 	}
 
-	UE_LOG(LogBuildingSystem,Log,TEXT("%s instabiltiy = %d"),*GetName(),CurrentInstability);
+	if(HasAuthority())
+	{
+		OnRep_StabilityUpdated();
+	}
+	
 }
+
 
 //BP Version
 bool ABuildingPiece::CheckPlacement_Implementation(const bool bIsSnappedDuringSpawn)
@@ -250,6 +321,19 @@ bool ABuildingPiece::Internal_CheckPlacement(const bool bIsSnappedDuringSpawn)
 	return bIsOverlappingBuildingPiece || bIsOverlappingWorldStatic || bIsSnappedDuringSpawn;
 }
 
+void ABuildingPiece::OnRep_StabilityUpdated()
+{
+	StabilityUpdated();
+}
 
 
+bool ABuildingPiece::Server_RemoveBuildingPiece_Validate()
+{
+	return true;
+}
+
+void ABuildingPiece::Server_RemoveBuildingPiece_Implementation()
+{
+	RemoveBuildingPiece();
+}
 

@@ -41,18 +41,16 @@ public:
 	bool IsEligibleForSnap(ABuildingPiece* PieceToCheck);
 
 	/**
-	* @brief Checks if a building piece is eligible to be support by this snap point
-	* @param Class Class to check
-	* @return True if OK to snap, false if not
-	*/
-	UFUNCTION(BlueprintCallable,Category="Building System")
-	bool IsEligibleForSupport(TSubclassOf<ABuildingPiece> Class);
-
-	/**
 	 * @brief Sets the building piece as the snapped piece
 	 * @param Piece Piece to snap
 	 */
 	void AddSnappedPiece(ABuildingPiece* Piece);
+
+	/**
+	 * @brief Checks for snap points that are overlapping, if any overlapping snap points have the same snap classes,
+	 * remove that snap class from this snap point.
+	 */
+	void CheckForDuplicatedSnapPoints();
 	
 
 protected:
@@ -89,6 +87,7 @@ protected:
 	
 	virtual void BeginPlay() override;
 
-	void CheckForDuplicatedSnapPoints();
-		
+	UFUNCTION()
+	void OnPieceBeginDestroy(ABuildingPiece* DestroyedPiece);
+	
 };

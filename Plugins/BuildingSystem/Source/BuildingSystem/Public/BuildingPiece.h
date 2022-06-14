@@ -9,6 +9,8 @@
 class UBuildingPieceSnapPoint;
 class ABuilding;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBeginDestroy, class ABuildingPiece*, PieceBeingDestroyed);
+
 UCLASS()
 class BUILDINGSYSTEM_API ABuildingPiece : public AActor
 {
@@ -18,12 +20,38 @@ public:
 	// Sets default values for this actor's properties
 	ABuildingPiece();
 
+	/**
+	 * @brief Gets if the piece should attempt to snap while spawning
+	 * @return true if yes, false if no
+	 */
 	UFUNCTION(BlueprintCallable,Category="Building System")
 	bool GetShouldCheckForSnaps() const;
 
+	/**
+	 * @brief Returns the piece's instability.  0 being the most stable and higher numbers being more unstable.  
+	 * @return Current instability of the piece
+	 */
 	UFUNCTION(BlueprintCallable,Category="Building System")
-	int32 GetCurrentInstability();
+	float GetCurrentInstability() const;
 
+	/**
+	* @brief Returns the piece's  max instability.  0 being the most stable and higher numbers being more unstable.  
+	 */
+	UFUNCTION(BlueprintCallable,Category="Building System")
+	float GetMaxInstability() const;
+
+	/**
+	* @brief Returns the piece's  max instability.  0 being the most stable and higher numbers being more unstable.  
+	 */
+	UFUNCTION(BlueprintCallable,Category="Building System")
+	float GetInstabilityPercent() const;
+
+	/**
+	 * @brief Returns GUID of latest stability update
+	 */
+	UFUNCTION(BlueprintCallable,Category="Building System")
+	FGuid GetStabilityUpdateGUID() const;
+	
 	/**
 	 * @brief Called by Building Piece Spawner 
 	 */
@@ -35,9 +63,7 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category="Building System")
 	bool CheckPlacement(bool bIsSnappedDuringSpawn);
-	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+
 
 	/**
 	 * @brief Checks for valid overlapping snap points and sets support points
@@ -53,7 +79,7 @@ public:
 
 	/**
 	 * @brief Returns owning building.  Will be null if no owning building
-	 * @return 
+	 * @return Pointer to owning building piece. Can be nullptr.
 	 */
 	UFUNCTION(BlueprintCallable,Category="Building System")
 	ABuilding* GetOwningBuilding() const;
@@ -65,15 +91,44 @@ public:
 	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category="Building System")
 	void SetOwningBuilding(ABuilding* NewOwningBuilding);
 
+	/**
+	 * @brief Called when this piece should be destroyed during gameplay.  WIll do an RPC if not authority. 
+	 */
+	UFUNCTION(BlueprintCallable,Category="Buildng System")
+	void RemoveBuildingPiece();
+
+	/**
+	 * @brief Called by the building to the root piece to calculate it's stability.  Then chains the builds to all connected piece.
+	 * GUID Makes sure the build is only being called once per building piece.  
+	 * @param NewStabilityUpdateGUID Build GUID so we don't infinitely keep updating stability
+	 */
+	UFUNCTION()
+	void UpdateStability(FGuid NewStabilityUpdateGUID);
+
+	/**
+	 * @brief Has building pieces' child snap points update their duplicate snap checks 
+	 */
+	UFUNCTION()
+	void UpdateSnapPoints() const;
+
+	/**
+	 * @brief If in world static, instability will be 0. If connected to building piece, instability will be 1 more than
+	* the minimum instability 
+	 */
+	UFUNCTION()
+	void CalculateInstability();
+
+	UPROPERTY(BlueprintAssignable,Category="Building System")
+	FOnBeginDestroy OnBeginDestroy;
+	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	/**
-	 * @brief Overriden from Actor
-	 * @param EndPlayReason reason play was ended.  
-	 */
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void Destroyed() override;
 	
 	/**
 	 * @brief If the building should attempt to snap during spawn
@@ -85,13 +140,19 @@ protected:
 	 * @brief Max amount of Instability before piece breaks from building
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,Category="Building System")
-	int32 MaxInstability = 3;
+	float MaxInstability = 3;
+
+	/**
+	* @brief Max amount of Instability before piece breaks from building
+	*/
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,Category="Building System")
+	float AdditionalInstability = 1;
 
 	/**
 	 * @brief Current amount of Instability
 	 */
-	UPROPERTY(BlueprintReadOnly, Replicated, Category="Building System")
-	int32 CurrentInstability;
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing=OnRep_StabilityUpdated, Category="Building System")
+	float CurrentInstability;
 
 	/**
 	 * @brief If the building piece is snapped 
@@ -123,6 +184,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly,Replicated,Category="Building System")
 	ABuilding* OwningBuilding = nullptr;
 
+	UPROPERTY(BlueprintReadOnly,Category="Building System")
+	FGuid StabilityUpdateGUID;
+
 	/**
 	* @brief Native version of check placement. 
 	 * @return True if OK to place, false if not. 
@@ -130,10 +194,20 @@ protected:
 	virtual bool Internal_CheckPlacement(bool bIsSnappedDuringSpawn);
 
 	/**
-	 * @brief If in world static, instability will be 0. If connected to building piece, instability will be 1 more than
-	 * the minimum instability 
+	 * @brief Called when the instability value changes
 	 */
 	UFUNCTION()
-	void CalculateInstability();
+	void OnRep_StabilityUpdated();
+
+	UFUNCTION(BlueprintImplementableEvent,Category="Building System")
+	void StabilityUpdated();
+
+	/**
+	 * @brief RCP for removing a building piece during gameplay
+	 */
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_RemoveBuildingPiece();
+	bool Server_RemoveBuildingPiece_Validate();
+	void Server_RemoveBuildingPiece_Implementation();
 	
 };

@@ -75,6 +75,19 @@ void ABuilding::InitializeFromTemplate()
 	UE_LOG(LogBuildingSystem,Log,TEXT("%s spawned from template"),*GetName())
 }
 
+void ABuilding::RemoveUnstablePieces()
+{
+	for (int i = MyBuildingPieces.Num() - 1; i >= 0; --i)
+	{
+		ABuildingPiece* TargetPiece = MyBuildingPieces[i];
+	
+		if(TargetPiece->GetCurrentInstability()>TargetPiece->GetMaxInstability())
+		{
+			RemoveBuildingPiece(TargetPiece, false);
+		}
+	}
+}
+
 
 void ABuilding::CheckBuildingPieceIn(ABuildingPiece* BuildingPiece)
 {
@@ -94,8 +107,13 @@ void ABuilding::CheckBuildingPieceIn(ABuildingPiece* BuildingPiece)
 	}
 
 	UE_LOG(LogBuildingSystem,Log,TEXT("%s checked into %s building"),*BuildingPiece->GetName(),*GetName())
-	MyBuildingPieces.Add(BuildingPiece);	
-	
+	MyBuildingPieces.Add(BuildingPiece);
+
+	for (int i = 0; i < MyBuildingPieces.Num(); ++i)
+	{
+		MyBuildingPieces[i]->CalculateInstability();
+	}
+
 }
 
 void ABuilding::CheckBuildingPieceOut(ABuildingPiece* BuildingPiece)
@@ -149,4 +167,133 @@ void ABuilding::SetRootPiece(ABuildingPiece* NewRootPiece)
 	
 	RootPiece = NewRootPiece;
 	UE_LOG(LogBuildingSystem,Log,TEXT("%s set as root for %s building"),*NewRootPiece->GetName(),*GetName())
+}
+
+void ABuilding::RemoveBuildingPiece(ABuildingPiece* BuildingPiece, const bool bDoStabilityCheck)
+{
+	if(HasAuthority() == false)
+	{
+		UE_LOG(LogBuildingSystem,Warning,TEXT("Non-Authority %s attempted to remove building piece"),*GetName())
+		return;
+	}
+
+	if(BuildingPiece == nullptr)
+	{
+		UE_LOG(LogBuildingSystem,Error,TEXT("Attempted to remove null building piece from %s"),
+			*GetName())
+		return;
+	}
+
+	if(MyBuildingPieces.Contains(BuildingPiece) == false)
+	{
+		UE_LOG(LogBuildingSystem,Warning,TEXT("%s building piece is not part of %s building"),*BuildingPiece->GetName(),
+			*GetName())
+		return;
+	}
+
+	//If destroying root piece
+	if(BuildingPiece == RootPiece)
+	{
+
+		UE_LOG(LogBuildingSystem,Log,TEXT("%s destroying root piece"),*BuildingPiece->GetName())
+		
+		//Check to see if there are any other pieces in the building
+		if(MyBuildingPieces.Num() > 1)
+		{
+			//Check for other possible new roots
+			TArray<ABuildingPiece*> PossibleNewRoots;
+			for (int i = 0; i < MyBuildingPieces.Num(); ++i)
+			{
+				if(MyBuildingPieces[i]->GetCurrentInstability() == 0 && MyBuildingPieces[i] != BuildingPiece)
+				{
+					PossibleNewRoots.Add(MyBuildingPieces[i]);
+				}
+			}
+
+			//If no possible new roots, then destroy everything
+			if(PossibleNewRoots.Num() == 0)
+			{
+				//Building no longer viable, destroy it all
+				UE_LOG(LogBuildingSystem,Log,TEXT("%s building no longer has any possible roots. Destroying..."),*GetName())
+				for (int i = MyBuildingPieces.Num() - 1; i >= 0; --i)
+				{
+					MyBuildingPieces[i]->Destroy();
+				}
+				
+				Destroy();
+				return;
+			}
+			
+				//Set new Root Piece
+			RootPiece = PossibleNewRoots[0];
+			UE_LOG(LogBuildingSystem,Log,TEXT("%s updated root to %s"),*GetName(),*RootPiece->GetName())
+		}
+	}
+	
+	CheckBuildingPieceOut(BuildingPiece);
+	BuildingPiece->Destroy();
+
+	if(MyBuildingPieces.Num() > 0 && bDoStabilityCheck)
+	{
+		DoStabilityCheck();
+	}
+	else if(MyBuildingPieces.Num() == 0)
+	{
+		UE_LOG(LogBuildingSystem,Log,TEXT("%s building no longer has pieces.  Removing building."),*GetName())
+		Destroy();
+	}
+}
+
+void ABuilding::DoStabilityCheck()
+{
+	StabilityUpdateGUID = FGuid::NewGuid();
+	for (int i = 0; i < MyBuildingPieces.Num(); ++i)
+	{
+		if(MyBuildingPieces[i]->GetCurrentInstability() == 0)
+		{
+			MyBuildingPieces[i]->UpdateStability(StabilityUpdateGUID);
+		}
+	}
+	
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle,this,&ABuilding::CheckStabilityUpdateGUIDs,.1f,false);
+}
+
+
+void ABuilding::CheckStabilityUpdateGUIDs()
+{
+	int32 PiecesRemoved = 0;
+	for (int i = MyBuildingPieces.Num() - 1; i >= 0; --i)
+	{
+		ABuildingPiece* TargetPiece = MyBuildingPieces[i];
+		if(TargetPiece->GetStabilityUpdateGUID() != StabilityUpdateGUID)
+		{
+			RemoveBuildingPiece(TargetPiece, false);
+			PiecesRemoved++;
+		}
+		else
+		{
+			TargetPiece->CalculateInstability();
+			
+			if(TargetPiece->GetCurrentInstability() > TargetPiece->GetMaxInstability())
+			{
+				RemoveBuildingPiece(TargetPiece,false);
+				PiecesRemoved++;
+			}
+		}
+	}
+
+	if(PiecesRemoved > 0)
+	{
+		DoStabilityCheck();
+	}
+	else
+	{
+
+		//Have the building piece snap points check for duplicates 
+		for (int i = 0; i < MyBuildingPieces.Num(); ++i)
+		{
+			MyBuildingPieces[i]->UpdateSnapPoints();
+		}
+	}
 }
