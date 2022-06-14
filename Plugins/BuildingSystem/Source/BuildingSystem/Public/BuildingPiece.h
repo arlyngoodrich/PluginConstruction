@@ -32,13 +32,19 @@ public:
 	 * @return Current instability of the piece
 	 */
 	UFUNCTION(BlueprintCallable,Category="Building System")
-	int32 GetCurrentInstability() const;
+	float GetCurrentInstability() const;
 
 	/**
 	* @brief Returns the piece's  max instability.  0 being the most stable and higher numbers being more unstable.  
 	 */
 	UFUNCTION(BlueprintCallable,Category="Building System")
-	int32 GetMaxInstability() const;
+	float GetMaxInstability() const;
+
+	/**
+	* @brief Returns the piece's  max instability.  0 being the most stable and higher numbers being more unstable.  
+	 */
+	UFUNCTION(BlueprintCallable,Category="Building System")
+	float GetInstabilityPercent() const;
 
 	/**
 	 * @brief Returns GUID of latest stability update
@@ -145,7 +151,7 @@ protected:
 	/**
 	 * @brief Current amount of Instability
 	 */
-	UPROPERTY(BlueprintReadOnly, Replicated, Category="Building System")
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing=OnRep_StabilityUpdated, Category="Building System")
 	float CurrentInstability;
 
 	/**
@@ -186,6 +192,15 @@ protected:
 	 * @return True if OK to place, false if not. 
 	*/
 	virtual bool Internal_CheckPlacement(bool bIsSnappedDuringSpawn);
+
+	/**
+	 * @brief Called when the instability value changes
+	 */
+	UFUNCTION()
+	void OnRep_StabilityUpdated();
+
+	UFUNCTION(BlueprintImplementableEvent,Category="Building System")
+	void StabilityUpdated();
 
 	/**
 	 * @brief RCP for removing a building piece during gameplay
