@@ -30,8 +30,20 @@ public:
 	 * @return Current instability of the piece
 	 */
 	UFUNCTION(BlueprintCallable,Category="Building System")
-	int32 GetCurrentInstability();
+	int32 GetCurrentInstability() const;
 
+	/**
+	* @brief Returns the piece's  max instability.  0 being the most stable and higher numbers being more unstable.  
+	 */
+	UFUNCTION(BlueprintCallable,Category="Building System")
+	int32 GetMaxInstability() const;
+
+	/**
+	 * @brief Returns GUID of latest stability update
+	 */
+	UFUNCTION(BlueprintCallable,Category="Building System")
+	FGuid GetStabilityUpdateGUID() const;
+	
 	/**
 	 * @brief Called by Building Piece Spawner 
 	 */
@@ -76,15 +88,21 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable,Category="Buildng System")
 	void RemoveBuildingPiece();
-		
+
+	/**
+	 * @brief Called by the building to the root piece to calculate it's stability.  Then chains the builds to all connected piece.
+	 * GUID Makes sure the build is only being called once per building piece.  
+	 * @param NewStabilityUpdateGUID Build GUID so we don't infinitely keep updating stability
+	 */
+	UFUNCTION()
+	void UpdateStability(FGuid NewStabilityUpdateGUID);
+	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-
 	
 	/**
 	 * @brief If the building should attempt to snap during spawn
@@ -133,6 +151,9 @@ protected:
 	 */
 	UPROPERTY(BlueprintReadOnly,Replicated,Category="Building System")
 	ABuilding* OwningBuilding = nullptr;
+
+	UPROPERTY(BlueprintReadOnly,Category="Building System")
+	FGuid StabilityUpdateGUID;
 
 	/**
 	* @brief Native version of check placement. 

@@ -75,6 +75,20 @@ void ABuilding::InitializeFromTemplate()
 	UE_LOG(LogBuildingSystem,Log,TEXT("%s spawned from template"),*GetName())
 }
 
+void ABuilding::RemoveUnstablePieces()
+{
+	for (int i = MyBuildingPieces.Num() - 1; i >= 0; --i)
+	{
+		ABuildingPiece* TargetPiece = MyBuildingPieces[i];
+	
+		if(TargetPiece->GetCurrentInstability()>TargetPiece->GetMaxInstability())
+		{
+			RemoveBuildingPiece(TargetPiece, false);
+		}
+	}
+}
+
+
 
 void ABuilding::CheckBuildingPieceIn(ABuildingPiece* BuildingPiece)
 {
@@ -94,8 +108,8 @@ void ABuilding::CheckBuildingPieceIn(ABuildingPiece* BuildingPiece)
 	}
 
 	UE_LOG(LogBuildingSystem,Log,TEXT("%s checked into %s building"),*BuildingPiece->GetName(),*GetName())
-	MyBuildingPieces.Add(BuildingPiece);	
-	
+	MyBuildingPieces.Add(BuildingPiece);
+
 }
 
 void ABuilding::CheckBuildingPieceOut(ABuildingPiece* BuildingPiece)
@@ -151,7 +165,7 @@ void ABuilding::SetRootPiece(ABuildingPiece* NewRootPiece)
 	UE_LOG(LogBuildingSystem,Log,TEXT("%s set as root for %s building"),*NewRootPiece->GetName(),*GetName())
 }
 
-void ABuilding::RemoveBuildingPiece(ABuildingPiece* BuildingPiece)
+void ABuilding::RemoveBuildingPiece(ABuildingPiece* BuildingPiece, bool bDoStabilityCheck)
 {
 	if(HasAuthority() == false)
 	{
@@ -173,11 +187,68 @@ void ABuilding::RemoveBuildingPiece(ABuildingPiece* BuildingPiece)
 		return;
 	}
 
+	//If destroying root piece
+	if(BuildingPiece == RootPiece)
+	{
+		//Check to see if there are any other pieces in the building
+		if(MyBuildingPieces.Num() > 1)
+		{
+			//Check for other possible new roots
+			TArray<ABuildingPiece*> PossibleNewRoots;
+			for (int i = 0; i < MyBuildingPieces.Num(); ++i)
+			{
+				if(MyBuildingPieces[i]->GetCurrentInstability() == 0)
+				{
+					PossibleNewRoots.Add(MyBuildingPieces[i]);
+				}
+			}
+
+			//If no possible new roots, then destroy everything
+			if(PossibleNewRoots.Num() == 0)
+			{
+				//Building no longer viable, destroy it all
+				UE_LOG(LogBuildingSystem,Log,TEXT("%s building no longer has any possible roots. Destroying..."),*GetName())
+				for (int i = MyBuildingPieces.Num() - 1; i >= 0; --i)
+				{
+					MyBuildingPieces[i]->Destroy();
+				}
+				
+				Destroy();
+				return;
+			}
+			
+				//Set new Root Piece
+				RootPiece = PossibleNewRoots[0]; 
+		}
+	}
+	
 	CheckBuildingPieceOut(BuildingPiece);
 	BuildingPiece->Destroy();
 
-	if(MyBuildingPieces.Num() == 0)
+	if(MyBuildingPieces.Num() > 0)
+	{
+		StabilityUpdateGUID = FGuid::NewGuid();
+		RootPiece->UpdateStability(StabilityUpdateGUID);
+
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle,this,&ABuilding::CheckStabilityUpdateGUIDs,.5f,false);
+	}
+	else
 	{
 		UE_LOG(LogBuildingSystem,Log,TEXT("%s building no longer has pieces.  Removing building."),*GetName())
+		Destroy();
 	}
+}
+
+void ABuilding::CheckStabilityUpdateGUIDs()
+{
+	for (int i = MyBuildingPieces.Num() - 1; i >= 0; --i)
+	{
+		ABuildingPiece* TargetPiece = MyBuildingPieces[i];
+		if(TargetPiece->GetStabilityUpdateGUID() != StabilityUpdateGUID)
+		{
+			RemoveBuildingPiece(TargetPiece, false);
+		}
+	}
+	
 }

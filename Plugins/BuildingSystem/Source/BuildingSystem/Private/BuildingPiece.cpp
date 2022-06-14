@@ -27,7 +27,11 @@ void ABuildingPiece::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutL
 
 bool ABuildingPiece::GetShouldCheckForSnaps() const { return bCheckForSnaps; }
 
-int32 ABuildingPiece::GetCurrentInstability() { return CurrentInstability;}
+int32 ABuildingPiece::GetCurrentInstability() const { return CurrentInstability;}
+
+int32 ABuildingPiece::GetMaxInstability() const { return MaxInstability;}
+
+FGuid ABuildingPiece::GetStabilityUpdateGUID() const { return StabilityUpdateGUID;}
 
 ABuilding* ABuildingPiece::GetOwningBuilding() const {return OwningBuilding;}
 
@@ -55,8 +59,27 @@ void ABuildingPiece::RemoveBuildingPiece()
 		return;
 	}
 
-	OwningBuilding->RemoveBuildingPiece(this);
+	OwningBuilding->RemoveBuildingPiece(this, true);
 	
+}
+
+void ABuildingPiece::UpdateStability(const FGuid NewStabilityUpdateGUID)
+{
+	if(StabilityUpdateGUID == NewStabilityUpdateGUID)
+	{
+		return;
+	}
+
+	CalculateInstability();
+	StabilityUpdateGUID = NewStabilityUpdateGUID;
+
+	for (int i = 0; i < SupportingBuildingPieces.Num(); ++i)
+	{
+		if(SupportingBuildingPieces[i])
+		{
+			SupportingBuildingPieces[i]->UpdateStability(StabilityUpdateGUID);
+		}
+	}
 }
 
 void ABuildingPiece::OnSpawnStart()
@@ -94,6 +117,7 @@ void ABuildingPiece::OnPlaced()
 	
 	//Get Connecting Building Pieces
 	UpdateSupportPoints();
+	CalculateInstability();
 
 	//Check overlapping pieces for unique buildings
 	TArray<ABuilding*> FoundBuildings;
@@ -151,9 +175,6 @@ void ABuildingPiece::OnPlaced()
 		OldestBuilding->MergeBuilding(NewestBuilding);
 			
 	}
-
-	CalculateInstability();
-
 }
 
 
@@ -231,7 +252,6 @@ void ABuildingPiece::CalculateInstability()
 		{
 			UE_LOG(LogBuildingSystem,Warning,TEXT("%s could not find the stabilty for connected pieces"),*GetName())
 		}
-
 	}
 	else
 	{
@@ -239,6 +259,7 @@ void ABuildingPiece::CalculateInstability()
 	}
 
 	UE_LOG(LogBuildingSystem,Log,TEXT("%s instabiltiy = %d"),*GetName(),CurrentInstability);
+	
 }
 
 

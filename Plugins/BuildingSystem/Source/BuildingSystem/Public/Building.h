@@ -37,12 +37,6 @@ public:
 	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category="Building System")
 	void CheckBuildingPieceIn(ABuildingPiece* BuildingPiece);
 
-	/**
-	 * @brief Removes Building Piece from MyBuildingPieces array.  Ensures not null pointer. 
-	 * @param BuildingPiece Building Piece to remove
-	 */
-	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category="Building System")
-	void CheckBuildingPieceOut(ABuildingPiece* BuildingPiece);
 
 	/**
 	 * @brief Merges the target building pieces into the instigating (this) building piece
@@ -59,9 +53,10 @@ public:
 	 * @brief Called by the individual building piece to be removed.  Building then destroys the piece and has the other
 	 * pieces in the building update their instability.  If this is the last piece, then the building destroys itself too  
 	 * @param BuildingPiece pointer to building piece that should be destroyed
+	 * @param bDoStabilityCheck true if removing individual piece, false if removing multiple.
 	 */
 	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category="Building System")
-	void RemoveBuildingPiece(ABuildingPiece* BuildingPiece);
+	void RemoveBuildingPiece(ABuildingPiece* BuildingPiece,bool bDoStabilityCheck);
 
 protected:
 	// Called when the game starts or when spawned
@@ -85,11 +80,37 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Replicated, Category="Building System")
 	FDateTime TimeCreated;
 
+	/**
+	 * @brief The root building piece
+	 */
 	UPROPERTY(BlueprintReadOnly, Replicated, Category="Building System")
 	ABuildingPiece* RootPiece = nullptr;
 
+	UPROPERTY(BlueprintReadOnly,Category="Buiding System")
+	FGuid StabilityUpdateGUID;
+
+	/**
+	 * @brief Called if using a building blueprint in editor
+	 */
 	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category="Building System")
 	void InitializeFromTemplate();
+
+	
+	/**
+	 * @brief Removes Building Piece from MyBuildingPieces array.  Ensures not null pointer. 
+	 * @param BuildingPiece Building Piece to remove
+	 */
+	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category="Building System")
+	void CheckBuildingPieceOut(ABuildingPiece* BuildingPiece);
+
+	/**
+	 * @brief Reverse loop through building pieces to remove unstable pieces 
+	 */
+	UFUNCTION()
+	void RemoveUnstablePieces();
+
+	UFUNCTION()
+	void CheckStabilityUpdateGUIDs();
 
 
 };
