@@ -92,7 +92,6 @@ void UBuildingPieceSnapPoint::BeginPlay()
 
 void UBuildingPieceSnapPoint::OnPieceBeginDestroy(ABuildingPiece* DestroyedPiece)
 {
-	UE_LOG(LogBuildingSystem,Log,TEXT("%s removed %s from snapped pieces"),*GetName(),*DestroyedPiece->GetName()) //TODO REMOVE
 	
 	if(SnappedPieces.Contains(DestroyedPiece))
 	{

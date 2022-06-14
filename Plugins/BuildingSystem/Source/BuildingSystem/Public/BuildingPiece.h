@@ -105,6 +105,13 @@ public:
 	UFUNCTION()
 	void UpdateSnapPoints() const;
 
+	/**
+	 * @brief If in world static, instability will be 0. If connected to building piece, instability will be 1 more than
+	* the minimum instability 
+	 */
+	UFUNCTION()
+	void CalculateInstability();
+
 	UPROPERTY(BlueprintAssignable,Category="Building System")
 	FOnBeginDestroy OnBeginDestroy;
 	
@@ -127,13 +134,19 @@ protected:
 	 * @brief Max amount of Instability before piece breaks from building
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,Category="Building System")
-	int32 MaxInstability = 3;
+	float MaxInstability = 3;
+
+	/**
+	* @brief Max amount of Instability before piece breaks from building
+	*/
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,Category="Building System")
+	float AdditionalInstability = 1;
 
 	/**
 	 * @brief Current amount of Instability
 	 */
 	UPROPERTY(BlueprintReadOnly, Replicated, Category="Building System")
-	int32 CurrentInstability;
+	float CurrentInstability;
 
 	/**
 	 * @brief If the building piece is snapped 
@@ -173,13 +186,6 @@ protected:
 	 * @return True if OK to place, false if not. 
 	*/
 	virtual bool Internal_CheckPlacement(bool bIsSnappedDuringSpawn);
-
-	/**
-	 * @brief If in world static, instability will be 0. If connected to building piece, instability will be 1 more than
-	 * the minimum instability 
-	 */
-	UFUNCTION()
-	void CalculateInstability();
 
 	/**
 	 * @brief RCP for removing a building piece during gameplay

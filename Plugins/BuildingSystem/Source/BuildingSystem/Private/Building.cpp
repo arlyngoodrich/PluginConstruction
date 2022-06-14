@@ -109,6 +109,11 @@ void ABuilding::CheckBuildingPieceIn(ABuildingPiece* BuildingPiece)
 	UE_LOG(LogBuildingSystem,Log,TEXT("%s checked into %s building"),*BuildingPiece->GetName(),*GetName())
 	MyBuildingPieces.Add(BuildingPiece);
 
+	for (int i = 0; i < MyBuildingPieces.Num(); ++i)
+	{
+		MyBuildingPieces[i]->CalculateInstability();
+	}
+
 }
 
 void ABuilding::CheckBuildingPieceOut(ABuildingPiece* BuildingPiece)
@@ -266,7 +271,16 @@ void ABuilding::CheckStabilityUpdateGUIDs()
 			RemoveBuildingPiece(TargetPiece, false);
 			PiecesRemoved++;
 		}
-		//TODO else if instability > max instability --> remove piece 
+		else
+		{
+			TargetPiece->CalculateInstability();
+			
+			if(TargetPiece->GetCurrentInstability() > TargetPiece->GetMaxInstability())
+			{
+				RemoveBuildingPiece(TargetPiece,false);
+				PiecesRemoved++;
+			}
+		}
 	}
 
 	if(PiecesRemoved > 0)

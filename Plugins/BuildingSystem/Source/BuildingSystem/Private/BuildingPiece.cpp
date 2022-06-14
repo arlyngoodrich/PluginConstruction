@@ -144,8 +144,14 @@ void ABuildingPiece::OnPlaced()
 	if(HasAuthority() == false){return;}
 	
 	//Get Connecting Building Pieces
-	UpdateSupportPoints();
 	CalculateInstability();
+
+	//If current instability is greater than max instability then destroy piece
+	if(CurrentInstability>MaxInstability)
+	{
+		Destroy();
+		return;
+	}
 
 	//Check overlapping pieces for unique buildings
 	TArray<ABuilding*> FoundBuildings;
@@ -178,7 +184,7 @@ void ABuildingPiece::OnPlaced()
 		FoundBuildings[0]->CheckBuildingPieceIn(this);
 		OwningBuilding = FoundBuildings[0];
 	}
-	//If more than one building, merge with older one?
+	//If more than one building, merge with older one
 	else
 	{
 		TArray<FDateTime> DateTimes;
@@ -199,6 +205,7 @@ void ABuildingPiece::OnPlaced()
 		ABuilding* NewestBuilding = FoundBuildings[NewIndex];
 
 		//Check into oldest building and trigger merge
+		OwningBuilding = OldestBuilding;
 		OldestBuilding->CheckBuildingPieceIn(this);
 		OldestBuilding->MergeBuilding(NewestBuilding);
 			
@@ -218,7 +225,7 @@ void ABuildingPiece::UpdateSupportPoints()
 	TArray<bool> WorldStaticChecks;
 	TArray<bool> BuildingPieceChecks;
 
-	//Cycle through all mesh components to find overlapping snapped points 
+	//Cycle through all mesh components to find overlapping points 
 	for (int i = 0; i < MeshComponents.Num(); ++i)
 	{
 		const UMeshComponent* TargetMeshComponent = MeshComponents[i];
@@ -257,6 +264,8 @@ void ABuildingPiece::UpdateSupportPoints()
 void ABuildingPiece::CalculateInstability()
 {
 
+	UpdateSupportPoints();
+	
 	if(bIsOverlappingWorldStatic)
 	{
 		CurrentInstability = 0;
@@ -274,7 +283,7 @@ void ABuildingPiece::CalculateInstability()
 			int32 MinIndex;
 			FMath::Min(ConnectedInstability,&MinIndex);
 			const int32 MinInstability = ConnectedInstability[MinIndex];
-			CurrentInstability = MinInstability + 1;
+			CurrentInstability = MinInstability + AdditionalInstability;
 		}
 		else
 		{
