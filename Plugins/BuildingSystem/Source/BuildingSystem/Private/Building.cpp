@@ -266,6 +266,7 @@ void ABuilding::CheckStabilityUpdateGUIDs()
 			RemoveBuildingPiece(TargetPiece, false);
 			PiecesRemoved++;
 		}
+		//TODO else if instability > max instability --> remove piece 
 	}
 
 	if(PiecesRemoved > 0)
@@ -274,10 +275,11 @@ void ABuilding::CheckStabilityUpdateGUIDs()
 	}
 	else
 	{
+
+		//Have the building piece snap points check for duplicates 
 		for (int i = 0; i < MyBuildingPieces.Num(); ++i)
 		{
 			MyBuildingPieces[i]->UpdateSnapPoints();
 		}
 	}
-	
 }

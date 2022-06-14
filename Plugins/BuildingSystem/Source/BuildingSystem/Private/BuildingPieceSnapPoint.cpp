@@ -32,7 +32,7 @@ bool UBuildingPieceSnapPoint::IsEligibleForSnap(ABuildingPiece* PieceToCheck)
 	TArray<bool> ClassChecks;
 	for (int i = 0; i < AcceptableSnapClasses.Num(); ++i)
 	{
-		bool ClassCheck = PieceToCheck->GetClass()->IsChildOf(AcceptableSnapClasses[i]);
+		bool ClassCheck = PieceToCheck->GetClass()->IsChildOf(AcceptableSnapClasses[i]) || PieceToCheck->GetClass() == AcceptableSnapClasses[i];
 		ClassChecks.Add(ClassCheck);
 	}
 	
@@ -40,7 +40,6 @@ bool UBuildingPieceSnapPoint::IsEligibleForSnap(ABuildingPiece* PieceToCheck)
 	for (int i = SnappedPieces.Num() - 1; i >= 0; --i)
 	{
 		ABuildingPiece* TargetPiece = SnappedPieces[i];
-			
 		if(SnappedPieces[i] != nullptr)
 		{
 			//Check if it's a subclass or the same class as the target snap piece.
@@ -70,6 +69,8 @@ void UBuildingPieceSnapPoint::AddSnappedPiece(ABuildingPiece* Piece)
 	
 	SnappedPieces.Add(Piece);
 	bIsSnapped = true;
+
+	Piece->OnBeginDestroy.AddDynamic(this,&UBuildingPieceSnapPoint::OnPieceBeginDestroy);
 }
 
 
@@ -89,10 +90,20 @@ void UBuildingPieceSnapPoint::BeginPlay()
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle,this,&UBuildingPieceSnapPoint::CheckForDuplicatedSnapPoints,.5,false);
 }
 
+void UBuildingPieceSnapPoint::OnPieceBeginDestroy(ABuildingPiece* DestroyedPiece)
+{
+	UE_LOG(LogBuildingSystem,Log,TEXT("%s removed %s from snapped pieces"),*GetName(),*DestroyedPiece->GetName()) //TODO REMOVE
+	
+	if(SnappedPieces.Contains(DestroyedPiece))
+	{
+		SnappedPieces.Remove(DestroyedPiece);
+		DestroyedPiece->OnBeginDestroy.RemoveDynamic(this,&UBuildingPieceSnapPoint::OnPieceBeginDestroy);
+	}
+}
+
 
 void UBuildingPieceSnapPoint::CheckForDuplicatedSnapPoints()
 {
-
 	AcceptableSnapClasses = DefaultAcceptableSnapClasses;
 	
 	TArray<UPrimitiveComponent*> Components;
@@ -104,14 +115,13 @@ void UBuildingPieceSnapPoint::CheckForDuplicatedSnapPoints()
 		//Check to see if it's a snap point
 		if(const UBuildingPieceSnapPoint* TargetSnapPoint = Cast<UBuildingPieceSnapPoint>(Components[i]))
 		{
-			
-			//Get the eligible building classes
-			auto TargetSnapPointClasses = TargetSnapPoint->GetEligibleBuildingPieces();
-			UE_LOG(LogBuildingSystem,Log,TEXT("Overlapped snap point has %d acceptable classes"),TargetSnapPointClasses.Num())
-
-			//If they are in the same general location 
-			if(GetComponentLocation().Equals(TargetSnapPoint->GetComponentLocation(),2))
+			//If the snap points are in the same location
+			if(GetComponentLocation().Equals(TargetSnapPoint->GetComponentLocation(),.1f))
 			{
+				//Get the eligible building classes
+				auto TargetSnapPointClasses = TargetSnapPoint->GetEligibleBuildingPieces();
+				UE_LOG(LogBuildingSystem,Log,TEXT("Overlapped snap point has %d acceptable classes"),TargetSnapPointClasses.Num())
+
 				for (int t = 0; t < TargetSnapPointClasses.Num(); ++t)
 				{
 					//If it has an eligible building class that this snap point has
@@ -119,7 +129,7 @@ void UBuildingPieceSnapPoint::CheckForDuplicatedSnapPoints()
 					{
 						//remove the eligible building class form this snap point
 						AcceptableSnapClasses.Remove(TargetSnapPointClasses[t]);
-						UE_LOG(LogBuildingSystem,Log,TEXT("Removed class from acceptable classes"))
+						UE_LOG(LogBuildingSystem,Log,TEXT("Removed %s class from acceptable classes"),*TargetSnapPointClasses[t]->GetName())
 					}
 				}
 			}
@@ -127,3 +137,4 @@ void UBuildingPieceSnapPoint::CheckForDuplicatedSnapPoints()
 		}
 	}
 }
+

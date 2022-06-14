@@ -9,6 +9,8 @@
 class UBuildingPieceSnapPoint;
 class ABuilding;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBeginDestroy, class ABuildingPiece*, PieceBeingDestroyed);
+
 UCLASS()
 class BUILDINGSYSTEM_API ABuildingPiece : public AActor
 {
@@ -97,12 +99,14 @@ public:
 	UFUNCTION()
 	void UpdateStability(FGuid NewStabilityUpdateGUID);
 
-
 	/**
 	 * @brief Has building pieces' child snap points update their duplicate snap checks 
 	 */
 	UFUNCTION()
 	void UpdateSnapPoints() const;
+
+	UPROPERTY(BlueprintAssignable,Category="Building System")
+	FOnBeginDestroy OnBeginDestroy;
 	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -110,6 +114,8 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	virtual void Destroyed() override;
 	
 	/**
 	 * @brief If the building should attempt to snap during spawn

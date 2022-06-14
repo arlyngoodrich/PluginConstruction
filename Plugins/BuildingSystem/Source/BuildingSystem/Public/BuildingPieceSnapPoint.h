@@ -87,5 +87,7 @@ protected:
 	
 	virtual void BeginPlay() override;
 
-		
+	UFUNCTION()
+	void OnPieceBeginDestroy(ABuildingPiece* DestroyedPiece);
+	
 };

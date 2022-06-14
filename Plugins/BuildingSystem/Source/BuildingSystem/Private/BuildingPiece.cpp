@@ -90,12 +90,13 @@ void ABuildingPiece::UpdateSnapPoints() const
 {
 	TArray<UBuildingPieceSnapPoint*> SnapPoints;
 	GetComponents<UBuildingPieceSnapPoint>(SnapPoints);
-
+	
 	for (int i = 0; i < SnapPoints.Num(); ++i)
 	{
 		SnapPoints[i]->CheckForDuplicatedSnapPoints();
 	}
 }
+
 
 void ABuildingPiece::OnSpawnStart()
 {
@@ -115,6 +116,18 @@ void ABuildingPiece::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+
+void ABuildingPiece::Destroyed()
+{
+	if(HasAuthority())
+	{
+		UE_LOG(LogBuildingSystem,Log,TEXT("%s is being destroyed"),*GetName())
+		OnBeginDestroy.Broadcast(this);
+	}
+	
+	Super::Destroyed();
 }
 
 
