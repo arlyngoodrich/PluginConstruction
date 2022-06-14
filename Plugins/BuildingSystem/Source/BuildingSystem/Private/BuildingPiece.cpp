@@ -27,9 +27,11 @@ void ABuildingPiece::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& OutL
 
 bool ABuildingPiece::GetShouldCheckForSnaps() const { return bCheckForSnaps; }
 
-int32 ABuildingPiece::GetCurrentInstability() const { return CurrentInstability;}
+float ABuildingPiece::GetCurrentInstability() const { return CurrentInstability;}
 
-int32 ABuildingPiece::GetMaxInstability() const { return MaxInstability;}
+float ABuildingPiece::GetMaxInstability() const { return MaxInstability;}
+
+float ABuildingPiece::GetInstabilityPercent() const { return CurrentInstability/MaxInstability;}
 
 FGuid ABuildingPiece::GetStabilityUpdateGUID() const { return StabilityUpdateGUID;}
 
@@ -263,7 +265,7 @@ void ABuildingPiece::UpdateSupportPoints()
 
 void ABuildingPiece::CalculateInstability()
 {
-
+	
 	UpdateSupportPoints();
 	
 	if(bIsOverlappingWorldStatic)
@@ -292,10 +294,13 @@ void ABuildingPiece::CalculateInstability()
 	}
 	else
 	{
-		UE_LOG(LogBuildingSystem,Warning,TEXT("%s is not overlapping world static or building piece"),*GetName())
+		UE_LOG(LogBuildingSystem,Log,TEXT("%s is not overlapping world static or building piece"),*GetName())
 	}
 
-	UE_LOG(LogBuildingSystem,Log,TEXT("%s instabiltiy = %d"),*GetName(),CurrentInstability);
+	if(HasAuthority())
+	{
+		OnRep_StabilityUpdated();
+	}
 	
 }
 
@@ -316,6 +321,10 @@ bool ABuildingPiece::Internal_CheckPlacement(const bool bIsSnappedDuringSpawn)
 	return bIsOverlappingBuildingPiece || bIsOverlappingWorldStatic || bIsSnappedDuringSpawn;
 }
 
+void ABuildingPiece::OnRep_StabilityUpdated()
+{
+	StabilityUpdated();
+}
 
 
 bool ABuildingPiece::Server_RemoveBuildingPiece_Validate()
