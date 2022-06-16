@@ -38,6 +38,7 @@ public class QuestSystem : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+				"GenericGraphRuntime"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
