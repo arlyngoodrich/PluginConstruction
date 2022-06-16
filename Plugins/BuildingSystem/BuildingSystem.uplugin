@@ -1,0 +1,39 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "BuildingSystem",
+	"Description": "Code plugin for the Building System's core assets ",
+	"Category": "Custom",
+	"CreatedBy": "Arlyn Goodrich",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "BuildingSystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "CustomWidgetTemplates",
+			"Enabled": true
+		},
+		{
+			"Name": "InteractionSystem",
+			"Enabled": true
+		},
+		{
+			"Name": "UniversalCoreAssets",
+			"Enabled": true
+		}
+
+	]
+}
