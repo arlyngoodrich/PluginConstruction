@@ -9,9 +9,13 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(Blueprintable)
 class QUESTSYSTEM_API UQuestSystemNode : public UGenericGraphNode
 {
 	GENERATED_BODY()
+	
+public:
+	UQuestSystemNode();
+
 	
 };
