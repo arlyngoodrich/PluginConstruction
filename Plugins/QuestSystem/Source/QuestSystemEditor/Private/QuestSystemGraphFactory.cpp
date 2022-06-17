@@ -21,7 +21,7 @@ UObject* UQuestSystemGraphFactory::FactoryCreateNew(UClass* InClass, UObject* In
 
 FText UQuestSystemGraphFactory::GetDisplayName() const
 {
-	return LOCTEXT("FactoryName","Quest System");
+	return LOCTEXT("FactoryName","Quest System Graph");
 }
 
 FString UQuestSystemGraphFactory::GetDefaultNewAssetName() const

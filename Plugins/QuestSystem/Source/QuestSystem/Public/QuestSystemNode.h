@@ -17,5 +17,8 @@ class QUESTSYSTEM_API UQuestSystemNode : public UGenericGraphNode
 public:
 	UQuestSystemNode();
 
+	virtual void OnNodeEntered();
+
+	virtual void OnNodeExit();
 	
 };
