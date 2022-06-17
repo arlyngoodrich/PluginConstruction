@@ -14,4 +14,14 @@ UCLASS()
 class QUESTSYSTEM_API UQuestStartNode : public UQuestSystemNode
 {
 	GENERATED_BODY()
+
+	UQuestStartNode();
+
+#if WITH_EDITOR
+
+	virtual bool CanCreateConnectionTo(UGenericGraphNode* Other, int32 NumberOfChildrenNodes, FText& ErrorMessage) override;
+
+
+#endif
+	
 };

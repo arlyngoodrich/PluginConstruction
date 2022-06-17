@@ -14,4 +14,6 @@ UCLASS()
 class QUESTSYSTEM_API UQuestTaskNode : public UQuestSystemNode
 {
 	GENERATED_BODY()
+
+	UQuestTaskNode();
 };

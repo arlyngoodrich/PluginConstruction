@@ -8,7 +8,6 @@ UGenericGraphNode::UGenericGraphNode()
 #if WITH_EDITORONLY_DATA
 	CompatibleGraphType = UGenericGraph::StaticClass();
 
-	BackgroundColor = FLinearColor::Black;
 #endif
 }
 

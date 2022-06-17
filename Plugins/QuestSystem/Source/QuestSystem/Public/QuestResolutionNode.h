@@ -14,4 +14,15 @@ UCLASS()
 class QUESTSYSTEM_API UQuestResolutionNode : public UQuestSystemNode
 {
 	GENERATED_BODY()
+
+public:
+	
+	UQuestResolutionNode();
+
+#if WITH_EDITOR
+
+	virtual bool CanCreateConnectionFrom(UGenericGraphNode* Other, int32 NumberOfParentNodes, FText& ErrorMessage) override;
+
+#endif
+		
 };

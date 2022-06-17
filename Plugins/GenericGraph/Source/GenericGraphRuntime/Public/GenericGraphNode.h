@@ -57,7 +57,7 @@ public:
 	UPROPERTY(VisibleDefaultsOnly, Category = "GenericGraphNode_Editor")
 	TSubclassOf<UGenericGraph> CompatibleGraphType;
 
-	UPROPERTY(EditDefaultsOnly, Category = "GenericGraphNode_Editor")
+	UPROPERTY(BlueprintReadOnly, Category = "GenericGraphNode_Editor")
 	FLinearColor BackgroundColor;
 
 	UPROPERTY(EditDefaultsOnly, Category = "GenericGraphNode_Editor")
