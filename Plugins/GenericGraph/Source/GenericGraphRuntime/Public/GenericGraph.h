@@ -16,7 +16,7 @@ public:
 	virtual ~UGenericGraph();
 
 	UPROPERTY(EditDefaultsOnly, Category = "GenericGraph")
-	FString Name;
+	FText Name;
 
 	UPROPERTY(EditDefaultsOnly, Category = "GenericGraph")
 	TSubclassOf<UGenericGraphNode> NodeType;

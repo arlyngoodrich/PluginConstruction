@@ -3,3 +3,11 @@
 
 #include "QuestTasks/QuestTaskBase.h"
 
+void UQuestTaskBase::ActivateQuest()
+{
+}
+
+void UQuestTaskBase::CompletedQuest()
+{
+	QuestCompletedDelegate.Broadcast();
+}

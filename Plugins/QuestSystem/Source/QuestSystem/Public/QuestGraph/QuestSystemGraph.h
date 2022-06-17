@@ -17,5 +17,16 @@ class QUESTSYSTEM_API UQuestSystemGraph : public UGenericGraph
 public:
 
 	UQuestSystemGraph();
-	
+
+	UFUNCTION(BlueprintCallable,Category="Quest System")
+	void StartQuest();
+
+protected:
+
+	/**
+	 * @brief Checks to make sure graph structure is correct.  Graph must have a start node, at least one resolution node,
+	 * tasks and branches must have at least one parent and child nodes
+	 * @return True if graph is OK, false if not.
+	 */
+	bool EnsureGraphStructure();
 };
