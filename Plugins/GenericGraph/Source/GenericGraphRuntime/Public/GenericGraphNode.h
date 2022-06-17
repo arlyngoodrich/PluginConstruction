@@ -63,16 +63,16 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "GenericGraphNode_Editor")
 	FText ContextMenuName;
 
-	UPROPERTY(EditDefaultsOnly, Category = "GenericGraphNode_Editor")
+	UPROPERTY(BlueprintReadOnly, Category = "GenericGraphNode_Editor")
 	ENodeLimit ParentLimitType;
 
-	UPROPERTY(EditDefaultsOnly, Category = "GenericGraphNode_Editor" ,meta = (ClampMin = "0",EditCondition = "ParentLimitType == ENodeLimit::Limited", EditConditionHides))
+	UPROPERTY(BlueprintReadOnly, Category = "GenericGraphNode_Editor")
 	int32 ParentLimit;
 
-	UPROPERTY(EditDefaultsOnly, Category = "GenericGraphNode_Editor")
+	UPROPERTY(BlueprintReadOnly, Category = "GenericGraphNode_Editor")
 	ENodeLimit ChildrenLimitType;
 
-	UPROPERTY(EditDefaultsOnly, Category = "GenericGraphNode_Editor" ,meta = (ClampMin = "0",EditCondition = "ChildrenLimitType == ENodeLimit::Limited", EditConditionHides))
+	UPROPERTY(BlueprintReadOnly, Category = "GenericGraphNode_Editor")
 	int32 ChildrenLimit;
 	
 #endif
@@ -89,6 +89,8 @@ public:
 	virtual bool CanCreateConnection(UGenericGraphNode* Other, FText& ErrorMessage);
 
 	virtual bool CanCreateConnectionTo(UGenericGraphNode* Other, int32 NumberOfChildrenNodes, FText& ErrorMessage);
+	
 	virtual bool CanCreateConnectionFrom(UGenericGraphNode* Other, int32 NumberOfParentNodes, FText& ErrorMessage);
+
 #endif
 };

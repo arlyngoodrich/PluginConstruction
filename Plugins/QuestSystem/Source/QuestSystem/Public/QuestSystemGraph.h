@@ -13,5 +13,9 @@ UCLASS()
 class QUESTSYSTEM_API UQuestSystemGraph : public UGenericGraph
 {
 	GENERATED_BODY()
+
+public:
+
+	UQuestSystemGraph();
 	
 };
