@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "QuestBranchNode.h"
+#include "QuestGraph/QuestBranchNode.h"
 
 #define LOCTEXT_NAMESPACE "QuestBranchNode"
 

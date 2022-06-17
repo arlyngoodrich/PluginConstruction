@@ -1,10 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "QuestSystemNode.h"
-
-#include "QuestSystem.h"
-#include "QuestSystemGraph.h"
+#include "QuestGraph/QuestSystemNode.h"
+#include "QuestGraph/QuestSystem.h"
+#include "QuestGraph/QuestSystemGraph.h"
 
 #define LOCTEXT_NAMESPACE "QuestSystemNode"
 

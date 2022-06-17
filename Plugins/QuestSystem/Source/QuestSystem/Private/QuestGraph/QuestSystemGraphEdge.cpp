@@ -1,5 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "QuestSystemGraphEdge.h"
+#include "QuestGraph/QuestSystemGraphEdge.h"
 

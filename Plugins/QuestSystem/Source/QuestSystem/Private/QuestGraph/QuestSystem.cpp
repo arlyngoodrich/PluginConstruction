@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "QuestSystem.h"
+#include "QuestGraph/QuestSystem.h"
 
 #define LOCTEXT_NAMESPACE "FQuestSystemModule"
 

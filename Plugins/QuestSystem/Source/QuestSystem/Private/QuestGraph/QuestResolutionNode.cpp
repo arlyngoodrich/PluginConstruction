@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "QuestResolutionNode.h"
+#include "QuestGraph/QuestResolutionNode.h"
 
 #define LOCTEXT_NAMESPACE "QuestResolutionNode"
 

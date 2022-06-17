@@ -2,7 +2,7 @@
 
 
 #include "QuestSystemGraphFactory.h"
-#include "QuestSystemGraph.h"
+#include "QuestGraph/QuestSystemGraph.h"
 
 #define LOCTEXT_NAMESPACE "QuestSystemFactory"
 

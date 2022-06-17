@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "QuestSystemGraph.h"
-#include "QuestSystemGraphEdge.h"
-#include "QuestSystemNode.h"
+#include "QuestGraph/QuestSystemGraph.h"
+#include "QuestGraph/QuestSystemGraphEdge.h"
+#include "QuestGraph/QuestSystemNode.h"
 
 UQuestSystemGraph::UQuestSystemGraph()
 {
