@@ -40,13 +40,13 @@ public:
 	 * @brief Should be called by object creating quest to kick off quest logic. 
 	 */
 	UFUNCTION(BlueprintCallable,Category="Quest System")
-	virtual void ActivateQuest();
+	virtual void ActivateTask();
 
 	/**
 	 * @brief Called when quest is completed.  Broadcasts OnQuestCompleted delegates
 	 */
 	UFUNCTION(BlueprintCallable,Category="Quest System")
-	virtual void CompletedQuest();
+	virtual void CompleteTask();
 
 	
 };

@@ -6,6 +6,8 @@
 #include "GenericGraph.h"
 #include "QuestSystemGraph.generated.h"
 
+class UQuestStartNode;
+
 /**
  * 
  */
@@ -21,6 +23,9 @@ public:
 	UFUNCTION(BlueprintCallable,Category="Quest System")
 	void StartQuest();
 
+	UFUNCTION(BlueprintCallable,Category="Quest System")
+	UQuestStartNode* GetStartNode();
+	
 protected:
 
 	/**
@@ -29,4 +34,6 @@ protected:
 	 * @return True if graph is OK, false if not.
 	 */
 	bool EnsureGraphStructure();
+	
+	
 };

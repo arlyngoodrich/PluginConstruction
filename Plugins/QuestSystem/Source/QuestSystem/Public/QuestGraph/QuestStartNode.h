@@ -17,10 +17,13 @@ class QUESTSYSTEM_API UQuestStartNode : public UQuestSystemNode
 
 	UQuestStartNode();
 
+public:
+
+virtual void ActivateNode() override;
+
 #if WITH_EDITOR
 
 	virtual bool CanCreateConnectionTo(UGenericGraphNode* Other, int32 NumberOfChildrenNodes, FText& ErrorMessage) override;
-
 
 #endif
 	

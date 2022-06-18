@@ -34,6 +34,23 @@ void UQuestSystemGraph::StartQuest()
 		return;
 	}
 
+	UQuestStartNode* StartNode = GetStartNode();
+	if(StartNode == nullptr)
+	{
+		UE_LOG(LogQuestSystem,Error,TEXT("Graph %s start node is null"),*Name.ToString())
+		return;
+	}
+
+	StartNode->ActivateNode();
+}
+
+UQuestStartNode* UQuestSystemGraph::GetStartNode()
+{
+	//Make sure start node
+	TArray<UGenericGraphNode*> BaseNodes;
+	GetNodesByLevel(0,BaseNodes);
+
+	return Cast<UQuestStartNode>(BaseNodes[0]);
 }
 
 bool UQuestSystemGraph::EnsureGraphStructure()

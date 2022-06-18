@@ -15,14 +15,17 @@ UQuestSystemNode::UQuestSystemNode()
 #endif
 }
 
-void UQuestSystemNode::OnNodeEntered()
+void UQuestSystemNode::ActivateNode()
 {
-	UE_LOG(LogQuestSystem,Log,TEXT("Node entered"))
+	UE_LOG(LogQuestSystem,Log,TEXT("%s node activated"),*NodeTitle.ToString())
 }
 
-void UQuestSystemNode::OnNodeExit()
+void UQuestSystemNode::DeactivateNode()
 {
-	UE_LOG(LogQuestSystem,Log,TEXT("Node exited"))
+	UE_LOG(LogQuestSystem,Log,TEXT("%s node deactivated"),*NodeTitle.ToString())
 }
+
+bool UQuestSystemNode::GetNodeIsActive() const {return bIsNodeActive;}
+
 
 #undef LOCTEXT_NAMESPACE

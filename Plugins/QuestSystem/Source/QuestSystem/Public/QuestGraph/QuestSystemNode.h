@@ -17,8 +17,15 @@ class QUESTSYSTEM_API UQuestSystemNode : public UGenericGraphNode
 public:
 	UQuestSystemNode();
 
-	virtual void OnNodeEntered();
+	virtual void ActivateNode();
 
-	virtual void OnNodeExit();
+	virtual void DeactivateNode();
+
+	UFUNCTION(BlueprintCallable,Category="Quest System")
+	bool GetNodeIsActive() const;
+
+protected:
+	UPROPERTY(BlueprintReadOnly,Category="Quest System")
+	bool bIsNodeActive;
 	
 };

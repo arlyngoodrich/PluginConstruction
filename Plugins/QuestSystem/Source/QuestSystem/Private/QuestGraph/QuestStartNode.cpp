@@ -3,6 +3,9 @@
 
 #include "QuestGraph/QuestStartNode.h"
 
+#include "GenericGraph.h"
+#include "QuestGraph/QuestSystem.h"
+
 #define LOCTEXT_NAMESPACE "QuestStartNode"
 
 UQuestStartNode::UQuestStartNode()
@@ -23,6 +26,21 @@ UQuestStartNode::UQuestStartNode()
 
 #endif
 	
+}
+
+void UQuestStartNode::ActivateNode()
+{
+	Super::ActivateNode();
+
+	if(UQuestSystemNode* ChildNode = Cast<UQuestSystemNode>(ChildrenNodes[0]))
+	{
+		ChildNode->ActivateNode();
+	}
+	else
+	{
+		const UGenericGraph* GraphRef = GetGraph();
+		UE_LOG(LogQuestSystem,Error,TEXT("Start node in %s does not have valid child"),*GraphRef->Name.ToString())
+	}
 }
 
 #if WITH_EDITOR

@@ -6,6 +6,8 @@
 #include "QuestSystemNode.h"
 #include "QuestTaskNode.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTaskNodeCompleted, class UQuestTaskNode*, TaskNode);
+
 class UQuestTaskBase;
 
 /**
@@ -23,6 +25,20 @@ public:
 	 * @brief Quest task to be activated by this node
 	 */
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Quest System")
-	TSubclassOf<UQuestTaskBase> QuestTask;
-	
+	TSubclassOf<UQuestTaskBase> QuestTaskClass;
+
+	UPROPERTY(BlueprintAssignable,Category="Quest System")
+	FTaskNodeCompleted OnTaskNodeCompleted;
+
+	virtual void ActivateNode() override;
+
+	virtual void DeactivateNode() override;
+
+protected:
+
+	UPROPERTY(BlueprintReadOnly,Category="Quest System")
+	UQuestTaskBase* QuestTask;
+
+	UFUNCTION()
+	void TaskCompleted();
 };
