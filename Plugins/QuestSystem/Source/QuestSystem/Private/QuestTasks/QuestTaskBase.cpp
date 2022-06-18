@@ -3,9 +3,20 @@
 
 #include "QuestTasks/QuestTaskBase.h"
 
-void UQuestTaskBase::ActivateTask()
+#include "QuestGraph/QuestSystem.h"
+
+void UQuestTaskBase::ActivateTask(UWorld* World)
 {
+	if(World == nullptr)
+	{
+		UE_LOG(LogQuestSystem,Log,TEXT("%s needs valid world ref to activate"),*GetName())
+		return;
+	}
+
+	WorldRef = World;
+	
 	TaskActivated();
+	UE_LOG(LogQuestSystem,Log,TEXT("%s quest task activated"),*GetName())
 }
 
 void UQuestTaskBase::TaskActivated_Implementation()
@@ -13,8 +24,10 @@ void UQuestTaskBase::TaskActivated_Implementation()
 	Internal_TaskActivated();
 }
 
+
 void UQuestTaskBase::CompleteTask()
 {
+	UE_LOG(LogQuestSystem,Log,TEXT("%s quest task completed"),*GetName())
 	QuestCompletedDelegate.Broadcast();
 }
 

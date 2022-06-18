@@ -4,6 +4,7 @@
 #include "QuestGraph/QuestTaskNode.h"
 #include "QuestGraph/QuestSystem.h"
 #include "GenericGraphRuntime/Public/GenericGraph.h"
+#include "QuestGraph/QuestSystemGraph.h"
 #include "QuestTasks/QuestTaskBase.h"
 
 #define LOCTEXT_NAMESPACE "QuestTaskNode"
@@ -37,17 +38,28 @@ void UQuestTaskNode::ActivateNode()
 			*NodeTitle.ToString(),*Graph->Name.ToString())
 		return;
 	}
-	
-	QuestTask = NewObject<UQuestTaskBase>(QuestTaskClass->GetClass());
-	if(QuestTask == nullptr)
+
+	if(const UQuestSystemGraph* QuestSystemGraph = Cast<UQuestSystemGraph>(GetGraph()))
 	{
-		UE_LOG(LogQuestSystem,Error,TEXT("Quest task %s node in %s created a null class"),
-			*NodeTitle.ToString(),*Graph->Name.ToString())
-		return;
+		QuestTask = NewObject<UQuestTaskBase>(QuestSystemGraph->WorldRef,QuestTaskClass);
+		if(QuestTask == nullptr)
+		{
+			UE_LOG(LogQuestSystem,Error,TEXT("Quest task %s node in %s created a null class"),
+				*NodeTitle.ToString(),*Graph->Name.ToString())
+			return;
+		}
+
+		UE_LOG(LogQuestSystem,Log,TEXT("%s task node created %s quest task"),*NodeTitle.ToString(),*QuestTask->GetName())
+
+		QuestTask->QuestCompletedDelegate.AddDynamic(this,&UQuestTaskNode::TaskCompleted);
+		QuestTask->ActivateTask(QuestSystemGraph->WorldRef);
+	}
+	else
+	{
+		UE_LOG(LogQuestSystem,Error,TEXT("%s node is not in quest graph"),*NodeTitle.ToString())
 	}
 
-	QuestTask->ActivateTask();
-	QuestTask->QuestCompletedDelegate.AddDynamic(this,&UQuestTaskNode::TaskCompleted);
+	
 }
 
 void UQuestTaskNode::DeactivateNode()
@@ -60,6 +72,8 @@ void UQuestTaskNode::DeactivateNode()
 
 void UQuestTaskNode::TaskCompleted()
 {
+	UE_LOG(LogQuestSystem,Log,TEXT(""))
+	
 	if(UQuestSystemNode* ChildNode = Cast<UQuestSystemNode>(ChildrenNodes[0]))
 	{
 		ChildNode->ActivateNode();

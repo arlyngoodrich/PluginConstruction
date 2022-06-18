@@ -24,5 +24,8 @@ public:
 	virtual bool CanCreateConnection(UGenericGraphNode* Other, FText& ErrorMessage) override;
 
 #endif
+
+
+	virtual void ActivateNode() override;
 		
 };

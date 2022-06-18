@@ -33,6 +33,12 @@ bool UQuestResolutionNode::CanCreateConnection(UGenericGraphNode* Other, FText& 
 	return false;
 }
 
+void UQuestResolutionNode::ActivateNode()
+{
+	Super::ActivateNode();
+	
+}
+
 #endif
 
 #undef LOCTEXT_NAMESPACE

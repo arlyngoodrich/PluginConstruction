@@ -3,6 +3,7 @@
 
 #include "QuestGraph/QuestSystemGraph.h"
 
+#include "GameFramework/Character.h"
 #include "QuestGraph/QuestBranchNode.h"
 #include "QuestGraph/QuestResolutionNode.h"
 #include "QuestGraph/QuestStartNode.h"
@@ -25,7 +26,7 @@ UQuestSystemGraph::UQuestSystemGraph()
 #endif
 }
 
-void UQuestSystemGraph::StartQuest()
+void UQuestSystemGraph::StartQuest(APlayerController* SetInstigatingPlayer)
 {
 	UE_LOG(LogQuestSystem,Log,TEXT("Starting %s quest"),*Name.ToString())
 
@@ -38,6 +39,20 @@ void UQuestSystemGraph::StartQuest()
 	if(StartNode == nullptr)
 	{
 		UE_LOG(LogQuestSystem,Error,TEXT("Graph %s start node is null"),*Name.ToString())
+		return;
+	}
+
+	if(SetInstigatingPlayer == nullptr)
+	{
+		UE_LOG(LogQuestSystem,Error,TEXT("%s quest graph needs valid instigating player"),*Name.ToString())
+		return;
+	}
+	InstigatingPlayer = SetInstigatingPlayer;
+		
+	WorldRef = InstigatingPlayer->GetWorld();
+	if(WorldRef == nullptr)
+	{
+		UE_LOG(LogQuestSystem,Error,TEXT("%s quest graph needs valid referenc to world"),*Name.ToString())
 		return;
 	}
 

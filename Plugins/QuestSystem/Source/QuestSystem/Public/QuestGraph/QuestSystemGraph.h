@@ -21,10 +21,16 @@ public:
 	UQuestSystemGraph();
 
 	UFUNCTION(BlueprintCallable,Category="Quest System")
-	void StartQuest();
+	void StartQuest(APlayerController* SetInstigatingPlayer);
 
 	UFUNCTION(BlueprintCallable,Category="Quest System")
 	UQuestStartNode* GetStartNode();
+
+	UPROPERTY()
+	APlayerController* InstigatingPlayer;
+	
+	UPROPERTY()
+	UWorld* WorldRef;
 	
 protected:
 

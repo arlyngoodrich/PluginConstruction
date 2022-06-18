@@ -40,7 +40,7 @@ public:
 	 * @brief Should be called by object creating quest to kick off quest logic. 
 	 */
 	UFUNCTION(BlueprintCallable,Category="Quest System")
-	virtual void ActivateTask();
+	virtual void ActivateTask(UWorld* World);
 
 	/**
 	 * @brief Called when task is activated
@@ -60,6 +60,9 @@ protected:
 	 * @brief Overridable internal version of Task Activated
 	 */
 	virtual void Internal_TaskActivated();
+
+	UPROPERTY()
+	UWorld* WorldRef;
 
 	
 };
