@@ -5,9 +5,20 @@
 
 void UQuestTaskBase::ActivateTask()
 {
+	TaskActivated();
+}
+
+void UQuestTaskBase::TaskActivated_Implementation()
+{
+	Internal_TaskActivated();
 }
 
 void UQuestTaskBase::CompleteTask()
 {
 	QuestCompletedDelegate.Broadcast();
+}
+
+void UQuestTaskBase::Internal_TaskActivated()
+{
+	
 }

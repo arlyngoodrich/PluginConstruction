@@ -43,10 +43,23 @@ public:
 	virtual void ActivateTask();
 
 	/**
+	 * @brief Called when task is activated
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category="Quest System")
+	void TaskActivated();
+
+	/**
 	 * @brief Called when quest is completed.  Broadcasts OnQuestCompleted delegates
 	 */
 	UFUNCTION(BlueprintCallable,Category="Quest System")
 	virtual void CompleteTask();
+
+protected:
+
+	/**
+	 * @brief Overridable internal version of Task Activated
+	 */
+	virtual void Internal_TaskActivated();
 
 	
 };
