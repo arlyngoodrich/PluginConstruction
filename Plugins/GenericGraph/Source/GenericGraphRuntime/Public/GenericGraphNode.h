@@ -88,8 +88,22 @@ public:
 
 	virtual bool CanCreateConnection(UGenericGraphNode* Other, FText& ErrorMessage);
 
+	/**
+	 * @brief If the node can create a connection to a child node
+	 * @param Other Child node to connect to
+	 * @param NumberOfChildrenNodes Number of existing child nodes
+	 * @param ErrorMessage error message to show in the editor
+	 * @return True if connection Ok, false if not
+	 */
 	virtual bool CanCreateConnectionTo(UGenericGraphNode* Other, int32 NumberOfChildrenNodes, FText& ErrorMessage);
 	
+	/**
+	 * @brief  If the node can receive a connection from a parent node
+	 * @param Other Parent node to connect to
+	 * @param NumberOfParentNodes Number of existing parent nodes
+	 * @param ErrorMessage error message to show in the editor
+	 * @return true if connection OK, false if not
+	 */
 	virtual bool CanCreateConnectionFrom(UGenericGraphNode* Other, int32 NumberOfParentNodes, FText& ErrorMessage);
 
 #endif

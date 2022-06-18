@@ -25,6 +25,8 @@ virtual void ActivateNode() override;
 
 	virtual bool CanCreateConnectionTo(UGenericGraphNode* Other, int32 NumberOfChildrenNodes, FText& ErrorMessage) override;
 
+	virtual bool CanCreateConnectionFrom(UGenericGraphNode* Other, int32 NumberOfParentNodes, FText& ErrorMessage) override;
+
 #endif
 	
 };

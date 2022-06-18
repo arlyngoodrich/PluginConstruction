@@ -47,8 +47,13 @@ void UQuestStartNode::ActivateNode()
 
 bool UQuestStartNode::CanCreateConnectionTo(UGenericGraphNode* Other, int32 NumberOfChildrenNodes, FText& ErrorMessage)
 {
+		
+	return Super::CanCreateConnectionTo(Other, NumberOfChildrenNodes, ErrorMessage);
+}
 
-	ErrorMessage = FText::FromString("Cannot connect to Start Nodes");
+bool UQuestStartNode::CanCreateConnectionFrom(UGenericGraphNode* Other, int32 NumberOfParentNodes, FText& ErrorMessage)
+{
+	ErrorMessage = FText::FromString("Cannot create connection to start node");
 	
 	return false;
 }

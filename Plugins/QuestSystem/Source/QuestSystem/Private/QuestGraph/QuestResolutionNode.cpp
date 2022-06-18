@@ -26,12 +26,10 @@ UQuestResolutionNode::UQuestResolutionNode()
 
 #if WITH_EDITOR
 
-bool UQuestResolutionNode::CanCreateConnectionFrom(UGenericGraphNode* Other, int32 NumberOfParentNodes,
-	FText& ErrorMessage)
+
+bool UQuestResolutionNode::CanCreateConnection(UGenericGraphNode* Other, FText& ErrorMessage)
 {
-
-	ErrorMessage = FText::FromString("Cannot create a connection from a Quest Resolution Node");
-
+	ErrorMessage = FText::FromString("Cannot create a connection from a resolution node");
 	return false;
 }
 

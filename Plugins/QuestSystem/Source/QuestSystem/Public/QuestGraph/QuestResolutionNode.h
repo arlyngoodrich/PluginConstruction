@@ -21,7 +21,7 @@ public:
 
 #if WITH_EDITOR
 
-	virtual bool CanCreateConnectionFrom(UGenericGraphNode* Other, int32 NumberOfParentNodes, FText& ErrorMessage) override;
+	virtual bool CanCreateConnection(UGenericGraphNode* Other, FText& ErrorMessage) override;
 
 #endif
 		
