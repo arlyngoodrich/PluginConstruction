@@ -42,6 +42,9 @@ public:
 	UFUNCTION(BlueprintCallable,Category="Quest System")
 	virtual void ActivateTask(UWorld* World);
 
+	UFUNCTION(BlueprintNativeEvent,Category="Quest System")
+	void CancelTask();
+
 	/**
 	 * @brief Called when task is activated
 	 */
@@ -60,6 +63,8 @@ protected:
 	 * @brief Overridable internal version of Task Activated
 	 */
 	virtual void Internal_TaskActivated();
+
+	virtual void Internal_CancelTask();
 
 	UPROPERTY()
 	UWorld* WorldRef;

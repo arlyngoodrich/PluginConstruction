@@ -2,7 +2,6 @@
 
 
 #include "QuestTasks/QuestTaskBase.h"
-
 #include "QuestGraph/QuestSystem.h"
 
 void UQuestTaskBase::ActivateTask(UWorld* World)
@@ -19,6 +18,12 @@ void UQuestTaskBase::ActivateTask(UWorld* World)
 	UE_LOG(LogQuestSystem,Log,TEXT("%s quest task activated"),*GetName())
 }
 
+void UQuestTaskBase::CancelTask_Implementation()
+{
+	UE_LOG(LogQuestSystem,Log,TEXT("%s quest task cancelled"),*GetName())
+	Internal_CancelTask();
+}
+
 void UQuestTaskBase::TaskActivated_Implementation()
 {
 	Internal_TaskActivated();
@@ -32,6 +37,11 @@ void UQuestTaskBase::CompleteTask()
 }
 
 void UQuestTaskBase::Internal_TaskActivated()
+{
+	
+}
+
+void UQuestTaskBase::Internal_CancelTask()
 {
 	
 }

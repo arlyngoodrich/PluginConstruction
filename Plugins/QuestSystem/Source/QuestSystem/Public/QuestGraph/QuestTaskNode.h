@@ -34,6 +34,8 @@ public:
 
 	virtual void DeactivateNode() override;
 
+	virtual void CancelNode();
+
 protected:
 
 	UPROPERTY(BlueprintReadOnly,Category="Quest System")

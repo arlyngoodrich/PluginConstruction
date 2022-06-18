@@ -67,22 +67,30 @@ void UQuestTaskNode::DeactivateNode()
 	Super::DeactivateNode();
 
 	QuestTask->QuestCompletedDelegate.RemoveDynamic(this,&UQuestTaskNode::TaskCompleted);
+	QuestTask->MarkAsGarbage();
 	QuestTask = nullptr;
+	
+}
+
+void UQuestTaskNode::CancelNode()
+{
+	QuestTask->CancelTask();
+	DeactivateNode();
 }
 
 void UQuestTaskNode::TaskCompleted()
 {
-	UE_LOG(LogQuestSystem,Log,TEXT(""))
+	UE_LOG(LogQuestSystem,Log,TEXT("%s task completed"),*NodeTitle.ToString())
 	
 	if(UQuestSystemNode* ChildNode = Cast<UQuestSystemNode>(ChildrenNodes[0]))
 	{
-		ChildNode->ActivateNode();
 		OnTaskNodeCompleted.Broadcast(this);
 		DeactivateNode();
+		ChildNode->ActivateNode();
 	}
 	else
 	{
-		UE_LOG(LogQuestSystem,Error,TEXT("Start node in %s does not have valid child"),*Graph->Name.ToString())
+		UE_LOG(LogQuestSystem,Error,TEXT("Task node %s in %s does not have valid child"),*NodeTitle.ToString(),*Graph->Name.ToString())
 	}
 }
 

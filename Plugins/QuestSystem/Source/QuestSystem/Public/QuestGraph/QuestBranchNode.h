@@ -7,6 +7,8 @@
 #include "UObject/Object.h"
 #include "QuestBranchNode.generated.h"
 
+class UQuestTaskNode;
+
 /**
  * 
  */
@@ -26,6 +28,12 @@ public:
 	virtual bool CanCreateConnectionFrom(UGenericGraphNode* Other, int32 NumberOfParentNodes, FText& ErrorMessage) override;
 
 #endif
+
+	virtual void ActivateNode() override;
+
+protected:
 	
+	UFUNCTION()
+	void ChildTaskNodeCompleted(UQuestTaskNode* CompletedNode);
 	
 };

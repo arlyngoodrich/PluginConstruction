@@ -3,6 +3,9 @@
 
 #include "QuestGraph/QuestBranchNode.h"
 
+#include "QuestGraph/QuestSystem.h"
+#include "QuestGraph/QuestTaskNode.h"
+
 #define LOCTEXT_NAMESPACE "QuestBranchNode"
 
 UQuestBranchNode::UQuestBranchNode()
@@ -50,5 +53,47 @@ bool UQuestBranchNode::CanCreateConnectionFrom(UGenericGraphNode* Other, int32 N
 }
 
 #endif
+
+void UQuestBranchNode::ActivateNode()
+{
+	Super::ActivateNode();
+
+	UE_LOG(LogQuestSystem,Log,TEXT("%s has %d children"),*NodeTitle.ToString(),ChildrenNodes.Num());
+	
+	for (int i = 0; i < ChildrenNodes.Num(); ++i)
+	{
+		if(UQuestTaskNode* TargetChildTaskNode = Cast<UQuestTaskNode>(ChildrenNodes[i]))
+		{
+			TargetChildTaskNode->OnTaskNodeCompleted.AddDynamic(this,&UQuestBranchNode::ChildTaskNodeCompleted);
+			TargetChildTaskNode->ActivateNode();
+		}
+		else
+		{
+			UE_LOG(LogQuestSystem,Error,TEXT("%s should only have task nodes as children"),*NodeTitle.ToString())
+		}
+		
+	}
+	
+}
+
+// ReSharper disable once CppParameterMayBeConstPtrOrRef
+void UQuestBranchNode::ChildTaskNodeCompleted(UQuestTaskNode* CompletedNode)
+{
+	for (int i = 0; i < ChildrenNodes.Num(); ++i)
+	{
+		if(UQuestTaskNode* TargetChildTaskNode = Cast<UQuestTaskNode>(ChildrenNodes[i]))
+		{
+			TargetChildTaskNode->OnTaskNodeCompleted.RemoveDynamic(this,&UQuestBranchNode::ChildTaskNodeCompleted);
+			
+			if(TargetChildTaskNode != CompletedNode)
+			{
+				TargetChildTaskNode->CancelNode();
+			}
+		}
+	}
+
+	DeactivateNode();
+	
+}
 
 #undef LOCTEXT_NAMESPACE
