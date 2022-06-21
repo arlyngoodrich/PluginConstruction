@@ -22,6 +22,9 @@ public:
 
 	UQuestSystemGraph();
 
+	UPROPERTY(BlueprintReadOnly,Category="Quest System")
+	FQuestInfo QuestInfo;
+
 	/**
 	 * @brief Starts quest by activating start node
 	 * @param SetInstigatingPlayer Player that is starting the quest
@@ -36,11 +39,16 @@ public:
 	UFUNCTION(BlueprintCallable,Category="Quest System")
 	UQuestStartNode* GetStartNode();
 
+	
+
+#if WITH_EDITORONLY_DATA
 	/**
 	 * @brief Description of quest with GUID created on construction
 	 */
-	UPROPERTY(BlueprintReadOnly,EditDefaultsOnly,Category="Quest System")
-	FQuestInfo QuestInfo;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,Category="Quest System")
+	FText QuestDescription;
+
+#endif
 	
 
 	UPROPERTY()
