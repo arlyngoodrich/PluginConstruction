@@ -4,12 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "QuestData.h"
 #include "PlayerQuestManager.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActiveQuestUpdated,FQuestInfo,NewQuestInfo);
 
 class UQuestSystemGraph;
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(QuestSystem),Blueprintable,meta=(BlueprintSpawnableComponent) )
 class QUESTSYSTEM_API UPlayerQuestManager : public UActorComponent
 {
 	GENERATED_BODY()
@@ -17,6 +20,9 @@ class QUESTSYSTEM_API UPlayerQuestManager : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UPlayerQuestManager();
+
+	UPROPERTY(BlueprintAssignable,Category="Quest System")
+	FOnActiveQuestUpdated OnActiveQuestUpdated;
 
 	/**
 	 * @brief Adds a new quest to the available quests array.  Checks for duplicates. 
@@ -52,7 +58,26 @@ protected:
 	/**
 	 * @brief Pointer to the currently active quest
 	 */
-	UPROPERTY(BlueprintReadOnly Replicated,Category="Quest System")
+	UPROPERTY(BlueprintReadOnly, Replicated,Category="Quest System")
 	UQuestSystemGraph* ActiveQuest;
 
+	UFUNCTION()
+	void OnRep_ActiveQuestUpdated();
+
+	/**
+	 * @brief RPC for clients to set active quest
+	 */
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_SetActiveQuest(UQuestSystemGraph* Quest);
+	bool Server_SetActiveQuest_Validate(UQuestSystemGraph* Quest);
+	void Server_SetActiveQuest_Implementation(UQuestSystemGraph* Quest);
+
+	/**
+	 * @brief RPC for clients to add a new quest
+	 */
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_AddNewQuest(UQuestSystemGraph* NewQuest);
+	bool Server_AddNewQuest_Validate(UQuestSystemGraph* NewQuest);
+	void Server_AddNewQuest_Implementation(UQuestSystemGraph* NewQuest);
+	
 };

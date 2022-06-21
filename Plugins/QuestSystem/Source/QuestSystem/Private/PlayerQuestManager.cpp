@@ -29,6 +29,8 @@ void UPlayerQuestManager::BeginPlay()
 	
 }
 
+
+
 void UPlayerQuestManager::GetLifetimeReplicatedProps (TArray< FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -55,7 +57,14 @@ void UPlayerQuestManager::AddNewQuest(UQuestSystemGraph* NewQuest)
 		return;
 	}
 
+	if(GetOwner()->HasAuthority() == false)
+	{
+		Server_AddNewQuest(NewQuest);
+		return;
+	}
+
 	AvailableQuests.Add(NewQuest);
+	UE_LOG(LogQuestSystem,Log,TEXT("%s added %s quest"),*GetOwner()->GetName(),*NewQuest->Name.ToString());
 }
 
 void UPlayerQuestManager::SetActiveQuest(UQuestSystemGraph* Quest)
@@ -69,13 +78,46 @@ void UPlayerQuestManager::SetActiveQuest(UQuestSystemGraph* Quest)
 
 	if(AvailableQuests.Contains(Quest))
 	{
+
+		if(GetOwner()->HasAuthority() == false)
+		{
+			Server_SetActiveQuest(Quest);
+			return;
+		}
+		
 		ActiveQuest = Quest;
+		OnRep_ActiveQuestUpdated();
+		UE_LOG(LogQuestSystem,Log,TEXT("%s activated %s quest"),*GetOwner()->GetName(),*Quest->Name.ToString());
 	}
 	else
 	{
 		UE_LOG(LogQuestSystem,Warning,TEXT("%s quest manager does not contains %s quest. Cannot make active"),
 			*GetOwner()->GetName(),*Quest->Name.ToString())
-		return;
 	}
 	
+}
+
+void UPlayerQuestManager::OnRep_ActiveQuestUpdated()
+{
+	OnActiveQuestUpdated.Broadcast(ActiveQuest->QuestInfo);
+}
+
+bool UPlayerQuestManager::Server_SetActiveQuest_Validate(UQuestSystemGraph* Quest)
+{
+	return true;
+}
+
+void UPlayerQuestManager::Server_SetActiveQuest_Implementation(UQuestSystemGraph* Quest)
+{
+	SetActiveQuest(Quest);
+}
+
+bool UPlayerQuestManager::Server_AddNewQuest_Validate(UQuestSystemGraph* NewQuest)
+{
+	return true;
+}
+
+void UPlayerQuestManager::Server_AddNewQuest_Implementation(UQuestSystemGraph* NewQuest)
+{
+	AddNewQuest(NewQuest);
 }
