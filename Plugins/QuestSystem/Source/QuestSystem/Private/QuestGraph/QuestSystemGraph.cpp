@@ -16,12 +16,13 @@ UQuestSystemGraph::UQuestSystemGraph()
 {
 	NodeType = UQuestSystemNode::StaticClass();
 	EdgeType = UQuestSystemGraphEdge::StaticClass();
-
 	bEdgeEnabled = true;
+	QuestInfo.QuestGUID = FGuid::NewGuid();
+	QuestInfo.QuestName = Name;
+	QuestInfo.QuestDescription = QuestDescription;
 
 #if WITH_EDITORONLY_DATA
 	EdGraph = nullptr;
-
 	bCanRenameNode = true;
 #endif
 }
