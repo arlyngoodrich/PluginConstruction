@@ -9,8 +9,8 @@
 
 UQuestSystemNode::UQuestSystemNode()
 {
-
-	if(!((QuestSystemGraph = Cast<UQuestSystemGraph>(GetGraph()))))
+	QuestSystemGraph = Cast<UQuestSystemGraph>(GetGraph());
+	if(QuestSystemGraph == nullptr)
 	{
 		UE_LOG(LogQuestSystem,Error,TEXT("%s node is not in a Quest System Graph"),*NodeTitle.ToString())
 	}
