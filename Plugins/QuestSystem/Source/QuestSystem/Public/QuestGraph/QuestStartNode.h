@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "QuestSystemNode.h"
-#include "UObject/Object.h"
 #include "QuestStartNode.generated.h"
 
 /**

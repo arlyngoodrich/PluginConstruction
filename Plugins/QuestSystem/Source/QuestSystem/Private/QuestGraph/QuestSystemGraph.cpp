@@ -69,6 +69,56 @@ UQuestStartNode* UQuestSystemGraph::GetStartNode()
 	return Cast<UQuestStartNode>(BaseNodes[0]);
 }
 
+TArray<UQuestTaskBase*> UQuestSystemGraph::GetActiveTasks()
+{
+	TArray<UQuestTaskBase*> TaskBases;
+	for (int i = 0; i < ActiveTaskNodes.Num(); ++i)
+	{
+		TaskBases.Add(ActiveTaskNodes[i]->GetQuestTask());
+	}
+
+	return TaskBases;
+}
+
+void UQuestSystemGraph::CheckInTaskNode(UQuestTaskNode* TaskNode)
+{
+	if(TaskNode == nullptr)
+	{
+		UE_LOG(LogQuestSystem,Error,TEXT("%s cannot add null task node to active task array"),*Name.ToString())
+		return;
+	}
+
+	if(ActiveTaskNodes.Contains(TaskNode))
+	{
+		UE_LOG(LogQuestSystem,Warning,TEXT("%s is already in %s active task array. Cannot add again."),
+			*TaskNode->NodeTitle.ToString(),*Name.ToString())
+		return;
+	}
+
+	ActiveTaskNodes.Add(TaskNode);
+	OnActiveTasksUpdate.Broadcast(GetActiveTasks());
+}
+
+void UQuestSystemGraph::CheckOutTaskNode(UQuestTaskNode* TaskNode)
+{
+	if(TaskNode == nullptr)
+	{
+		UE_LOG(LogQuestSystem,Error,TEXT("%s cannot remove nmull task node from Active Task array"),*Name.ToString())
+		return;
+	}
+
+	if(ActiveTaskNodes.Contains(TaskNode))
+	{
+		ActiveTaskNodes.Remove(TaskNode);
+		OnActiveTasksUpdate.Broadcast(GetActiveTasks());
+	}
+	else
+	{
+		UE_LOG(LogQuestSystem,Warning,TEXT("%s is not part of %s active task array and cannot be removed"),
+			*TaskNode->NodeTitle.ToString(),*Name.ToString())
+	}
+}
+
 bool UQuestSystemGraph::EnsureGraphStructure()
 {
 

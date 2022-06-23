@@ -8,6 +8,10 @@
 #include "QuestSystemGraph.generated.h"
 
 class UQuestStartNode;
+class UQuestTaskNode;
+class UQuestTaskBase;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActiveTasksUpdate,TArray<UQuestTaskBase*>, QuestTasks);
 
 
 /**
@@ -25,6 +29,9 @@ public:
 	UPROPERTY(BlueprintReadOnly,Category="Quest System")
 	FQuestInfo QuestInfo;
 
+	UPROPERTY(BlueprintAssignable,Category="Quest System")
+	FOnActiveTasksUpdate OnActiveTasksUpdate;
+
 	/**
 	 * @brief Starts quest by activating start node
 	 * @param SetInstigatingPlayer Player that is starting the quest
@@ -39,7 +46,23 @@ public:
 	UFUNCTION(BlueprintCallable,Category="Quest System")
 	UQuestStartNode* GetStartNode();
 
-	
+	UFUNCTION(BlueprintCallable,Category="Quest Ssytem")
+	TArray<UQuestTaskBase*> GetActiveTasks();
+
+	/**
+	 * @brief Ensures task is not null or already in array, will then add to active task array
+	 * @param TaskNode Task node to add to Active Tasks array
+	 */
+	void CheckInTaskNode(UQuestTaskNode* TaskNode);
+
+	/**
+	 * @brief Ensures task node is alrady in array then removes from active task array 
+	 * @param TaskNode task node pointer to remove from array 
+	 */
+	void CheckOutTaskNode(UQuestTaskNode* TaskNode);
+
+
+
 
 #if WITH_EDITORONLY_DATA
 	/**
@@ -65,6 +88,14 @@ protected:
 	 * @return True if graph is OK, false if not.
 	 */
 	bool EnsureGraphStructure();
+
+	/**
+	 * @brief Pointers to active task nodes.  Task nodes 'check in' when they are activated and 'check out' when they
+	 * are deactivated. 
+	 */
+	UPROPERTY(BlueprintReadOnly,Category="Quest System")
+	TArray<UQuestTaskNode*> ActiveTaskNodes;
 	
 	
 };
+

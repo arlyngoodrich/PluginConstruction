@@ -36,6 +36,9 @@ public:
 
 	virtual void CancelNode();
 
+	UFUNCTION(BlueprintCallable,Category="Quest System")	
+	UQuestTaskBase* GetQuestTask();
+
 protected:
 
 	UPROPERTY(BlueprintReadOnly,Category="Quest System")

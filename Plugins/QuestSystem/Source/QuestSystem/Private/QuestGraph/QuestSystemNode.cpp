@@ -9,6 +9,12 @@
 
 UQuestSystemNode::UQuestSystemNode()
 {
+
+	if(!((QuestSystemGraph = Cast<UQuestSystemGraph>(GetGraph()))))
+	{
+		UE_LOG(LogQuestSystem,Error,TEXT("%s node is not in a Quest System Graph"),*NodeTitle.ToString())
+	}
+	
 #if WITH_EDITORONLY_DATA
 	CompatibleGraphType = UQuestSystemGraph::StaticClass();
 	ContextMenuName = LOCTEXT("ConextMenuName", "Quest System Node");

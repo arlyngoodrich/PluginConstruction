@@ -39,7 +39,7 @@ void UQuestTaskNode::ActivateNode()
 		return;
 	}
 
-	if(const UQuestSystemGraph* QuestSystemGraph = Cast<UQuestSystemGraph>(GetGraph()))
+	if(QuestSystemGraph)
 	{
 		QuestTask = NewObject<UQuestTaskBase>(QuestSystemGraph->WorldRef,QuestTaskClass);
 		if(QuestTask == nullptr)
@@ -52,6 +52,7 @@ void UQuestTaskNode::ActivateNode()
 		UE_LOG(LogQuestSystem,Log,TEXT("%s task node created %s quest task"),*NodeTitle.ToString(),*QuestTask->GetName())
 
 		QuestTask->QuestCompletedDelegate.AddDynamic(this,&UQuestTaskNode::TaskCompleted);
+		QuestSystemGraph->CheckInTaskNode(this);
 		QuestTask->ActivateTask(QuestSystemGraph->WorldRef);
 	}
 	else
@@ -66,6 +67,7 @@ void UQuestTaskNode::DeactivateNode()
 {
 	Super::DeactivateNode();
 
+	QuestSystemGraph->CheckOutTaskNode(this);
 	QuestTask->QuestCompletedDelegate.RemoveDynamic(this,&UQuestTaskNode::TaskCompleted);
 	QuestTask->MarkAsGarbage();
 	QuestTask = nullptr;
@@ -77,6 +79,8 @@ void UQuestTaskNode::CancelNode()
 	QuestTask->CancelTask();
 	DeactivateNode();
 }
+
+UQuestTaskBase* UQuestTaskNode::GetQuestTask(){ return QuestTask;}
 
 void UQuestTaskNode::TaskCompleted()
 {

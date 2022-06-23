@@ -6,6 +6,8 @@
 #include "GenericGraphNode.h"
 #include "QuestSystemNode.generated.h"
 
+class UQuestSystemGraph;
+
 /**
  * 
  */
@@ -27,5 +29,8 @@ public:
 protected:
 	UPROPERTY(BlueprintReadOnly,Category="Quest System")
 	bool bIsNodeActive;
+
+	UPROPERTY(BlueprintReadOnly,Category="Quest System")
+	UQuestSystemGraph* QuestSystemGraph;
 	
 };
