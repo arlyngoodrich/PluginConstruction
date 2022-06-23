@@ -67,3 +67,63 @@ struct FQuestInfo
 	
 	
 };
+
+USTRUCT(BlueprintType)
+struct FQuestTaskInfo 
+{
+	GENERATED_USTRUCT_BODY()
+
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Quest System")
+	FText TaskName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Quest System")
+	FText TaskDescription;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Quest System")
+	FGuid TaskGUID;
+	
+
+	/**
+	 * @brief Default constructor. Sets texts to none and guid to invalid
+	 */
+	FQuestTaskInfo()
+	{
+		TaskName = FText::GetEmpty();
+		TaskDescription = FText::GetEmpty();
+		TaskGUID.Invalidate();
+	}
+
+	
+	/**
+	 * @brief Creates new Quest Info data struct.  Creates new GUID
+	 * @param SetTaskName Quest Name
+	 * @param SetTaskDescription Quest Description
+	 */
+	FQuestTaskInfo(const FText SetTaskName, const FText SetTaskDescription)
+	{
+		TaskName = SetTaskName;
+		TaskDescription = SetTaskDescription;
+		TaskGUID = FGuid::NewGuid();
+	}
+
+	/**
+ * @brief Creates new Quest Info data struct
+ * @param SetTaskName Quest Name
+ * @param SetTaskDescription Quest Description
+ * @param SetTaskGUID sets new GUID
+ */
+	FQuestTaskInfo(const FText SetTaskName, const FText SetTaskDescription, const FGuid SetTaskGUID)
+	{
+		TaskName = SetTaskName;
+		TaskDescription = SetTaskDescription;
+		TaskGUID = SetTaskGUID;
+	}
+
+	bool operator==(const FQuestTaskInfo& TaskInfo) const
+	{
+		return TaskGUID == (TaskInfo.TaskGUID) && TaskGUID.IsValid();
+	}
+	
+	
+};
