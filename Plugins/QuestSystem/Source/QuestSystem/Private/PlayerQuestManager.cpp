@@ -5,6 +5,7 @@
 #include "QuestGraph/QuestSystem.h"
 #include "QuestGraph/QuestSystemGraph.h"
 #include "Net/UnrealNetwork.h"
+#include "QuestTasks/QuestTaskBase.h"
 
 // Sets default values for this component's properties
 UPlayerQuestManager::UPlayerQuestManager()
@@ -76,6 +77,12 @@ void UPlayerQuestManager::SetActiveQuest(UQuestSystemGraph* Quest)
 		return;
 	}
 
+	//If the Active quest is the same as the old quest, then don't do anything
+	if(ActiveQuest == Quest)
+	{
+		return;
+	}
+	
 	if(AvailableQuests.Contains(Quest))
 	{
 
@@ -84,8 +91,16 @@ void UPlayerQuestManager::SetActiveQuest(UQuestSystemGraph* Quest)
 			Server_SetActiveQuest(Quest);
 			return;
 		}
-		
+
+		//Unbind updates from old quest
+		if(ActiveQuest)
+		{
+			ActiveQuest->OnActiveTasksUpdate.RemoveDynamic(this,&UPlayerQuestManager::ListenForTasksUpdated);
+		}
+
+		//Bind to new new quest
 		ActiveQuest = Quest;
+		ActiveQuest->OnActiveTasksUpdate.AddDynamic(this,&UPlayerQuestManager::ListenForTasksUpdated);
 		OnRep_ActiveQuestUpdated();
 		UE_LOG(LogQuestSystem,Log,TEXT("%s activated %s quest"),*GetOwner()->GetName(),*Quest->Name.ToString());
 	}
@@ -97,9 +112,26 @@ void UPlayerQuestManager::SetActiveQuest(UQuestSystemGraph* Quest)
 	
 }
 
-void UPlayerQuestManager::OnRep_ActiveQuestUpdated()
+void UPlayerQuestManager::OnRep_ActiveQuestUpdated() const
 {
 	OnActiveQuestUpdated.Broadcast(ActiveQuest->QuestInfo);
+}
+
+void UPlayerQuestManager::OnRep_TasksUpdated()
+{
+	TArray<FQuestTaskInfo> TaskInfos;
+	for (int i = 0; i < ActiveTasks.Num(); ++i)
+	{
+		TaskInfos.Add(ActiveTasks[i]->QuestTaskInfo);
+	}
+	
+	OnQuestTaskUpdated.Broadcast(TaskInfos);
+}
+
+void UPlayerQuestManager::ListenForTasksUpdated(const TArray<UQuestTaskBase*> QuestTasks)
+{
+	ActiveTasks = QuestTasks;
+	OnRep_TasksUpdated();
 }
 
 bool UPlayerQuestManager::Server_SetActiveQuest_Validate(UQuestSystemGraph* Quest)
