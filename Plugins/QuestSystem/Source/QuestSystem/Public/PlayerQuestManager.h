@@ -8,8 +8,10 @@
 #include "PlayerQuestManager.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActiveQuestUpdated,FQuestInfo,NewQuestInfo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnQuestTaskUpdated,TArray<FQuestTaskInfo>, TaskInfo);
 
 class UQuestSystemGraph;
+class UQuestTaskBase;
 
 
 UCLASS( ClassGroup=(QuestSystem),Blueprintable,meta=(BlueprintSpawnableComponent) )
@@ -23,6 +25,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable,Category="Quest System")
 	FOnActiveQuestUpdated OnActiveQuestUpdated;
+
+	UPROPERTY(BlueprintAssignable,Category="Quest System")
+	FOnQuestTaskUpdated OnQuestTaskUpdated;
 
 	/**
 	 * @brief Adds a new quest to the available quests array.  Checks for duplicates. 
@@ -58,11 +63,20 @@ protected:
 	/**
 	 * @brief Pointer to the currently active quest
 	 */
-	UPROPERTY(BlueprintReadOnly, Replicated,Category="Quest System")
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing= OnRep_ActiveQuestUpdated,Category="Quest System")
 	UQuestSystemGraph* ActiveQuest;
 
+	UPROPERTY(BlueprintReadOnly,Replicated,Category="Quest System")
+	TArray<UQuestTaskBase*> ActiveTasks;
+
 	UFUNCTION()
-	void OnRep_ActiveQuestUpdated();
+	void OnRep_ActiveQuestUpdated() const;
+
+	UFUNCTION()
+	void OnRep_TasksUpdated();
+
+	UFUNCTION()
+	void ListenForTasksUpdated(TArray<UQuestTaskBase*> QuestTasks);
 
 	/**
 	 * @brief RPC for clients to set active quest

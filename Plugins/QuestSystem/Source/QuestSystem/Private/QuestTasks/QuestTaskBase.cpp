@@ -13,6 +13,8 @@ void UQuestTaskBase::ActivateTask(UWorld* World)
 	}
 
 	WorldRef = World;
+
+	QuestTaskInfo.TaskGUID = FGuid::NewGuid();
 	
 	TaskActivated();
 	UE_LOG(LogQuestSystem,Log,TEXT("%s quest task activated"),*GetName())
