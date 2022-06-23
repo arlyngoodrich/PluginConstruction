@@ -4,7 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "QuestTaskBase.generated.h"
+#include "QuestData.h"
+#include  "QuestTaskBase.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnQuestCompleted);
 
@@ -22,17 +23,11 @@ class QUESTSYSTEM_API UQuestTaskBase : public UObject
 public:
 
 	/**
-	 * @brief Short UI title for quest
+	 * @brief Task info to be displayed in the UI
 	 */
-	UPROPERTY(BlueprintReadOnly, Category="Quest System")
-	FText QuestTitle;
-
-	/**
-	 * @brief Long description of quest
-	 */
-	UPROPERTY(BlueprintReadOnly, Category="Quest System")
-	FText QuestDescription;
-
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Quest System")
+	FQuestTaskInfo QuestTaskInfo;
+	
 	UPROPERTY(BlueprintAssignable,Category="Quest System")
 	FOnQuestCompleted QuestCompletedDelegate;
 	
