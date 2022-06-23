@@ -64,6 +64,7 @@ void UPlayerQuestManager::AddNewQuest(UQuestSystemGraph* NewQuest)
 		return;
 	}
 
+	NewQuest->InitializeQuest();
 	AvailableQuests.Add(NewQuest);
 	UE_LOG(LogQuestSystem,Log,TEXT("%s added %s quest"),*GetOwner()->GetName(),*NewQuest->Name.ToString());
 }

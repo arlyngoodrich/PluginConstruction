@@ -46,8 +46,14 @@ public:
 	UFUNCTION(BlueprintCallable,Category="Quest System")
 	UQuestStartNode* GetStartNode();
 
-	UFUNCTION(BlueprintCallable,Category="Quest Ssytem")
+	UFUNCTION(BlueprintCallable,Category="Quest Sytem")
 	TArray<UQuestTaskBase*> GetActiveTasks();
+
+	/**
+	 * @brief Initializes quest info but does not activate quest
+	 */
+	UFUNCTION(BlueprintCallable,Category="Quest System")
+	void InitializeQuest();
 
 	/**
 	 * @brief Ensures task is not null or already in array, will then add to active task array
