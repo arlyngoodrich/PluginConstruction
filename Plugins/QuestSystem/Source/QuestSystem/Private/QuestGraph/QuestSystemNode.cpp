@@ -9,12 +9,7 @@
 
 UQuestSystemNode::UQuestSystemNode()
 {
-	QuestSystemGraph = Cast<UQuestSystemGraph>(GetGraph());
-	if(QuestSystemGraph == nullptr)
-	{
-		UE_LOG(LogQuestSystem,Error,TEXT("%s node is not in a Quest System Graph"),*NodeTitle.ToString())
-	}
-	
+
 #if WITH_EDITORONLY_DATA
 	CompatibleGraphType = UQuestSystemGraph::StaticClass();
 	ContextMenuName = LOCTEXT("ConextMenuName", "Quest System Node");
@@ -23,6 +18,12 @@ UQuestSystemNode::UQuestSystemNode()
 
 void UQuestSystemNode::ActivateNode()
 {
+	QuestSystemGraph = Cast<UQuestSystemGraph>(GetGraph());
+	if(QuestSystemGraph == nullptr)
+	{
+		UE_LOG(LogQuestSystem,Error,TEXT("%s node is not in a Quest System Graph"),*NodeTitle.ToString())
+	}
+	
 	UE_LOG(LogQuestSystem,Log,TEXT("%s node activated"),*NodeTitle.ToString())
 }
 
