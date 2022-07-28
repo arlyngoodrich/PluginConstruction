@@ -52,6 +52,12 @@ public:
 	void OnActiveQuestSet();
 
 	/**
+	* @brief Used to remove quest widget once quest is resolved
+	* */
+	UFUNCTION(BlueprintImplementableEvent,Category="Quest System")
+	void OnQuestResolved();
+	
+	/**
 	 * @brief Bound to active quest, called when quest graph is resolved
 	 */
 	UFUNCTION(Category="Quest System")

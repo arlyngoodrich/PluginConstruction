@@ -134,6 +134,8 @@ void UPlayerQuestManager::OnRep_TasksUpdated()
 
 void UPlayerQuestManager::ResolveQuest(UQuestSystemGraph* Quest)
 {
+	OnQuestResolved();
+	
 	if(GetOwnerRole() != ROLE_Authority)
 	{
 		Server_ResolveQuest(Quest);
