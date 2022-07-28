@@ -89,7 +89,7 @@ protected:
 	TArray<UQuestTaskBase*> ActiveTasks;
 
 	UFUNCTION()
-	void OnRep_ActiveQuestUpdated() const;
+	void OnRep_ActiveQuestUpdated();
 
 	UFUNCTION()
 	void OnRep_TasksUpdated();

@@ -116,9 +116,10 @@ void UPlayerQuestManager::SetActiveQuest(UQuestSystemGraph* Quest)
 	
 }
 
-void UPlayerQuestManager::OnRep_ActiveQuestUpdated() const
+void UPlayerQuestManager::OnRep_ActiveQuestUpdated() 
 {
 	OnActiveQuestUpdated.Broadcast(ActiveQuest->QuestInfo);
+	OnActiveQuestSet();
 }
 
 void UPlayerQuestManager::OnRep_TasksUpdated()
