@@ -29,6 +29,8 @@ void UQuestSystemGraph::InitializeQuest()
 	QuestInfo.QuestGUID = FGuid::NewGuid();
 	QuestInfo.QuestName = Name;
 	QuestInfo.QuestDescription = QuestDescription;
+	QuestStatus = EQuestStatus::EQS_NotStarted;
+
 }
 
 void UQuestSystemGraph::StartQuest(APlayerController* SetInstigatingPlayer)
@@ -62,6 +64,14 @@ void UQuestSystemGraph::StartQuest(APlayerController* SetInstigatingPlayer)
 	}
 
 	StartNode->ActivateNode();
+	QuestStatus = EQuestStatus::EQS_InProgress;
+}
+
+void UQuestSystemGraph::QuestResolved()
+{
+	UE_LOG(LogQuestSystem,Log,TEXT("%s is resolved"),*QuestInfo.QuestName.ToString())
+	QuestStatus = EQuestStatus::EQS_Resolved;
+	OnQuestResolution.Broadcast(this);
 }
 
 UQuestStartNode* UQuestSystemGraph::GetStartNode()

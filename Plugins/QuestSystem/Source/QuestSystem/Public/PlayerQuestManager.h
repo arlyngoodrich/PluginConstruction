@@ -8,7 +8,8 @@
 #include "PlayerQuestManager.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActiveQuestUpdated,FQuestInfo,NewQuestInfo);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnQuestTaskUpdated,TArray<FQuestTaskInfo>, TaskInfo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnQuestTaskUpdated,const TArray<FQuestTaskInfo> &, TaskInfoData);
+
 
 class UQuestSystemGraph;
 class UQuestTaskBase;
@@ -44,6 +45,24 @@ public:
 	UFUNCTION(BlueprintCallable,Category="Quest System")
 	void SetActiveQuest(UQuestSystemGraph* Quest);
 
+	/**
+	 * @brief Used to update Quest info in UI
+	 */
+	UFUNCTION(BlueprintImplementableEvent,Category="Quest System")
+	void OnActiveQuestSet();
+
+	/**
+	* @brief Used to remove quest widget once quest is resolved
+	* */
+	UFUNCTION(BlueprintImplementableEvent,Category="Quest System")
+	void OnQuestResolved();
+	
+	/**
+	 * @brief Bound to active quest, called when quest graph is resolved
+	 */
+	UFUNCTION(Category="Quest System")
+	void ResolveQuest(UQuestSystemGraph* Quest);
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -70,7 +89,7 @@ protected:
 	TArray<UQuestTaskBase*> ActiveTasks;
 
 	UFUNCTION()
-	void OnRep_ActiveQuestUpdated() const;
+	void OnRep_ActiveQuestUpdated();
 
 	UFUNCTION()
 	void OnRep_TasksUpdated();
@@ -93,5 +112,11 @@ protected:
 	void Server_AddNewQuest(UQuestSystemGraph* NewQuest);
 	bool Server_AddNewQuest_Validate(UQuestSystemGraph* NewQuest);
 	void Server_AddNewQuest_Implementation(UQuestSystemGraph* NewQuest);
+
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_ResolveQuest(UQuestSystemGraph* ResolvedQuest);
+	bool Server_ResolveQuest_Validate(UQuestSystemGraph* ResolvedQuest);
+	void Server_ResolveQuest_Implementation(UQuestSystemGraph* ResolvedQuest);
+	
 	
 };
