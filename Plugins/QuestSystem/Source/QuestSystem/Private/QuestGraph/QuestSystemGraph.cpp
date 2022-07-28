@@ -30,6 +30,7 @@ void UQuestSystemGraph::InitializeQuest()
 	QuestInfo.QuestName = Name;
 	QuestInfo.QuestDescription = QuestDescription;
 	QuestStatus = EQuestStatus::EQS_NotStarted;
+
 }
 
 void UQuestSystemGraph::StartQuest(APlayerController* SetInstigatingPlayer)
