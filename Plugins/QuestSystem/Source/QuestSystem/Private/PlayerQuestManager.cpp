@@ -125,13 +125,13 @@ void UPlayerQuestManager::OnRep_ActiveQuestUpdated()
 
 void UPlayerQuestManager::OnRep_TasksUpdated()
 {
-	TArray<FQuestTaskInfo> TaskInfos;
+	TArray<FQuestTaskInfo> NewTaskDataInfo;
 	for (int i = 0; i < ActiveTasks.Num(); ++i)
 	{
-		TaskInfos.Add(ActiveTasks[i]->QuestTaskInfo);
+		NewTaskDataInfo.Add(ActiveTasks[i]->QuestTaskInfo);
 	}
 	
-	OnQuestTaskUpdated.Broadcast(TaskInfos);
+	OnQuestTaskUpdated.Broadcast(NewTaskDataInfo);
 }
 
 void UPlayerQuestManager::ResolveQuest(UQuestSystemGraph* Quest)

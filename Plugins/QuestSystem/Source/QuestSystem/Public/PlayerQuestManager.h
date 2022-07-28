@@ -8,7 +8,7 @@
 #include "PlayerQuestManager.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActiveQuestUpdated,FQuestInfo,NewQuestInfo);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnQuestTaskUpdated,TArray<FQuestTaskInfo>, TaskInfo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnQuestTaskUpdated,const TArray<FQuestTaskInfo> &, TaskInfoData);
 
 
 class UQuestSystemGraph;
