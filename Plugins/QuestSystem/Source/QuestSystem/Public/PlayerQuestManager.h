@@ -45,6 +45,18 @@ public:
 	UFUNCTION(BlueprintCallable,Category="Quest System")
 	void SetActiveQuest(UQuestSystemGraph* Quest);
 
+	/**
+	 * @brief Used to update Quest info in UI
+	 */
+	UFUNCTION(BlueprintImplementableEvent,Category="Quest System")
+	void OnActiveQuestSet();
+
+	/**
+	 * @brief Bound to active quest, called when quest graph is resolved
+	 */
+	UFUNCTION(Category="Quest System")
+	void ResolveQuest(UQuestSystemGraph* Quest);
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -94,5 +106,11 @@ protected:
 	void Server_AddNewQuest(UQuestSystemGraph* NewQuest);
 	bool Server_AddNewQuest_Validate(UQuestSystemGraph* NewQuest);
 	void Server_AddNewQuest_Implementation(UQuestSystemGraph* NewQuest);
+
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_ResolveQuest(UQuestSystemGraph* ResolvedQuest);
+	bool Server_ResolveQuest_Validate(UQuestSystemGraph* ResolvedQuest);
+	void Server_ResolveQuest_Implementation(UQuestSystemGraph* ResolvedQuest);
+	
 	
 };

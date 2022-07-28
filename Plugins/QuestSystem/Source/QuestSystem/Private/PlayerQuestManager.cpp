@@ -103,6 +103,9 @@ void UPlayerQuestManager::SetActiveQuest(UQuestSystemGraph* Quest)
 		ActiveQuest = Quest;
 		ActiveQuest->OnActiveTasksUpdate.AddDynamic(this,&UPlayerQuestManager::ListenForTasksUpdated);
 		OnRep_ActiveQuestUpdated();
+
+		Quest->OnQuestResolution.AddDynamic(this,&UPlayerQuestManager::ResolveQuest);
+		
 		UE_LOG(LogQuestSystem,Log,TEXT("%s activated %s quest"),*GetOwner()->GetName(),*Quest->Name.ToString());
 	}
 	else
@@ -129,6 +132,17 @@ void UPlayerQuestManager::OnRep_TasksUpdated()
 	OnQuestTaskUpdated.Broadcast(TaskInfos);
 }
 
+void UPlayerQuestManager::ResolveQuest(UQuestSystemGraph* Quest)
+{
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		Server_ResolveQuest(Quest);
+	}
+	
+	ActiveQuest = nullptr;
+	ActiveTasks.Empty();
+}
+
 void UPlayerQuestManager::ListenForTasksUpdated(const TArray<UQuestTaskBase*> QuestTasks)
 {
 	ActiveTasks = QuestTasks;
@@ -153,4 +167,16 @@ bool UPlayerQuestManager::Server_AddNewQuest_Validate(UQuestSystemGraph* NewQues
 void UPlayerQuestManager::Server_AddNewQuest_Implementation(UQuestSystemGraph* NewQuest)
 {
 	AddNewQuest(NewQuest);
+}
+
+
+
+bool UPlayerQuestManager::Server_ResolveQuest_Validate(UQuestSystemGraph* ResolvedQuest)
+{
+	return true;
+}
+
+void UPlayerQuestManager::Server_ResolveQuest_Implementation(UQuestSystemGraph* ResolvedQuest)
+{
+	ResolveQuest(ResolvedQuest);
 }
