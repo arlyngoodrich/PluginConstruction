@@ -68,6 +68,7 @@ void UQuestSystemGraph::StartQuest(APlayerController* SetInstigatingPlayer)
 
 void UQuestSystemGraph::QuestResolved()
 {
+	UE_LOG(LogQuestSystem,Log,TEXT("%s is resolved"),*QuestInfo.QuestName.ToString())
 	QuestStatus = EQuestStatus::EQS_Resolved;
 	OnQuestResolution.Broadcast(this);
 }

@@ -2,6 +2,7 @@
 
 
 #include "QuestGraph/QuestResolutionNode.h"
+#include "QuestGraph/QuestSystemGraph.h"
 
 #define LOCTEXT_NAMESPACE "QuestResolutionNode"
 
@@ -36,7 +37,7 @@ bool UQuestResolutionNode::CanCreateConnection(UGenericGraphNode* Other, FText& 
 void UQuestResolutionNode::ActivateNode()
 {
 	Super::ActivateNode();
-	
+	QuestSystemGraph->QuestResolved();
 }
 
 #endif

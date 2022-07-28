@@ -144,6 +144,7 @@ void UPlayerQuestManager::ResolveQuest(UQuestSystemGraph* Quest)
 	
 	ActiveQuest = nullptr;
 	ActiveTasks.Empty();
+	Quest->OnQuestResolution.RemoveDynamic(this,&UPlayerQuestManager::ResolveQuest);
 }
 
 void UPlayerQuestManager::ListenForTasksUpdated(const TArray<UQuestTaskBase*> QuestTasks)
