@@ -10,8 +10,19 @@
 class UQuestStartNode;
 class UQuestTaskNode;
 class UQuestTaskBase;
+class UQuestSystemGraph;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActiveTasksUpdate,TArray<UQuestTaskBase*>, QuestTasks);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnQuestResolution,UQuestSystemGraph*,QuestGraph);
+
+UENUM(BlueprintType)
+enum class EQuestStatus : uint8 {
+
+	EQS_NotStarted		UMETA(DisplayName = 'Not Started'),
+	EQS_InProgress		UMETA(DisplayName = "In Progress"),
+	EQS_Resolved		UMETA(DisplayName = "Resolved")
+	
+};
 
 
 /**
@@ -32,12 +43,28 @@ public:
 	UPROPERTY(BlueprintAssignable,Category="Quest System")
 	FOnActiveTasksUpdate OnActiveTasksUpdate;
 
+	UPROPERTY(BlueprintAssignable,Category="Quest System")
+	FOnQuestResolution OnQuestResolution;
+
+	
+	/**
+	 * @brief Initializes quest info but does not activate quest
+	 */
+	UFUNCTION(BlueprintCallable,Category="Quest System")
+	void InitializeQuest();
+
 	/**
 	 * @brief Starts quest by activating start node
 	 * @param SetInstigatingPlayer Player that is starting the quest
 	 */
 	UFUNCTION(BlueprintCallable,Category="Quest System")
 	void StartQuest(APlayerController* SetInstigatingPlayer);
+
+	/**
+	 * @brief Called when quest tree reaches a resolution node
+	 */
+	UFUNCTION(Category="Quest System")
+	void QuestResolved();
 
 	/**
 	 * @brief Gets start node for quest
@@ -49,11 +76,6 @@ public:
 	UFUNCTION(BlueprintCallable,Category="Quest Sytem")
 	TArray<UQuestTaskBase*> GetActiveTasks();
 
-	/**
-	 * @brief Initializes quest info but does not activate quest
-	 */
-	UFUNCTION(BlueprintCallable,Category="Quest System")
-	void InitializeQuest();
 
 	/**
 	 * @brief Ensures task is not null or already in array, will then add to active task array
@@ -62,12 +84,16 @@ public:
 	void CheckInTaskNode(UQuestTaskNode* TaskNode);
 
 	/**
-	 * @brief Ensures task node is alrady in array then removes from active task array 
+	 * @brief Ensures task node is already in array then removes from active task array 
 	 * @param TaskNode task node pointer to remove from array 
 	 */
 	void CheckOutTaskNode(UQuestTaskNode* TaskNode);
 
-
+	/**
+	 * @brief Current status of quest
+	 */
+	UPROPERTY(BlueprintReadOnly,Category="Quest System")
+	EQuestStatus QuestStatus;
 
 
 #if WITH_EDITORONLY_DATA
