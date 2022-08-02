@@ -3,3 +3,6 @@
 
 #include "AbilitySystem/BaseGameplayAbility.h"
 
+UBaseGameplayAbility::UBaseGameplayAbility()
+{
+}
