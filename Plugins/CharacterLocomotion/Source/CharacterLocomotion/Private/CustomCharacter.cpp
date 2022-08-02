@@ -8,6 +8,7 @@
 //UE4 Includes
 #include "UniversalData.h"
 #include "AbilitySystem/BaseAttributeSet.h"
+#include "AbilitySystem/BaseGameplayAbility.h"
 #include "UniversalCoreAssets/Public/AbilitySystem/BaseAbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -92,6 +93,45 @@ void ACustomCharacter::OnRep_PlayerState()
 UAbilitySystemComponent* ACustomCharacter::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
+}
+
+void ACustomCharacter::AddStartUpGameplayAbilities()
+{
+	check(AbilitySystemComponent)
+
+	if(GetLocalRole() == ROLE_Authority && bAbilitiesInitialized == false)
+	{
+		//Grant default abilities on server
+		for (TSubclassOf<UBaseGameplayAbility>& StartupAbility : GameplayAbilities)
+		{
+			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(
+				StartupAbility,
+				1,
+				static_cast<int32>(StartupAbility.GetDefaultObject()->AbilityInputID),
+				this));
+		}
+
+		//Apply Passive Effects
+		for (const TSubclassOf<UGameplayEffect>& GameplayEffect : PassiveGameplayEffects)
+		{
+			FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
+			EffectContextHandle.AddSourceObject(this);
+
+			FGameplayEffectSpecHandle EffectSpecHandle = AbilitySystemComponent->MakeOutgoingSpec(
+				GameplayEffect,1,EffectContextHandle);
+
+			if(EffectSpecHandle.IsValid())
+			{
+				FActiveGameplayEffectHandle ActiveGameplayEffectHandle =
+					AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(
+						*EffectSpecHandle.Data.Get(),AbilitySystemComponent);
+			}
+			
+		}
+
+		bAbilitiesInitialized = true;
+		
+	}
 }
 
 // Called every frame

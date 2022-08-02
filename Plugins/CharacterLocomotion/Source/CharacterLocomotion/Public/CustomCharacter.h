@@ -40,6 +40,8 @@ protected:
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	void AddStartUpGameplayAbilities();	
+
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Abilities")
 	TArray<TSubclassOf<UGameplayEffect>> PassiveGameplayEffects;
 
