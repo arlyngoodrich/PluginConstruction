@@ -146,8 +146,37 @@ protected:
 
 	// ==== Damage ====
 
+	//Old Version
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
+	/**
+	 * @brief Called when the character takes damage, which may have also killed the character
+	 * @param DamageAmount Amount of damage that was done, not clamped based on current health 
+	 * @param HitInfo The hit info that generated this damage
+	 * @param DamageTags The gameplay tags of the event that did the damage
+	 * @param InstigatingCharacter The character that initiated this damage
+	 * @param DamageCauser The actual actor that did the damage, might be a weapon or projectile 
+	 */
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnDamage(float DamageAmount,const FHitResult& HitInfo,const struct FGameplayTagContainer& DamageTags,
+		ACustomCharacter* InstigatingCharacter,AActor* DamageCauser);
+
+	/**
+	 * @brief Called when health is changed, either from healing or from being damaged
+	 * For Damage this is called in addition to OnDamaged
+	 * @param DeltaValue Change in health value, positive for heal and negative for damage.  If 0, the delta is unknown
+	 * @param EventTags The gameplay tags of the vent that changed health
+	 */
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnHealthChange(float DeltaValue,const struct FGameplayTagContainer& EventTags);
+
+	virtual void HandleDamage(float DamageAmount,const FHitResult& HitInfo,const struct FGameplayTagContainer& DamageTags,
+		ACustomCharacter* InstigatingCharacter,AActor* DamageCauser);
+
+	virtual void HandleHealthChange(float DeltaValue,const struct FGameplayTagContainer& EventTags);
+
+	friend UBaseAttributeSet;
+	
 private:
 
 	void SetupAbilitiesInput();

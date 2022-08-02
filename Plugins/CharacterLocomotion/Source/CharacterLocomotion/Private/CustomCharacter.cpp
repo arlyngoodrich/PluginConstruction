@@ -307,6 +307,21 @@ float ACustomCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Damag
 	return DamageAmount;
 }
 
+void ACustomCharacter::HandleDamage(float DamageAmount, const FHitResult& HitInfo,
+	const FGameplayTagContainer& DamageTags, ACustomCharacter* InstigatingCharacter, AActor* DamageCauser)
+{
+	OnDamage(DamageAmount,HitInfo,DamageTags,InstigatingCharacter,DamageCauser);
+}
+
+void ACustomCharacter::HandleHealthChange(float DeltaValue, const FGameplayTagContainer& EventTags)
+{
+	if(bAbilitiesInitialized)
+	{
+		OnHealthChange(DeltaValue,EventTags);
+	}
+	
+}
+
 void ACustomCharacter::SetupAbilitiesInput()
 {
 	if(AbilitySystemComponent && InputComponent)
