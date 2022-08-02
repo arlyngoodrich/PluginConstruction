@@ -8,5 +8,9 @@
 UENUM(BlueprintType)
 enum class EUniversalAbilityInputID : uint8
 {
-	
+	None,
+	Confirm,
+	Cancel,
+	Sprint,
+	Jump
 };
