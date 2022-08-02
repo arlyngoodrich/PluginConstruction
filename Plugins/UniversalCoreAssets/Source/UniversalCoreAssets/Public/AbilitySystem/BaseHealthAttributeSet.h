@@ -31,6 +31,14 @@ public:
 
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+
+	void AdjustAttributeForMaxChange(
+		const FGameplayAttributeData& AffectedAttribute,
+		const FGameplayAttributeData MaxAttribute,
+		float NewMaxValue,
+		const FGameplayAttribute& AffectedAttributeProperty) const;
+
 	UPROPERTY(BlueprintReadOnly,ReplicatedUsing=OnRep_Health,Category="Attributes Health")
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UBaseHealthAttributeSet,Health);

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayEffect.h"
+#include "AbilitySystem/BaseHealthAttributeSet.h"
 #include "GameFramework/Character.h"
 #include "UniversalBaseCharacter.generated.h"
 
@@ -87,7 +88,7 @@ protected:
 
 	virtual void HandleHealthChange(float DeltaValue,const struct FGameplayTagContainer& EventTags);
 
-	friend UBaseAttributeSet;
+	friend UBaseHealthAttributeSet;
 
 private:
 	
