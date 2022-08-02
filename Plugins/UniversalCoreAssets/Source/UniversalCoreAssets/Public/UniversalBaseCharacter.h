@@ -22,7 +22,7 @@ class UNIVERSALCOREASSETS_API AUniversalBaseCharacter : public ACharacter, publi
 
 public:
 	// Sets default values for this character's properties
-	AUniversalBaseCharacter();
+	AUniversalBaseCharacter(const class FObjectInitializer& ObjectInitializer);
 
 protected:
 	// Called when the game starts or when spawned

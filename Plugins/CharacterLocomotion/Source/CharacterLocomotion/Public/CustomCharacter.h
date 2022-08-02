@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "UniversalCoreAssets/Public/UniversalBaseCharacter.h"
 #include "CustomCharacter.generated.h"
 
 class UCameraComponent;
@@ -19,7 +20,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWantsToNotSprint);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTakeDamageSignature, float, Damage);
 
 UCLASS()
-class CHARACTERLOCOMOTION_API ACustomCharacter : public ACharacter
+class CHARACTERLOCOMOTION_API ACustomCharacter : public AUniversalBaseCharacter
 {
 	GENERATED_BODY()
 
