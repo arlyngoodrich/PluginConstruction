@@ -6,7 +6,8 @@
 #include "Modules/ModuleManager.h"
 
 
-DECLARE_LOG_CATEGORY_EXTERN(LogUniverisalCoreAssets, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogUniversalCoreAssets, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogUniversalAbilitySystem, Log, All);
 
 class FUniversalCoreAssetsModule : public IModuleInterface
 {
