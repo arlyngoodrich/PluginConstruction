@@ -25,6 +25,10 @@
 		{
 			"Name": "UniversalCoreAssets",
 			"Enabled": true
+		},
+		{
+			"Name": "GameplayAbilities",
+			"Enabled": true
 		}
 	]
 }

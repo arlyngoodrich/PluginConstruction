@@ -26,7 +26,9 @@ public class CharacterLocomotion : ModuleRules
 			new string[]
 			{
 				"Core",
-				"UniversalCoreAssets"
+				"GameplayAbilities",
+				"GameplayTasks",
+				"GameplayTags"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
