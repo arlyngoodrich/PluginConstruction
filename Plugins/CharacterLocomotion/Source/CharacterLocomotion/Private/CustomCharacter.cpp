@@ -6,10 +6,6 @@
 #include "CustomCharacterMovementComponent.h"
 
 //UE4 Includes
-#include "UniversalData.h"
-#include "AbilitySystem/BaseAttributeSet.h"
-#include "AbilitySystem/BaseGameplayAbility.h"
-#include "UniversalCoreAssets/Public/AbilitySystem/BaseAbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
@@ -53,14 +49,6 @@ ACustomCharacter::ACustomCharacter(const FObjectInitializer& ObjectInitializer)
 	ACharacter::GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = DefaultCrouchSpeed;
-
-	//Create Ability System Component
-	AbilitySystemComponent = CreateDefaultSubobject<UBaseAbilitySystemComponent>(TEXT("Ability System Component"));
-	AbilitySystemComponent->SetIsReplicated(true);
-	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
-
-	Attributes = CreateDefaultSubobject<UBaseAttributeSet>(TEXT("Attributes"));
-	
 	
 }
 
@@ -71,68 +59,8 @@ void ACustomCharacter::BeginPlay()
 	
 }
 
-void ACustomCharacter::PossessedBy(AController* NewController)
-{
-	Super::PossessedBy(NewController);
 
-	//Server GAS init
-	if(AbilitySystemComponent)
-	{
-		AbilitySystemComponent->InitAbilityActorInfo(this,this);
-	}
-}
 
-void ACustomCharacter::OnRep_PlayerState()
-{
-	Super::OnRep_PlayerState();
-
-	//Client GAS init
-	SetupAbilitiesInput();
-}
-
-UAbilitySystemComponent* ACustomCharacter::GetAbilitySystemComponent() const
-{
-	return AbilitySystemComponent;
-}
-
-void ACustomCharacter::AddStartUpGameplayAbilities()
-{
-	check(AbilitySystemComponent)
-
-	if(GetLocalRole() == ROLE_Authority && bAbilitiesInitialized == false)
-	{
-		//Grant default abilities on server
-		for (TSubclassOf<UBaseGameplayAbility>& StartupAbility : GameplayAbilities)
-		{
-			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(
-				StartupAbility,
-				1,
-				static_cast<int32>(StartupAbility.GetDefaultObject()->AbilityInputID),
-				this));
-		}
-
-		//Apply Passive Effects
-		for (const TSubclassOf<UGameplayEffect>& GameplayEffect : PassiveGameplayEffects)
-		{
-			FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
-			EffectContextHandle.AddSourceObject(this);
-
-			FGameplayEffectSpecHandle EffectSpecHandle = AbilitySystemComponent->MakeOutgoingSpec(
-				GameplayEffect,1,EffectContextHandle);
-
-			if(EffectSpecHandle.IsValid())
-			{
-				FActiveGameplayEffectHandle ActiveGameplayEffectHandle =
-					AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(
-						*EffectSpecHandle.Data.Get(),AbilitySystemComponent);
-			}
-			
-		}
-
-		bAbilitiesInitialized = true;
-		
-	}
-}
 
 // Called every frame
 void ACustomCharacter::Tick(float DeltaTime)
@@ -164,8 +92,6 @@ void ACustomCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& Ou
 void ACustomCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	SetupAbilitiesInput();
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &ACustomCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ACustomCharacter::MoveRight);
@@ -307,37 +233,7 @@ float ACustomCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Damag
 	return DamageAmount;
 }
 
-void ACustomCharacter::HandleDamage(float DamageAmount, const FHitResult& HitInfo,
-	const FGameplayTagContainer& DamageTags, ACustomCharacter* InstigatingCharacter, AActor* DamageCauser)
-{
-	OnDamage(DamageAmount,HitInfo,DamageTags,InstigatingCharacter,DamageCauser);
-}
 
-void ACustomCharacter::HandleHealthChange(float DeltaValue, const FGameplayTagContainer& EventTags)
-{
-	if(bAbilitiesInitialized)
-	{
-		OnHealthChange(DeltaValue,EventTags);
-	}
-	
-}
 
-void ACustomCharacter::SetupAbilitiesInput()
-{
-	if(AbilitySystemComponent && InputComponent)
-	{
-		AbilitySystemComponent->InitAbilityActorInfo(this,this);
-		const FGameplayAbilityInputBinds Binds(
-			"Confirm",
-			"Cancel",
-			"EUniversalAbilityInputID",
-			static_cast<int32>(EUniversalAbilityInputID::Confirm),
-			static_cast<int32>(EUniversalAbilityInputID::Cancel));
 
-		AbilitySystemComponent->BindAbilityActivationToInputComponent(InputComponent,Binds);
-	}
-	else
-	{
-		UE_LOG(LogAbilitySystem,Error,TEXT("%s failed to setup inputs for ability system"),*GetName())
-	}
-}
+
