@@ -26,6 +26,7 @@ public class CharacterLocomotion : ModuleRules
 			new string[]
 			{
 				"Core",
+				"UniversalCoreAssets",
 				"GameplayAbilities",
 				"GameplayTasks",
 				"GameplayTags"

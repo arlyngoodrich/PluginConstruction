@@ -4,8 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "AbilitySystemInterface.h"
+#include "GameplayEffect.h"
 #include "CustomCharacter.generated.h"
 
+class UBaseGameplayAbility;
+class UBaseAbilitySystemComponent;
+class UBaseAttributeSet;
 class UCameraComponent;
 class USpringArmComponent;
 
@@ -19,7 +24,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWantsToNotSprint);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTakeDamageSignature, float, Damage);
 
 UCLASS()
-class CHARACTERLOCOMOTION_API ACustomCharacter : public ACharacter
+class CHARACTERLOCOMOTION_API ACustomCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -30,6 +35,19 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_PlayerState() override;
+
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Abilities")
+	TArray<TSubclassOf<UGameplayEffect>> PassiveGameplayEffects;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Abilities")
+	TArray<TSubclassOf<UBaseGameplayAbility>> GameplayAbilities;
+
+	UPROPERTY()
+	bool bAbilitiesInitialized = false;
 
 public:	
 	// Called every frame
@@ -45,7 +63,7 @@ public:
 	float GetSprintSpeedModifier() const;
 
 	//Public accessor to set the sprint speed modifier.  
-	//Use case would be for stamina componenents to change the sprint speed modifer to 1 if stamina is 0.
+	//Use case would be for stamina components to change the sprint speed modifer to 1 if stamina is 0.
 	UFUNCTION()
 	void SetSprintSpeedModifer(float NewSprintModifer);
 
@@ -79,9 +97,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		USpringArmComponent* SpringArmComp;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		UCameraComponent* CameraComp;
 
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Components")
+		UBaseAbilitySystemComponent* AbilitySystemComponent;
+
+	UPROPERTY()
+	UBaseAttributeSet* Attributes;
 
 	// ==== Movement Functions ===== =====
 
@@ -122,5 +145,9 @@ protected:
 	// ==== Damage ====
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
+private:
+
+	void SetupAbilitiesInput();
 
 };

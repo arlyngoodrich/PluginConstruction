@@ -6,6 +6,9 @@
 #include "CustomCharacterMovementComponent.h"
 
 //UE4 Includes
+#include "UniversalData.h"
+#include "AbilitySystem/BaseAttributeSet.h"
+#include "UniversalCoreAssets/Public/AbilitySystem/BaseAbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
@@ -49,6 +52,15 @@ ACustomCharacter::ACustomCharacter(const FObjectInitializer& ObjectInitializer)
 	ACharacter::GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = DefaultCrouchSpeed;
+
+	//Create Ability System Component
+	AbilitySystemComponent = CreateDefaultSubobject<UBaseAbilitySystemComponent>(TEXT("Ability System Component"));
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
+
+	Attributes = CreateDefaultSubobject<UBaseAttributeSet>(TEXT("Attributes"));
+	
+	
 }
 
 // Called when the game starts or when spawned
@@ -56,6 +68,30 @@ void ACustomCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void ACustomCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	//Server GAS init
+	if(AbilitySystemComponent)
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this,this);
+	}
+}
+
+void ACustomCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	//Client GAS init
+	SetupAbilitiesInput();
+}
+
+UAbilitySystemComponent* ACustomCharacter::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
 }
 
 // Called every frame
@@ -88,6 +124,8 @@ void ACustomCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty >& Ou
 void ACustomCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	SetupAbilitiesInput();
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &ACustomCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ACustomCharacter::MoveRight);
@@ -227,4 +265,24 @@ float ACustomCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Damag
 	Damage_DamageTaken.Broadcast(DamageAmount);
 
 	return DamageAmount;
+}
+
+void ACustomCharacter::SetupAbilitiesInput()
+{
+	if(AbilitySystemComponent && InputComponent)
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this,this);
+		const FGameplayAbilityInputBinds Binds(
+			"Confirm",
+			"Cancel",
+			"EUniversalAbilityInputID",
+			static_cast<int32>(EUniversalAbilityInputID::Confirm),
+			static_cast<int32>(EUniversalAbilityInputID::Cancel));
+
+		AbilitySystemComponent->BindAbilityActivationToInputComponent(InputComponent,Binds);
+	}
+	else
+	{
+		UE_LOG(LogAbilitySystem,Error,TEXT("%s failed to setup inputs for ability system"),*GetName())
+	}
 }
