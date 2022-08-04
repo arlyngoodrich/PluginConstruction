@@ -46,6 +46,7 @@ void AUniversalBaseCharacter::PossessedBy(AController* NewController)
 	if(AbilitySystemComponent)
 	{
 		AbilitySystemComponent->InitAbilityActorInfo(this,this);
+		AddStartUpGameplayAbilities();
 	}
 }
 
