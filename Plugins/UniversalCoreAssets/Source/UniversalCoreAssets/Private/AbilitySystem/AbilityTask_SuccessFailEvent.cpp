@@ -7,7 +7,8 @@
 
 
 UAbilityTask_SuccessFailEvent::UAbilityTask_SuccessFailEvent(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+	: Super(ObjectInitializer), OptionalExternalTarget(nullptr), UseExternalTarget(false), OnlyTriggerOnce(false),
+	  OnlyMatchExact(false)
 {
 }
 

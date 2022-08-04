@@ -51,7 +51,7 @@ class UNIVERSALCOREASSETS_API UAbilityTask_SuccessFailEvent : public UAbilityTas
 	virtual void FailEventCallback(const FGameplayEventData* Payload);
 	virtual void FailEventContainerCallback(FGameplayTag MatchingTag, const FGameplayEventData* Payload);
 
-	void OnDestroy(bool AbilityEnding) override;
+	virtual void OnDestroy(bool AbilityEnding) override;
 
 	FGameplayTag SuccessTag;
 
