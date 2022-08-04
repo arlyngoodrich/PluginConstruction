@@ -2,7 +2,10 @@
 
 
 #include "BaseAbilityActor.h"
+
+#include "UniversalData.h"
 #include "AbilitySystem/BaseAbilitySystemComponent.h"
+#include "AbilitySystem/BaseGameplayAbility.h"
 
 
 // Sets default values
@@ -18,6 +21,8 @@ ABaseAbilityActor::ABaseAbilityActor()
 void ABaseAbilityActor::BeginPlay()
 {
 	Super::BeginPlay();
+	AbilitySystemComponent->InitAbilityActorInfo(this,this);
+	AddStartUpGameplayAbilities();
 	
 }
 
@@ -31,6 +36,49 @@ UAbilitySystemComponent* ABaseAbilityActor::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
 }
+
+
+
+void ABaseAbilityActor::AddStartUpGameplayAbilities()
+{
+	check(AbilitySystemComponent)
+
+	if(GetLocalRole() == ROLE_Authority && bAbilitiesInitialized == false)
+	{
+		//Grant default abilities on server
+		for (TSubclassOf<UBaseGameplayAbility>& StartupAbility : GameplayAbilities)
+		{
+			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(
+				StartupAbility,
+				1,
+				static_cast<int32>(StartupAbility.GetDefaultObject()->AbilityInputID),
+				this));
+		}
+
+		//Apply Passive Effects
+		for (const TSubclassOf<UGameplayEffect>& GameplayEffect : PassiveGameplayEffects)
+		{
+			FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
+			EffectContextHandle.AddSourceObject(this);
+
+			FGameplayEffectSpecHandle EffectSpecHandle = AbilitySystemComponent->MakeOutgoingSpec(
+				GameplayEffect,1,EffectContextHandle);
+
+			if(EffectSpecHandle.IsValid())
+			{
+				FActiveGameplayEffectHandle ActiveGameplayEffectHandle =
+					AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(
+						*EffectSpecHandle.Data.Get(),AbilitySystemComponent);
+			}
+			
+		}
+
+		bAbilitiesInitialized = true;
+		
+	}
+}
+
+
 
 
 

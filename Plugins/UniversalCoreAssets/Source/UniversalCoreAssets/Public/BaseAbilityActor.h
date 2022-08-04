@@ -7,6 +7,8 @@
 #include "GameFramework/Actor.h"
 #include "BaseAbilityActor.generated.h"
 
+class UBaseGameplayAbility;
+class UGameplayEffect;
 class UBaseAbilitySystemComponent;
 UCLASS()
 class UNIVERSALCOREASSETS_API ABaseAbilityActor : public AActor , public IAbilitySystemInterface
@@ -24,8 +26,20 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+	void AddStartUpGameplayAbilities();	
+	
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Components")
 	UBaseAbilitySystemComponent* AbilitySystemComponent;
 
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Abilities")
+	TArray<TSubclassOf<UGameplayEffect>> PassiveGameplayEffects;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Abilities")
+	TArray<TSubclassOf<UBaseGameplayAbility>> GameplayAbilities;
+
+	UPROPERTY(BlueprintReadOnly, Category="Abilities")
+	bool bAbilitiesInitialized;
+
 };
