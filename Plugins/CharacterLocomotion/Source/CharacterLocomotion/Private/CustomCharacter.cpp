@@ -49,6 +49,7 @@ ACustomCharacter::ACustomCharacter(const FObjectInitializer& ObjectInitializer)
 	ACharacter::GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = DefaultCrouchSpeed;
+	
 }
 
 // Called when the game starts or when spawned
@@ -57,6 +58,9 @@ void ACustomCharacter::BeginPlay()
 	Super::BeginPlay();
 	
 }
+
+
+
 
 // Called every frame
 void ACustomCharacter::Tick(float DeltaTime)
@@ -228,3 +232,8 @@ float ACustomCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Damag
 
 	return DamageAmount;
 }
+
+
+
+
+
