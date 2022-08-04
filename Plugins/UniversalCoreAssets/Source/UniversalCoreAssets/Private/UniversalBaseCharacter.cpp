@@ -18,7 +18,7 @@ AUniversalBaseCharacter::AUniversalBaseCharacter(const class FObjectInitializer&
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 
-	Attributes = CreateDefaultSubobject<UBaseAttributeSet>(TEXT("Attributes"));
+	HealthAttributes = CreateDefaultSubobject<UBaseHealthAttributeSet>(TEXT("Health Attributes"));
 
 }
 
@@ -29,6 +29,24 @@ void AUniversalBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 
 	SetupAbilitiesInput();
 
+}
+
+float AUniversalBaseCharacter::GetHealth()
+{
+	if(HealthAttributes)
+	{
+		return HealthAttributes->GetHealth();
+	}
+	return 1.f;
+}
+
+float AUniversalBaseCharacter::GetMaxHealth()
+{
+	if(HealthAttributes)
+	{
+		return HealthAttributes->GetMaxHealth();
+	}
+	return 1.f;
 }
 
 // Called when the game starts or when spawned

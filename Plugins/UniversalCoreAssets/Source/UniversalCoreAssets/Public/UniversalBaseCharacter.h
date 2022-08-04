@@ -39,8 +39,16 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UFUNCTION(BlueprintCallable,Category="Attributes")
+	virtual float GetHealth();
+
+	UFUNCTION(BlueprintCallable,Category="Attributes")
+	virtual float GetMaxHealth();
+
 
 protected:
+
+	friend UBaseHealthAttributeSet;
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
@@ -60,7 +68,7 @@ protected:
 	UBaseAbilitySystemComponent* AbilitySystemComponent;
 
 	UPROPERTY()
-	UBaseAttributeSet* Attributes;
+	UBaseHealthAttributeSet* HealthAttributes;
 
 	/**
  * @brief Called when the character takes damage, which may have also killed the character
@@ -88,7 +96,7 @@ protected:
 
 	virtual void HandleHealthChange(float DeltaValue,const struct FGameplayTagContainer& EventTags);
 
-	friend UBaseHealthAttributeSet;
+
 
 private:
 	
