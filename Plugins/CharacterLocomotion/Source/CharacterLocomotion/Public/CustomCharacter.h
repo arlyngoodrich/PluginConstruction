@@ -7,6 +7,7 @@
 #include "UniversalCoreAssets/Public/UniversalBaseCharacter.h"
 #include "CustomCharacter.generated.h"
 
+class UBaseStaminaAttributeSet;
 class UCameraComponent;
 class USpringArmComponent;
 
@@ -54,7 +55,7 @@ public:
 	//Will perform RPC if not authority.  
 	//This function is public so attributes can effect as well.
 	//Use case would be for stamina component to force character to stop sprinting if not enough stamina.  
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable, Category="Character Movement")
 	void SetWantsToSprint();
 
 	//Called every frame by Custom Movement Component to calculate character speed. 
@@ -105,24 +106,28 @@ protected:
 	// ==== Movement Variables ===== =====
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player Movement")
-		bool bWantsToSprint;
+	bool bWantsToSprint;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player Movement")
-		bool bIsSprinting;
+	bool bIsSprinting;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player Movement")
-		float DefaultWalkSpeed = 175;
+	float DefaultWalkSpeed = 175;
 
 	UPROPERTY(Replicated, EditDefaultsOnly, Category = "Player Movement")
-		float SprintSpeedMultiplier = 3;
+	float SprintSpeedMultiplier = 3;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player Movement")
-		float DefaultCrouchSpeed = 150;
+	float DefaultCrouchSpeed = 150;
 
 	// ==== Damage ====
 
 	//Old Version
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
+	// === Stamina ====
+
+	UPROPERTY()
+	UBaseStaminaAttributeSet* StaminaAttributes; 
 
 };

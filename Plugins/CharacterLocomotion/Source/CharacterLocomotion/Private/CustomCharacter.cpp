@@ -6,6 +6,7 @@
 #include "CustomCharacterMovementComponent.h"
 
 //UE4 Includes
+#include "AbilitySystem/BaseStaminaAttributeSet.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
@@ -49,6 +50,9 @@ ACustomCharacter::ACustomCharacter(const FObjectInitializer& ObjectInitializer)
 	ACharacter::GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = DefaultCrouchSpeed;
+
+	//Stamina Attribute
+	StaminaAttributes = CreateDefaultSubobject<UBaseStaminaAttributeSet>(TEXT("Stamina Attribute"));
 	
 }
 
@@ -101,7 +105,6 @@ void ACustomCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACustomCharacter::Jump);
 	PlayerInputComponent->BindAction("ToggleCrouch", IE_Pressed, this, &ACustomCharacter::ToggleCrouch);
-	PlayerInputComponent->BindAction("ToggleSprint", IE_Pressed, this, &ACustomCharacter::SetWantsToSprint);
 
 }
 
@@ -191,7 +194,7 @@ void ACustomCharacter::SetWantsToSprint()
 	if (GetLocalRole() < ROLE_Authority)
 	{
 		// Is NOT Authority
-		Server_SetWantsToSprint();
+		//Server_SetWantsToSprint();
 	}
 	else
 	{
