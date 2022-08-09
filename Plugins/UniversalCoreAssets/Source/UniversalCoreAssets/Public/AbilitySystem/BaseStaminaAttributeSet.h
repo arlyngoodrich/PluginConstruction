@@ -45,5 +45,14 @@ public:
 
 	UFUNCTION()
 	virtual void OnRep_MaxStamina(const FGameplayAttributeData& OldValue);
+
+	UPROPERTY(BlueprintReadOnly,ReplicatedUsing=OnRep_StaminaRegenRate,Category="Attributes Stamina")
+	FGameplayAttributeData StaminaRegenRate;
+	ATTRIBUTE_ACCESSORS(UBaseStaminaAttributeSet,StaminaRegenRate);
+
+	UFUNCTION()
+	virtual void OnRep_StaminaRegenRate(const FGameplayAttributeData& OldValue);
+
+
 	
 };

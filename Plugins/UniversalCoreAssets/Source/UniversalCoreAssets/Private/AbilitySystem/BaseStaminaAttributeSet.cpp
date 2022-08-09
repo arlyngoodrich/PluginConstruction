@@ -37,4 +37,9 @@ void UBaseStaminaAttributeSet::OnRep_MaxStamina(const FGameplayAttributeData& Ol
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UBaseStaminaAttributeSet,MaxStamina,OldValue);
 }
 
+void UBaseStaminaAttributeSet::OnRep_StaminaRegenRate(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UBaseStaminaAttributeSet,StaminaRegenRate,OldValue);
+}
+
 
