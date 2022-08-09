@@ -30,7 +30,6 @@ void AUniversalBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 
 	SetupAbilitiesInput();
 	
-
 }
 
 float AUniversalBaseCharacter::GetHealth()

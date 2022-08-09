@@ -6,6 +6,7 @@
 #include "CustomCharacterMovementComponent.h"
 
 //UE4 Includes
+#include "AbilitySystem/BaseStaminaAttributeSet.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
@@ -49,6 +50,9 @@ ACustomCharacter::ACustomCharacter(const FObjectInitializer& ObjectInitializer)
 	ACharacter::GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = DefaultCrouchSpeed;
+
+	//Stamina Attribute
+	StaminaAttributes = CreateDefaultSubobject<UBaseStaminaAttributeSet>(TEXT("Stamina Attribute"));
 	
 }
 
