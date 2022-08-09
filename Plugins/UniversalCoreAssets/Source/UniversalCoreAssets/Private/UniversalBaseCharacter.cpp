@@ -18,6 +18,7 @@ AUniversalBaseCharacter::AUniversalBaseCharacter(const class FObjectInitializer&
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 
+	//Instantiate the Attribute Sets and it automatically registers with the ASC 
 	HealthAttributes = CreateDefaultSubobject<UBaseHealthAttributeSet>(TEXT("Health Attributes"));
 
 }
@@ -28,6 +29,7 @@ void AUniversalBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	SetupAbilitiesInput();
+	
 
 }
 
