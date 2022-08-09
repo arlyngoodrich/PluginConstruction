@@ -55,7 +55,7 @@ public:
 	//Will perform RPC if not authority.  
 	//This function is public so attributes can effect as well.
 	//Use case would be for stamina component to force character to stop sprinting if not enough stamina.  
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable, Category="Character Movement")
 	void SetWantsToSprint();
 
 	//Called every frame by Custom Movement Component to calculate character speed. 

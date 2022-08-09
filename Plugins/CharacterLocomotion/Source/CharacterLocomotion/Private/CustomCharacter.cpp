@@ -105,7 +105,6 @@ void ACustomCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACustomCharacter::Jump);
 	PlayerInputComponent->BindAction("ToggleCrouch", IE_Pressed, this, &ACustomCharacter::ToggleCrouch);
-	PlayerInputComponent->BindAction("ToggleSprint", IE_Pressed, this, &ACustomCharacter::SetWantsToSprint);
 
 }
 
@@ -195,7 +194,7 @@ void ACustomCharacter::SetWantsToSprint()
 	if (GetLocalRole() < ROLE_Authority)
 	{
 		// Is NOT Authority
-		Server_SetWantsToSprint();
+		//Server_SetWantsToSprint();
 	}
 	else
 	{
