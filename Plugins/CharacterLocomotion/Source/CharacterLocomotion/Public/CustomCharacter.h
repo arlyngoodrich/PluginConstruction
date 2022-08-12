@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "UniversalCoreAssets/Public/UniversalBaseCharacter.h"
 #include "CustomCharacter.generated.h"
 
+class UBaseStaminaAttributeSet;
 class UCameraComponent;
 class USpringArmComponent;
 
@@ -19,7 +21,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWantsToNotSprint);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTakeDamageSignature, float, Damage);
 
 UCLASS()
-class CHARACTERLOCOMOTION_API ACustomCharacter : public ACharacter
+class CHARACTERLOCOMOTION_API ACustomCharacter : public AUniversalBaseCharacter
 {
 	GENERATED_BODY()
 
@@ -45,7 +47,7 @@ public:
 	float GetSprintSpeedModifier() const;
 
 	//Public accessor to set the sprint speed modifier.  
-	//Use case would be for stamina componenents to change the sprint speed modifer to 1 if stamina is 0.
+	//Use case would be for stamina components to change the sprint speed modifer to 1 if stamina is 0.
 	UFUNCTION()
 	void SetSprintSpeedModifer(float NewSprintModifer);
 
@@ -53,7 +55,7 @@ public:
 	//Will perform RPC if not authority.  
 	//This function is public so attributes can effect as well.
 	//Use case would be for stamina component to force character to stop sprinting if not enough stamina.  
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable, Category="Character Movement")
 	void SetWantsToSprint();
 
 	//Called every frame by Custom Movement Component to calculate character speed. 
@@ -79,9 +81,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		USpringArmComponent* SpringArmComp;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		UCameraComponent* CameraComp;
-
 
 	// ==== Movement Functions ===== =====
 
@@ -105,22 +106,28 @@ protected:
 	// ==== Movement Variables ===== =====
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player Movement")
-		bool bWantsToSprint;
+	bool bWantsToSprint;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player Movement")
-		bool bIsSprinting;
+	bool bIsSprinting;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player Movement")
-		float DefaultWalkSpeed = 175;
+	float DefaultWalkSpeed = 175;
 
 	UPROPERTY(Replicated, EditDefaultsOnly, Category = "Player Movement")
-		float SprintSpeedMultiplier = 3;
+	float SprintSpeedMultiplier = 3;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player Movement")
-		float DefaultCrouchSpeed = 150;
+	float DefaultCrouchSpeed = 150;
 
 	// ==== Damage ====
 
+	//Old Version
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
+	// === Stamina ====
+
+	UPROPERTY()
+	UBaseStaminaAttributeSet* StaminaAttributes; 
 
 };

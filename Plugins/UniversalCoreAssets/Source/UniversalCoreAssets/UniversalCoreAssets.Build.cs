@@ -26,7 +26,10 @@ public class UniversalCoreAssets : ModuleRules
 			new string[]
 			{
 				"Core",
-				"InputCore"
+				"InputCore",
+				"GameplayAbilities",
+				"GameplayTags",
+				"GameplayTasks"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

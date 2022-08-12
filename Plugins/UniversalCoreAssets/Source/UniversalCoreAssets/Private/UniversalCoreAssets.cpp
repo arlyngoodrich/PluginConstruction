@@ -4,7 +4,8 @@
 
 #define LOCTEXT_NAMESPACE "FUniversalCoreAssetsModule"
 
-DEFINE_LOG_CATEGORY(LogUniverisalCoreAssets);
+DEFINE_LOG_CATEGORY(LogUniversalCoreAssets);
+DEFINE_LOG_CATEGORY(LogUniversalAbilitySystem);
 
 void FUniversalCoreAssetsModule::StartupModule()
 {
